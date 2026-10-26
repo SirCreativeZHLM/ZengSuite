@@ -1,0 +1,9 @@
+{
+  "id": "contacts",
+  "name": "People",
+  "tagline": "Your people, and when you last spoke. Relationship rhythm, smart groups, vCard and CSV, no account.",
+  "msEquivalent": "People",
+  "accent": "#bf5af2",
+  "extensions": ["vcf", "zcontacts"],
+  "mime": "text/vcard"
+}

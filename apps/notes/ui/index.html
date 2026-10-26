@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>Notes</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="stylesheet" href="/kit/zeng.css"><link rel="stylesheet" href="app.css">
+<script src="/kit/icons.js"></script><script src="/kit/vendor/fflate.js"></script><script src="/kit/zeng.js"></script></head>
+<body>
+<div class="zk-app" id="app">
+  <div class="zk-toolbar zk-titlebar" id="tb"></div>
+  <div class="zk-fill zk-row" id="main">
+    <aside class="zk-sidebar" id="sidebar" aria-label="Folders"></aside>
+    <div class="zk-resizer" id="rs1"></div>
+    <section id="listpane" class="zk-col" aria-label="Notes">
+      <div id="list" tabindex="0" role="listbox" aria-label="Note list" aria-multiselectable="true"><div id="list-in"></div></div>
+      <div id="list-empty" class="zk-empty zk-hidden"></div>
+    </section>
+    <div class="zk-resizer" id="rs2"></div>
+    <section id="pane" class="zk-col zk-fill" aria-label="Note">
+      <div id="findbar" class="findbar zk-hidden">
+        <input id="fq" class="zk-input selectable" placeholder="Find in note" aria-label="Find in note"><span id="fcount" class="zk-label"></span>
+        <button class="zk-btn icon" id="fprev" title="Previous match" aria-label="Previous match"></button><button class="zk-btn icon" id="fnext" title="Next match" aria-label="Next match"></button><button class="zk-btn icon" id="fclose" title="Close" aria-label="Close find"></button>
+      </div>
+      <div id="scroll" class="zk-fill">
+        <div id="doc" class="doc">
+          <div id="dateline" class="dateline"></div>
+          <input id="title" class="title selectable" placeholder="Title" aria-label="Note title" autocomplete="off">
+          <div id="tagrow" class="tagrow"></div>
+          <div id="ed" class="selectable" contenteditable="true" spellcheck="true"></div>
+          <div id="backlinks" class="backlinks"></div>
+        </div>
+        <div id="ph" class="zk-empty zk-hidden"></div>
+      </div>
+    </section>
+  </div>
+  <div class="zk-statusbar" id="status"><span id="st-count"></span><div class="zk-spacer"></div><span id="st-words"></span><span id="st-saved" class="saved" role="status"></span></div>
+</div>
+<div id="printRoot"></div>
+<script src="util.js"></script><script src="highlight.js"></script><script src="store.js"></script><script src="crypto.js"></script>
+<script src="convert.js"></script><script src="sketch.js"></script><script src="editor.js"></script><script src="app.js"></script><script src="io.js"></script><script src="sample.js"></script><script src="boot.js"></script>
+</body></html>

@@ -1,0 +1,7 @@
+# Trip budget
+flights = 480
+hotel per night = 135
+hotel per night * 4 + flights
+20% of 85
+5 km in miles
+sum

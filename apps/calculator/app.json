@@ -1,0 +1,9 @@
+{
+  "id": "calculator",
+  "name": "Calc",
+  "tagline": "Basic, scientific, programmer, converter, dates, graphing and scratch notes, with Show Work for every result.",
+  "msEquivalent": "Windows Calculator",
+  "accent": "#12a594",
+  "extensions": [],
+  "mime": "text/plain"
+}

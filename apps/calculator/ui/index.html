@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>Calc</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="stylesheet" href="/kit/zeng.css"><link rel="stylesheet" href="app.css">
+<script src="/kit/icons.js"></script><script src="/kit/zeng.js"></script></head>
+<body>
+<div class="zk-app" id="app">
+  <div class="zk-toolbar zk-titlebar" id="toolbar">
+    <button class="zk-btn zc-mode-btn" id="mode-btn" aria-haspopup="menu" title="Change mode"><span id="mode-name">Basic</span></button>
+    <div class="zk-spacer"></div>
+    <button class="zk-btn icon" id="angle-btn" title="Angle unit (Deg, Rad, Grad)" aria-label="Angle unit" hidden></button>
+    <button class="zk-btn icon" id="hist-btn" aria-label="Show history" title="History (paper tape)" aria-pressed="false"></button>
+    <button class="zk-btn icon" id="more-btn" aria-label="Settings" title="Settings" aria-haspopup="menu"></button>
+  </div>
+  <div class="zc-stage" id="stage">
+    <section class="zc-mode" id="m-basic" hidden></section>
+    <section class="zc-mode" id="m-scientific" hidden></section>
+    <section class="zc-mode" id="m-programmer" hidden></section>
+    <section class="zc-mode" id="m-converter" hidden></section>
+    <section class="zc-mode" id="m-date" hidden></section>
+    <section class="zc-mode" id="m-graphing" hidden></section>
+    <section class="zc-mode" id="m-notes" hidden></section>
+    <aside class="zc-history" id="history" aria-label="History" hidden>
+      <header><strong>History</strong><span class="zk-spacer"></span><button class="zk-btn" id="hist-clear">Clear</button></header>
+      <div class="zc-hist-list" id="hist-list" role="list"></div>
+    </aside>
+  </div>
+</div>
+<script src="engine/dec.js"></script><script src="engine/units.js"></script><script src="engine/calc.js"></script>
+<script src="engine/state.js"></script><script src="engine/prog.js"></script><script src="engine/notes.js"></script>
+<script src="m-calc.js"></script><script src="m-prog.js"></script><script src="m-conv.js"></script><script src="m-date.js"></script><script src="m-graph.js"></script><script src="m-notes.js"></script>
+<script src="app.js"></script>
+</body></html>

@@ -1,0 +1,29 @@
+/* Slide rendering styles (shared by editor, presenter, print and HTML export). */
+.ks { position: relative; overflow: hidden; transform-origin: 0 0; font-size: 16px; line-height: 1.2; -webkit-font-smoothing: antialiased; }
+.ks .lay, .ks .objs { position: absolute; inset: 0; }
+.ks .lay { pointer-events: none; }
+.ko { position: absolute; transform-origin: 50% 50%; }
+.ko > .gfx { position: absolute; inset: 0; }
+.ko > .gfx.img { overflow: hidden; }
+.ko > .gfx.img > img { position: absolute; max-width: none; -webkit-user-drag: none; pointer-events: none; }
+.ko > svg.st { position: absolute; left: 0; top: 0; pointer-events: none; }
+.ko > .tx { position: absolute; inset: 0; display: flex; flex-direction: column; word-wrap: break-word; overflow-wrap: anywhere; }
+.ko .tb { width: 100%; }
+.tx p { margin: 0; white-space: pre-wrap; position: relative; min-height: 1em; }
+.tx p[data-mk]::before { content: attr(data-mk); position: absolute; left: var(--ind, 0); width: var(--mkw, 20px); color: var(--mkc, inherit); font-weight: 400; text-decoration: none; }
+.tx a { cursor: pointer; }
+.ko.imgph { border: 1.5px dashed rgba(128,128,128,.55); border-radius: 6px; background: rgba(128,128,128,.08); display: grid; place-content: center; }
+.ko.imgph .imgph-in { color: rgba(128,128,128,.9); font: 600 18px -apple-system, "Inter", sans-serif; }
+.ko .tbl { border-collapse: collapse; table-layout: fixed; position: absolute; left: 0; top: 0; }
+.ko .tbl td { padding: 0; overflow: hidden; }
+.ko .tbl .tx.cell { position: static; display: block; }
+.ko .chart { position: absolute; inset: 0; } .ko .chart svg { display: block; }
+.ko.media { overflow: hidden; border-radius: 4px; }
+.ko .audio-badge { position: absolute; inset: 0; display: grid; place-content: center; background: rgba(128,128,128,.18); border-radius: 12px; color: #888; }
+.ko.grp { pointer-events: none; }
+.ko.conn { pointer-events: none; }
+.ko.conn svg { pointer-events: none; }
+@media print {
+  @page { margin: 0; }
+  .ks { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}

@@ -1,0 +1,9 @@
+{
+  "id": "numbers",
+  "name": "Numbers",
+  "tagline": "Spreadsheets with formulas, tables and charts. Opens and saves .xlsx.",
+  "msEquivalent": "Excel",
+  "accent": "#30d158",
+  "extensions": ["znumbers", "xlsx", "csv", "tsv"],
+  "mime": "application/vnd.zengbot.numbers+zip"
+}

@@ -1,0 +1,159 @@
+{
+  "version": "0.1.0",
+  "repo": "SirCreativeZHLM/ZengSuite",
+  "origin": "https://zengbot.com",
+  "base": "/suite",
+  "platforms": [
+    {"key": "macos-arm64", "os": "mac", "label": "macOS", "arch": "Apple Silicon", "ext": "dmg"},
+    {"key": "macos-x64", "os": "mac", "label": "macOS", "arch": "Intel", "ext": "dmg"},
+    {"key": "windows-x64", "os": "win", "label": "Windows", "arch": "64-bit", "ext": "zip"},
+    {"key": "linux-x86_64", "os": "linux", "label": "Linux", "arch": "x86_64", "ext": "tar.gz"},
+    {"key": "linux-arm64", "os": "linux-arm", "label": "Linux", "arch": "ARM64", "ext": "tar.gz"}
+  ],
+  "sizes": {"all": null},
+  "apps": [
+    {
+      "id": "pages", "name": "Pages", "product": "ZengPages", "accent": "#ffb13b", "sizeMB": null,
+      "replaces": "the Word you don't pay for",
+      "line": "Letters, essays, reports, a whole novel. Real pages, real styles, and a .docx that opens anywhere.",
+      "caps": [
+        ["Real pages, not an endless scroll", "Page layout with headers, footers, page numbers, columns and footnotes, so what you see is what prints."],
+        ["Styles that do the work", "Paragraph and character styles, an outline sidebar and an automatic table of contents."],
+        ["Tables, images and shapes", "Drop them in, drag them where you want, wrap text around them."],
+        ["Word files in, Word files out", "Open and save .docx, export PDF, print. Nobody has to know what you wrote it in."]
+      ],
+      "formats": ["docx", "pdf", "txt", "zpages"],
+      "keys": [["Bold", "Mod+B"], ["Add a link", "Mod+K"], ["Find and replace", "Mod+F"], ["Export to PDF", "Mod+Shift+E"]]
+    },
+    {
+      "id": "numbers", "name": "Numbers", "product": "ZengNumbers", "accent": "#5be37d", "sizeMB": null,
+      "replaces": "the Excel you don't pay for",
+      "line": "Spreadsheets with a real formula engine, charts that look like someone cared, and .xlsx that round-trips.",
+      "caps": [
+        ["A real formula engine", "SUM, IF, lookups, dates, text and the rest of the everyday functions, recalculating as you type."],
+        ["Many sheets, one file", "Tabs for sheets, frozen rows and columns, sorting and filtering."],
+        ["Charts you would put on a wall", "Bar, line, pie and scatter, live-linked to the cells they draw from."],
+        ["Excel and CSV, both ways", "Open and save .xlsx, import and export .csv, export PDF."]
+      ],
+      "formats": ["xlsx", "csv", "pdf", "znumbers"],
+      "keys": [["Edit a cell", "F2"], ["Sum the selection", "Mod+Shift+T"], ["Fill down", "Mod+D"], ["New sheet", "Mod+Shift+N"]]
+    },
+    {
+      "id": "keynote", "name": "Keynote", "product": "ZengKeynote", "accent": "#5ab8ff", "sizeMB": null,
+      "replaces": "the PowerPoint you don't pay for",
+      "line": "Slides that look designed, a presenter view that helps, and .pptx files your boss can open.",
+      "caps": [
+        ["Slide navigator and layouts", "Reorder by dragging, pick a layout, keep a consistent look across the deck."],
+        ["Transitions and builds", "Smooth slide transitions and object animations that run at your display's refresh rate."],
+        ["Presenter view", "Current slide, next slide, your notes and a timer on your screen while the audience sees the deck."],
+        ["PowerPoint in, PowerPoint out", "Open and save .pptx, export PDF for handouts."]
+      ],
+      "formats": ["pptx", "pdf", "zkey"],
+      "keys": [["Play from the start", "Mod+Alt+P"], ["New slide", "Mod+Shift+N"], ["Next slide", "Right"], ["Leave the show", "Esc"]]
+    },
+    {
+      "id": "preview", "name": "Preview", "product": "ZengPreview", "accent": "#ff7ab6", "sizeMB": null,
+      "replaces": "the Acrobat you don't pay for",
+      "line": "Read, mark up, sign and reshuffle PDFs and images. No account, no \"upgrade to edit\".",
+      "caps": [
+        ["PDFs that open instantly", "Thumbnails, continuous scroll, search inside the document, zoom that stays sharp."],
+        ["Mark up and sign", "Highlight, underline, draw, add text and place your signature."],
+        ["Rearrange pages", "Reorder, rotate and delete pages, and merge several PDFs into one."],
+        ["Images too", "View, rotate, crop and convert PNG, JPEG and WebP."]
+      ],
+      "formats": ["pdf", "png", "jpg", "webp"],
+      "keys": [["Find in document", "Mod+F"], ["Zoom in", "Mod+Plus"], ["Rotate page", "Mod+R"], ["Next page", "Page Down"]]
+    },
+    {
+      "id": "text", "name": "Text", "product": "ZengText", "accent": "#d9c9ff", "sizeMB": null,
+      "replaces": "the Notepad you outgrew",
+      "line": "A plain text editor that opens a huge file before you finish blinking.",
+      "caps": [
+        ["Opens big files without choking", "Log files and exports that make other editors freeze are fine here."],
+        ["Plain or rich, your choice", "Switch a document between plain text and simple rich text."],
+        ["Find and replace with regular expressions", "Across the document, with a live count of matches."],
+        ["Any encoding", "UTF-8 by default, and it can read the older encodings your files still use."]
+      ],
+      "formats": ["txt", "md", "rtf", "html"],
+      "keys": [["Find", "Mod+F"], ["Go to line", "Mod+L"], ["Save", "Mod+S"], ["Make plain text", "Mod+Shift+T"]]
+    },
+    {
+      "id": "notes", "name": "Notes", "product": "ZengNotes", "accent": "#ffe45c", "sizeMB": null,
+      "replaces": "the OneNote you don't pay for",
+      "line": "Quick notes that stay on your computer, with folders, checklists and search that actually finds things.",
+      "caps": [
+        ["Folders and pins", "Keep notes in folders, pin the ones you open all day."],
+        ["Checklists, tables and images", "Rich notes without a rich-note learning curve."],
+        ["Search across everything", "Type and the list narrows as you go."],
+        ["Yours, on your disk", "Notes are stored locally. Export to Markdown or HTML any time."]
+      ],
+      "formats": ["md", "txt", "html"],
+      "keys": [["New note", "Mod+N"], ["Search notes", "Mod+Alt+F"], ["Checklist", "Mod+Shift+L"], ["Pin note", "Mod+Shift+P"]]
+    },
+    {
+      "id": "freeform", "name": "Freeform", "product": "ZengFreeform", "accent": "#c9a2ff", "sizeMB": null,
+      "replaces": "the whiteboard you don't pay for",
+      "line": "An endless canvas for sketches, plans and messy thinking.",
+      "caps": [
+        ["An infinite canvas", "Pan and zoom smoothly; there is no edge to run into."],
+        ["Shapes with connectors that stick", "Move a box and the arrows follow."],
+        ["Sticky notes and freehand", "Pen, highlighter, text and notes on the same board."],
+        ["Pictures and export", "Drop in images, export the board as PNG, SVG or PDF."]
+      ],
+      "formats": ["png", "svg", "pdf", "zfree"],
+      "keys": [["Pan", "Space+Drag"], ["Zoom to fit", "Mod+0"], ["New sticky note", "S"], ["Duplicate", "Mod+D"]]
+    },
+    {
+      "id": "calendar", "name": "Calendar", "product": "ZengCalendar", "accent": "#ff6b5e", "sizeMB": null,
+      "replaces": "the Outlook calendar you don't pay for",
+      "line": "Day, week, month and year, with recurring events and no account to sign into.",
+      "caps": [
+        ["Every view you expect", "Day, week, month and year, with drag to create and drag to move."],
+        ["Several calendars, one screen", "Colour-code home, work and school and toggle them on and off."],
+        ["Repeating events done properly", "Daily, weekly, monthly, yearly, with exceptions."],
+        ["Standard .ics", "Import and export so your events are never locked in."]
+      ],
+      "formats": ["ics"],
+      "keys": [["New event", "Mod+N"], ["Today", "Mod+T"], ["Day, week, month, year", "Mod+1 to 4"], ["Next period", "Mod+Right"]]
+    },
+    {
+      "id": "reminders", "name": "Reminders", "product": "ZengReminders", "accent": "#ff9a3d", "sizeMB": null,
+      "replaces": "the To Do you don't pay for",
+      "line": "Lists, due dates and nudges. The smallest possible amount of software for getting things done.",
+      "caps": [
+        ["Lists and smart lists", "Today, Scheduled and Flagged build themselves from your reminders."],
+        ["Due dates, times and repeats", "Daily, weekly, monthly, whatever your life needs."],
+        ["Subtasks", "Break a big thing into small things and tick them off."],
+        ["Offline and private", "Nothing is synced anywhere. It is a file on your computer."]
+      ],
+      "formats": ["ics", "csv"],
+      "keys": [["New reminder", "Mod+N"], ["Mark done", "Mod+Shift+D"], ["Flag", "Mod+Shift+F"], ["New list", "Mod+Alt+N"]]
+    },
+    {
+      "id": "contacts", "name": "Contacts", "product": "ZengContacts", "accent": "#a8c3ff", "sizeMB": null,
+      "replaces": "the address book you don't pay for",
+      "line": "People, with all the fields you need and none of the cloud you don't.",
+      "caps": [
+        ["Proper contact cards", "Several phones, emails and addresses, birthdays, notes and a photo."],
+        ["Groups and fast search", "Sort people into groups; type a few letters to find anyone."],
+        ["vCard and CSV", "Import from your phone or your old mail app, export whenever you like."],
+        ["Duplicates, merged", "Find the same person twice and combine the cards."]
+      ],
+      "formats": ["vcf", "csv"],
+      "keys": [["New contact", "Mod+N"], ["Search", "Mod+F"], ["Edit card", "Mod+E"], ["New group", "Mod+Shift+N"]]
+    },
+    {
+      "id": "calculator", "name": "Calculator", "product": "ZengCalculator", "accent": "#ff9f0a", "sizeMB": null,
+      "replaces": "the Calculator you already had, but better",
+      "line": "Basic, scientific and programmer modes, with a tape you can scroll back through.",
+      "caps": [
+        ["Three modes", "Basic for the till, scientific for the exam, programmer for hex, binary and bit work."],
+        ["A tape of everything you did", "Scroll back, click a result and reuse it."],
+        ["Keyboard first", "Type the whole sum and press Enter; no mouse needed."],
+        ["Copy exactly", "Results copy at full precision, not what fits on the display."]
+      ],
+      "formats": [],
+      "keys": [["Equals", "Enter"], ["Clear", "Esc"], ["Copy result", "Mod+C"], ["Switch mode", "Mod+1 to 3"]]
+    }
+  ]
+}

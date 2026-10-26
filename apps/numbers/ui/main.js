@@ -1,0 +1,1 @@
+window.appBoot().catch((e) => { console.error(e); document.body.prepend(Object.assign(document.createElement('pre'), { textContent: 'Startup error: ' + (e && e.stack || e), style: 'padding:16px;color:#c00;white-space:pre-wrap;user-select:text' })); });

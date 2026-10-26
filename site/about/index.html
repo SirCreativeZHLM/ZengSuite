@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>About ZengSuite: why it is free, MIT, no telemetry</title>
+<meta name="description" content="Why ZengSuite is free forever: MIT licensed, no telemetry, no accounts, how to contribute, and an honest list of what does not work yet.">
+<meta name="color-scheme" content="dark light">
+<meta name="theme-color" content="#000000">
+<link rel="canonical" href="https://zengbot.com/suite/about/">
+<link rel="icon" href="/suite/icon.svg" type="image/svg+xml">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="ZengSuite">
+<meta property="og:title" content="About ZengSuite: why it is free, MIT, no telemetry">
+<meta property="og:description" content="Why ZengSuite is free forever: MIT licensed, no telemetry, no accounts, how to contribute, and an honest list of what does not work yet.">
+<meta property="og:url" content="https://zengbot.com/suite/about/">
+<meta property="og:image" content="https://zengbot.com/suite/og/default.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preload" href="/suite/fonts/bricolage.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/zb.css">
+<link rel="stylesheet" href="/suite/css/suite.css">
+<script src="/zb.js" defer></script>
+<script src="/suite/js/suite.js" defer></script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<div data-zb-top data-zb-name="About" data-zb-links="Apps|/suite/#apps,Download|/suite/download/,About|/suite/about/"></div>
+<main id="main">
+
+<div class="wrap page-h"><h1>Why it's free.</h1><p class="lead">Because writing a letter should not be a subscription.</p></div>
+<div class="wrap prose" style="padding-bottom:96px">
+<h2>The short version</h2>
+<p>Everyone needs a word processor, a spreadsheet and a way to show slides. Those are solved problems, and charging rent for them forever is a choice, not a necessity. We would rather make them and give them away.</p>
+<h2>MIT licensed</h2>
+<p>All of the code is under the <a href="https://github.com/SirCreativeZHLM/ZengSuite/blob/main/LICENSE" rel="noopener">MIT license</a>. Use it, change it, sell it, fork it. There is no paid edition and no feature that is held back for one.</p>
+<h2>No telemetry, no accounts</h2>
+<p>The apps do not phone home. No analytics, no crash reporter, no sign-in, no ads, no upsell screens. They work offline and they never need a network. All the marketing is on this website, and none of it is in the software.</p>
+<h2>How to contribute</h2>
+<ul>
+<li><strong>Use it and report what breaks.</strong> <a href="https://github.com/SirCreativeZHLM/ZengSuite/issues" rel="noopener">Open an issue</a> with the app, your system and the file that misbehaved, if you can share it.</li>
+<li><strong>Send a pull request.</strong> Each app is a small Rust crate with a web UI on top of a shared kit; the contract is written down in <code>docs/KIT.md</code> in the repository.</li>
+<li><strong>Test on your platform.</strong> Windows and Linux testing is the most useful thing a stranger can do.</li>
+<li><strong>Tell people.</strong> That is how free software wins.</li>
+</ul>
+<h2>Honest known limits</h2>
+<ul>
+<li>This is version 0.1.0. It is young software and it has rough edges.</li>
+<li>Word, Excel and PowerPoint files open and save, but very complex documents may lose features. Keep an original around for anything important.</li>
+<li>Most development happens on a Mac, so the Windows and Linux builds may be rougher.</li>
+<li>The builds are not code-signed or notarised yet. Your system will ask you to confirm the first launch.</li>
+<li>There is no email client and no real-time collaboration in the cloud.</li>
+<li>There is no automatic updater. Download the new version when you want it.</li>
+</ul>
+<h2>Names</h2>
+<p>ZengSuite is an independent project. It is not made by, or affiliated with, Microsoft or Apple. Product names are used only to say what each app is a replacement for.</p>
+</div>
+</main>
+<nav class="sitenav" aria-label="ZengSuite">
+<a href="/suite/">ZengSuite</a><a href="/suite/#apps">Apps</a><a href="/suite/download/">Download</a><a href="/suite/about/">About</a><a href="https://github.com/SirCreativeZHLM/ZengSuite" rel="noopener">Source on GitHub</a><a href="https://github.com/SirCreativeZHLM/ZengSuite/blob/main/LICENSE" rel="noopener">MIT license</a>
+</nav>
+<div data-zb-foot data-zb-note="ZengSuite is free software under the MIT license. Not affiliated with Microsoft or Apple."></div>
+</body>
+</html>

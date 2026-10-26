@@ -1,0 +1,24 @@
+const T = require('./_h');
+const S = (f, w) => T.f(f, w);
+S('=LEFT("abcdef",3)', 'abc'); S('=LEFT("abc")', 'a'); S('=RIGHT("abcdef",2)', 'ef'); S('=RIGHT("abc")', 'c'); S('=MID("abcdef",2,3)', 'bcd'); S('=MID("abc",5,2)', ''); S('=LEFT("abc",-1)', '#VALUE!'); S('=MID("abc",0,1)', '#VALUE!'); S('=LEFT(12345,2)', '12');
+S('=LEN("hello")', 5); S('=LEN("")', 0); S('=LENB("abc")', 3); S('=LEN({"a","bb"})', [[1, 2]]);
+S('=FIND("b","abcb")', 2); S('=FIND("b","abcb",3)', 4); S('=FIND("B","abc")', '#VALUE!'); S('=FIND("x","abc")', '#VALUE!'); S('=SEARCH("B","abc")', 2); S('=SEARCH("a?c","xxabcx")', 3); S('=SEARCH("*c","abc")', 1); S('=SEARCH("~?","a?b")', 2);
+S('=SUBSTITUTE("a-b-c","-","+")', 'a+b+c'); S('=SUBSTITUTE("a-b-c","-","+",2)', 'a-b+c'); S('=SUBSTITUTE("abc","","x")', 'abc'); S('=REPLACE("abcdef",3,2,"XY")', 'abXYef'); S('=REPLACE("abc",2,0,"Z")', 'aZbc');
+S('=TRIM("  a   b  ")', 'a b'); S('=CLEAN("a"&CHAR(7)&"b")', 'ab'); S('=UPPER("abC")', 'ABC'); S('=LOWER("AbC")', 'abc'); S('=PROPER("hello wORLD")', 'Hello World'); S('=PROPER("2-way street")', '2-Way Street');
+S('=EXACT("a","A")', false); S('=EXACT("a","a")', true); S('=REPT("ab",3)', 'ababab'); S('=REPT("a",-1)', '#VALUE!'); S('=REPT("a",0)', '');
+S('=CHAR(65)', 'A'); S('=CODE("A")', 65); S('=CODE("")', '#VALUE!'); S('=CHAR(0)', '#VALUE!'); S('=UNICHAR(9731)', '☃'); S('=UNICODE("A")', 65); S('=UNICODE("☃")', 9731);
+S('=CONCAT("a",1,TRUE)', 'a1TRUE'); S('=CONCATENATE("a","b")', 'ab'); S('=CONCAT({"x","y"},"z")', 'xyz');
+T.fill('A1', [['a'], [null], ['b'], ['c']]);
+S('=TEXTJOIN(",",TRUE,"a","","b")', 'a,b'); S('=TEXTJOIN(",",FALSE,"a","","b")', 'a,,b'); S('=TEXTJOIN("-",TRUE,A1:A4)', 'a-b-c'); S('=TEXTJOIN("-",FALSE,A1:A4)', 'a--b-c'); S('=TEXTJOIN({"+","-"},TRUE,1,2,3)', '1+2-3');
+S('=TEXT(1234.5,"#,##0.00")', '1,234.50'); S('=TEXT(0.256,"0.0%")', '25.6%'); S('=TEXT(45292,"yyyy-mm-dd")', '2024-01-01'); S('=TEXT(45292,"dddd")', 'Monday'); S('=TEXT(-1,"yyyy")', '#VALUE!'); S('=TEXT(5,"000")', '005'); S('=TEXT("abc","0")', 'abc'); S('=TEXT(0.5,"h:mm AM/PM")', '12:00 PM'); S('=TEXT(1,"")', ''); S('=TEXT(1234,"General")', '1234'); S('=TEXT(TRUE,"0")', 'TRUE'); S('=TEXT(3.14159,"0.00")&"x"', '3.14x');
+S('=VALUE("1,000")', 1000); S('=VALUE("12%")', 0.12); S('=VALUE("abc")', '#VALUE!'); S('=VALUE("$1,234.50")', 1234.5); S('=VALUE("")', '#VALUE!'); S('=VALUE(" 42 ")', 42); S('=VALUE("1/1/2008")', 39448); S('=VALUE("12:00")', 0.5); S('=VALUE("(5)")', -5);
+S('=NUMBERVALUE("2.500,27",",",".")', 2500.27); S('=NUMBERVALUE("3.5%")', 0.035); S('=NUMBERVALUE("")', 0); S('=NUMBERVALUE("1 234.5")', 1234.5); S('=NUMBERVALUE("abc")', '#VALUE!');
+S('=FIXED(1234.567,1)', '1,234.6'); S('=FIXED(1234.567,-1,TRUE)', '1230'); S('=FIXED(-1234.567,0)', '-1,235'); S('=FIXED(44.332)', '44.33'); S('=DOLLAR(1234.567,2)', '$1,234.57'); S('=DOLLAR(-1234.567,2)', '($1,234.57)'); S('=DOLLAR(1234.567,-2)', '$1,200'); S('=DOLLAR(0.5)', '$0.50');
+S('=TEXTSPLIT("a,b,c",",")', [['a', 'b', 'c']]); S('=TEXTSPLIT("a,b;c,d",",",";")', [['a', 'b'], ['c', 'd']]); S('=TEXTSPLIT("a,b;c",",",";")', [['a', 'b'], ['c', '#N/A']]); S('=TEXTSPLIT("a,,b",",",,TRUE)', [['a', 'b']]); S('=TEXTSPLIT("a,,b",",")', [['a', '', 'b']]); S('=TEXTSPLIT("a;b",,";")', [['a'], ['b']]); S('=TEXTSPLIT("a1b2c",{"1","2"})', [['a', 'b', 'c']]); S('=TEXTSPLIT("a,b;c",",",";",FALSE,0,"-")', [['a', 'b'], ['c', '-']]);
+S('=TEXTBEFORE("a-b-c","-")', 'a'); S('=TEXTAFTER("a-b-c","-")', 'b-c'); S('=TEXTBEFORE("a-b-c","-",-1)', 'a-b'); S('=TEXTAFTER("a-b-c","-",2)', 'c'); S('=TEXTBEFORE("abc","x")', '#N/A'); S('=TEXTBEFORE("abc","x",,,,"none")', 'none'); S('=TEXTAFTER("aXb","x",1,1)', 'b'); S('=TEXTAFTER("a-b","-",0)', '#VALUE!'); S('=TEXTAFTER("a-b","-",3)', '#VALUE!'.length ? '#N/A' : ''); S('=TEXTBEFORE("a-b","-",2,0,1)', 'a-b');
+S('=REGEXTEST("abc123","\\d+")', true); S('=REGEXTEST("abc","\\d+")', false); S('=REGEXTEST("ABC","abc",1)', true); S('=REGEXEXTRACT("abc123def","\\d+")', '123'); S('=REGEXEXTRACT("abc","\\d+")', '#N/A'); S('=REGEXEXTRACT("a1b22","\\d+",1)', [['1'], ['22']]); S('=REGEXEXTRACT("k=v","(\\w)=(\\w)",2)', [['k', 'v']]); S('=REGEXREPLACE("a1b2","\\d","#")', 'a#b#'); S('=REGEXREPLACE("a1b2","\\d","#",2)', 'a1b#'); S('=REGEXREPLACE("john smith","(\\w+) (\\w+)","$2 $1")', 'smith john');
+S('=ENCODEURL("a b&c")', 'a%20b%26c'); S('=ARRAYTOTEXT({1,2;3,4})', '1, 2, 3, 4'); S('=ARRAYTOTEXT({1,"a"},1)', '{1,"a"}'); S('=VALUETOTEXT("a",1)', '"a"'); S('=VALUETOTEXT("a")', 'a'); S('=ASC("ＡＢ")', 'AB'); S('=JIS("AB")', 'ＡＢ');
+S('=LEFT({"abc","de"},2)', [['ab', 'de']]); S('=UPPER(A1:A2)', [['A'], ['']]); S('=LEN(#N/A)', '#N/A');
+T.ok(['CONCAT', 'TEXTJOIN', 'TEXT', 'TEXTSPLIT', 'REGEXREPLACE', 'FIXED'].every((n) => ZN_has(n)), 'registered');
+function ZN_has(n) { const d = T.ZN.fn.get(n); return d && d.cat === 'Text' && d.hint && d.desc; }
+T.done('text');

@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>Todo</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="stylesheet" href="/kit/zeng.css"><link rel="stylesheet" href="app.css">
+<script src="/kit/icons.js"></script><script src="icons-extra.js"></script><script src="/kit/zeng.js"></script></head>
+<body>
+<div class="zk-app" id="app">
+  <div class="zk-toolbar zk-titlebar">
+    <button class="zk-btn icon" id="b-side" aria-label="Toggle sidebar" title="Toggle Sidebar"></button>
+    <div class="zk-title" data-doc-title>Todo</div>
+    <button class="zr-badge zk-hidden" id="badge" title="Show overdue reminders"></button>
+    <div class="zk-spacer"></div>
+    <button class="zk-btn icon" id="b-sort" aria-label="Sort" title="Sort"></button>
+    <button class="zk-btn icon" id="b-group" aria-label="Group by" title="Group By"></button>
+    <button class="zk-btn icon" id="b-done" aria-label="Show completed" title="Show Completed" aria-pressed="false"></button>
+    <button class="zk-btn icon" id="b-insp" aria-label="Details" title="Details (⌘I)" aria-pressed="false"></button>
+    <button class="zk-btn icon primary" id="b-new" aria-label="New reminder" title="New Reminder (⌘N)"></button>
+  </div>
+  <div class="zr-body zk-row zk-fill" id="body">
+    <aside class="zr-side" id="side" aria-label="Lists"></aside>
+    <div class="zr-scrim" id="side-scrim"></div>
+    <main class="zr-main zk-col zk-fill" id="main" aria-label="Tasks">
+      <div class="zr-scroll zk-fill" id="scroll"><div class="zr-inner" id="inner"></div></div>
+      <div class="zr-bulk zk-hidden" id="bulk" role="toolbar" aria-label="Bulk edit"></div>
+      <div class="zk-statusbar"><span id="stat"></span><div class="zk-spacer"></div><span id="saved"></span></div>
+    </main>
+    <aside class="zr-insp zk-hidden" id="insp" aria-label="Reminder details"></aside>
+  </div>
+  <div class="zr-banners" id="banners" aria-live="polite"></div>
+  <div class="zr-toasts" id="toasts" aria-live="polite"></div>
+</div>
+<div id="print"></div>
+<script src="dates.js"></script><script src="recur.js"></script><script src="parser.js"></script><script src="io.js"></script><script src="views.js"></script>
+<script src="store.js"></script><script src="anim.js"></script><script src="core.js"></script><script src="pickers.js"></script><script src="sidebar.js"></script><script src="list.js"></script><script src="inspector.js"></script><script src="notify.js"></script><script src="app.js"></script>
+</body></html>

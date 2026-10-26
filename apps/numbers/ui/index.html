@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>Numbers</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="stylesheet" href="/kit/zeng.css"><link rel="stylesheet" href="app.css">
+<script src="/kit/icons.js"></script><script src="/kit/vendor/fflate.js"></script><script src="/kit/zeng.js"></script>
+<script src="engine/core.js"></script>
+<script src="engine/formula.js"></script>
+<script src="engine/model.js"></script>
+<script src="engine/fmt.js"></script>
+<script src="engine/functions-math.js"></script>
+<script src="engine/functions-stat.js"></script>
+<script src="engine/functions-logic.js"></script>
+<script src="engine/functions-lookup.js"></script>
+<script src="engine/functions-text.js"></script>
+<script src="engine/functions-date.js"></script>
+<script src="engine/functions-fin.js"></script>
+<script src="engine/functions-db.js"></script>
+<script src="engine/functions-info.js"></script>
+<script src="engine/functions-array.js"></script>
+<script src="engine/cf.js"></script>
+<script src="engine/charts.js"></script>
+<script src="engine/tools.js"></script>
+<script src="engine/csv.js"></script>
+<script src="engine/xlsx.js"></script>
+<script src="engine/io.js"></script>
+<script src="engine/xray.js"></script>
+<script src="engine/templates.js"></script>
+</head>
+<body>
+<div class="zk-app" id="app">
+  <div class="zk-toolbar zk-titlebar" id="titlebar">
+    <div class="zk-title" data-doc-title>Untitled</div>
+    <div class="zk-spacer"></div>
+    <div class="zk-group" id="tb-main"></div>
+  </div>
+  <div class="zk-secondary fmtbar" id="fmtbar"></div>
+  <div class="fbar" id="fbar">
+    <input class="namebox selectable" id="namebox" aria-label="Name box" spellcheck="false" autocomplete="off">
+    <div class="fbtns" id="fbtns"></div>
+    <div class="finput-wrap"><input class="finput selectable" id="finput" aria-label="Formula bar" spellcheck="false" autocomplete="off"></div>
+  </div>
+  <div class="zk-row zk-fill" id="main">
+    <div class="zk-col zk-fill" id="gridcol">
+      <div id="scroller"><div id="stage"><canvas id="cv"></canvas><div id="chartclip"><div id="chartlayer"></div></div><div id="overlay"></div></div><div id="spacer"></div></div>
+      <div id="tabsbar"><div id="tabs"></div></div>
+    </div>
+    <aside class="zk-inspector" id="inspector"></aside>
+  </div>
+  <div class="zk-statusbar" id="statusbar"><span id="st-msg"></span><div class="zk-spacer"></div><span id="st-stats"></span><span class="st-zoom"><button class="zk-btn icon" id="z-out" aria-label="Zoom out"></button><input type="range" class="zk-range" id="z-range" min="25" max="300" step="5" value="100" aria-label="Zoom"><button class="zk-btn icon" id="z-in" aria-label="Zoom in"></button><span id="z-val">100%</span></span></div>
+</div>
+<textarea id="kb" aria-label="Spreadsheet keyboard input" spellcheck="false" autocapitalize="off" autocomplete="off"></textarea>
+<script src="grid.js"></script><script src="app.js"></script><script src="dialogs.js"></script><script src="panels.js"></script><script src="xray-ui.js"></script><script src="main.js"></script></body></html>

@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://zengbot.com/suite/sitemap.xml

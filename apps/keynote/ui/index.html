@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>Keynote</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="stylesheet" href="/kit/zeng.css"><link rel="stylesheet" href="render.css"><link rel="stylesheet" href="app.css"><link rel="stylesheet" href="present.css">
+<script src="/kit/icons.js"></script><script src="/kit/vendor/fflate.js"></script><script src="/kit/zeng.js"></script></head>
+<body>
+<div class="zk-app" id="app">
+  <div class="zk-toolbar zk-titlebar" id="toolbar">
+    <button class="zk-btn icon" id="b-nav" title="Toggle Slide Navigator" aria-label="Toggle slide navigator"></button>
+    <div class="tbg" id="tb-left"></div>
+    <div class="zk-spacer"></div>
+    <div class="zk-title" data-doc-title>Untitled</div>
+    <div class="zk-spacer"></div>
+    <div class="tbg" id="tb-mid"></div>
+    <div class="zk-sep"></div>
+    <div class="tbg" id="tb-right"></div>
+  </div>
+  <div class="zk-row zk-fill" id="main">
+    <div class="zk-sidebar" id="nav" role="listbox" aria-label="Slides" tabindex="0"></div>
+    <div class="zk-resizer" id="rz-nav"></div>
+    <div class="zk-col zk-fill" id="center">
+      <div id="modebar" class="zk-hidden"></div>
+      <div id="stagewrap" class="zk-fill">
+        <div id="ruler-h" class="ruler"></div><div id="ruler-v" class="ruler"></div><div id="ruler-c"></div>
+        <div id="stage"><div id="board"><div id="slidewrap"><div id="sl"></div><div id="ov"></div></div></div></div>
+      </div>
+      <div id="notes-wrap"><div class="zk-resizer-h" id="rz-notes"></div><textarea id="notes" class="selectable" placeholder="Click to add presenter notes" spellcheck="true" aria-label="Presenter notes"></textarea></div>
+      <div class="zk-statusbar"><span id="st-slide"></span><div class="zk-spacer"></div><span id="st-sel"></span><div class="zk-spacer"></div><button class="zk-btn" id="st-zoom" title="Zoom"></button></div>
+    </div>
+    <div class="zk-resizer" id="rz-insp"></div>
+    <div class="zk-inspector" id="insp"></div>
+  </div>
+</div>
+<div id="print-root"></div>
+<script src="shapes.js"></script><script src="themes.js"></script><script src="model.js"></script><script src="chart.js"></script><script src="render.js"></script>
+<script src="canvasdraw.js"></script><script src="present.js"></script><script src="pptx.js"></script><script src="formats.js"></script>
+<script src="editor.js"></script><script src="textedit.js"></script><script src="cmds.js"></script><script src="nav.js"></script><script src="inspector.js"></script><script src="app.js"></script>
+</body></html>

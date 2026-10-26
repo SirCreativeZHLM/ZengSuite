@@ -132,7 +132,7 @@
   const criteria = (crit) => {
     if (crit instanceof Range || isArr(crit)) crit = scalar(crit);
     if (isErr(crit)) return (v) => isErr(v) && v.code === crit.code;
-    if (typeof crit === 'number') return (v) => typeof v === 'number' && v === crit;
+    if (typeof crit === 'number') return (v) => (typeof v === 'number' && v === crit) || (typeof v === 'string' && NUMRE.test(v.trim()) && parseFloat(v) === crit);
     if (typeof crit === 'boolean') return (v) => typeof v === 'boolean' && v === crit;
     if (crit == null) return (v) => v == null || v === '' ? false : v === 0 ? true : false;
     let s = String(crit), op = '=';
@@ -142,7 +142,7 @@
     if (op === '=' || op === '<>') {
       let test;
       if (s === '' ) test = (v) => v == null || v === '';
-      else if (num) test = (v) => (typeof v === 'number' && v === n) || (typeof v === 'string' && NUMRE.test(v.trim()) && parseFloat(v) === n && false);
+      else if (num) test = (v) => (typeof v === 'number' && v === n) || (typeof v === 'string' && NUMRE.test(v.trim()) && parseFloat(v) === n);
       else if (/^(TRUE|FALSE)$/i.test(s)) { const b = s.toUpperCase() === 'TRUE'; test = (v) => typeof v === 'boolean' && v === b; }
       else if (hasWild(s)) { const re = wildRe(s); test = (v) => typeof v === 'string' && re.test(v); }
       else { const l = s.toLowerCase(); test = (v) => typeof v === 'string' && v.toLowerCase() === l; }

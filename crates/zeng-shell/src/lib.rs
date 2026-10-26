@@ -341,6 +341,16 @@ fn handle(v: &Value, st: &mut State, window: &Window, view: &WebView, proxy: &Ev
             let _ = window.drag_window();
             Ok(Value::Null)
         }
+        // Additive: lets an app resize/pin its window (calculator switches size per mode).
+        "window_size" => {
+            let f = |k: &str, d: f64| v[k].as_f64().unwrap_or(d);
+            let (w, h) = (f("w", 800.0), f("h", 600.0));
+            window.set_resizable(true);
+            window.set_min_inner_size(Some(LogicalSize::new(f("min_w", w), f("min_h", h))));
+            window.set_inner_size(LogicalSize::new(w, h));
+            window.set_resizable(v["resizable"].as_bool().unwrap_or(true));
+            Ok(Value::Null)
+        }
         "maximize" => {
             window.set_maximized(!window.is_maximized());
             Ok(Value::Null)

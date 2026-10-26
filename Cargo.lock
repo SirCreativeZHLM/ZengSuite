@@ -3113,6 +3113,86 @@ dependencies = [
 ]
 
 [[package]]
+name = "zeng-calculator"
+version = "0.1.0"
+dependencies = [
+ "include_dir",
+ "zeng-shell",
+]
+
+[[package]]
+name = "zeng-calendar"
+version = "0.1.0"
+dependencies = [
+ "include_dir",
+ "zeng-shell",
+]
+
+[[package]]
+name = "zeng-contacts"
+version = "0.1.0"
+dependencies = [
+ "include_dir",
+ "zeng-shell",
+]
+
+[[package]]
+name = "zeng-freeform"
+version = "0.1.0"
+dependencies = [
+ "include_dir",
+ "zeng-shell",
+]
+
+[[package]]
+name = "zeng-keynote"
+version = "0.1.0"
+dependencies = [
+ "include_dir",
+ "zeng-shell",
+]
+
+[[package]]
+name = "zeng-notes"
+version = "0.1.0"
+dependencies = [
+ "include_dir",
+ "zeng-shell",
+]
+
+[[package]]
+name = "zeng-numbers"
+version = "0.1.0"
+dependencies = [
+ "include_dir",
+ "zeng-shell",
+]
+
+[[package]]
+name = "zeng-pages"
+version = "0.1.0"
+dependencies = [
+ "include_dir",
+ "zeng-shell",
+]
+
+[[package]]
+name = "zeng-preview"
+version = "0.1.0"
+dependencies = [
+ "include_dir",
+ "zeng-shell",
+]
+
+[[package]]
+name = "zeng-reminders"
+version = "0.1.0"
+dependencies = [
+ "include_dir",
+ "zeng-shell",
+]
+
+[[package]]
 name = "zeng-shell"
 version = "0.1.0"
 dependencies = [

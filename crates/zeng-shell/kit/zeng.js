@@ -26,7 +26,7 @@
     for (const k in attrs || {}) {
       const v = attrs[k]; if (v == null || v === false) continue;
       if (k.startsWith('on')) e.addEventListener(k.slice(2).toLowerCase(), v);
-      else if (k === 'style' && typeof v === 'object') Object.assign(e.style, v);
+      else if (k === 'style' && typeof v === 'object') { for (const sk in v) { if (v[sk] == null) continue; sk.startsWith('--') ? e.style.setProperty(sk, v[sk]) : (e.style[sk] = v[sk]); } }
       else if (k === 'html') e.innerHTML = v; else if (k === 'class') e.className += ' ' + v;
       else if (k in e && k !== 'list') e[k] = v; else e.setAttribute(k, v === true ? '' : v);
     }
@@ -115,7 +115,7 @@
   };
   const accelLabel = (a) => {
     if (!a) return ''; const mac = zeng.platform === 'mac';
-    return a.split('+').map((p) => ({ cmdorctrl: mac ? '⌘' : 'Ctrl', cmd: '⌘', ctrl: mac ? '⌃' : 'Ctrl', shift: mac ? '⇧' : 'Shift', alt: mac ? '⌥' : 'Alt', option: mac ? '⌥' : 'Alt' }[p.toLowerCase()] || (p.length === 1 ? p.toUpperCase() : p))).join(mac ? '' : '+');
+    return a.split('+').map((p) => ({ cmdorctrl: mac ? '⌘' : 'Ctrl', cmd: '⌘', ctrl: mac ? '⌃' : 'Ctrl', shift: mac ? '⇧' : 'Shift', alt: mac ? '⌥' : 'Alt', option: mac ? '⌥' : 'Alt', backspace: mac ? '⌫' : 'Backspace' }[p.toLowerCase()] || (p.length === 1 ? p.toUpperCase() : p))).join(mac ? '' : '+');
   };
   zk.accelLabel = accelLabel;
   // zk.menu(items, {anchor|x,y}) — items: {label,run,accel,checked,enabled,separator,submenu,icon}
@@ -126,9 +126,9 @@
         if (it.separator) return box.append(zk.el('.zk-msep'));
         const dis = it.enabled === false || (typeof it.enabled === 'function' && !it.enabled());
         const row = zk.el('.zk-mi' + (dis ? '.disabled' : ''), { role: 'menuitem' });
-        if (it.checked) row.append(Object.assign(zk.icon('check'), { className: 'zi chk' }));
+        if (it.checked) row.append((() => { const i = zk.icon('check'); i.setAttribute('class', 'zi chk'); return i; })());
         row.append(zk.el('span', it.label)); if (it.accel) row.append(zk.el('span.accel', accelLabel(it.accel)));
-        if (it.submenu) { row.append(Object.assign(zk.icon('chevron-right'), { className: 'zi sub' })); }
+        if (it.submenu) { row.append((() => { const i = zk.icon('chevron-right'); i.setAttribute('class', 'zi sub'); return i; })()); }
         row.addEventListener('pointerenter', () => { [...box.children].forEach((c) => c.classList.remove('hl')); row.classList.add('hl'); box.querySelectorAll(':scope > .zk-submenu').forEach((s) => s.remove());
           if (it.submenu && !dis) { const sm = zk.el('.zk-pop.zk-submenu', { style: { animation: 'none' } }, build(it.submenu, depth + 1)); document.body.append(sm); const rr = row.getBoundingClientRect(); sm.style.top = Math.min(rr.top - 5, innerHeight - sm.offsetHeight - 8) + 'px'; sm.style.left = (rr.right + sm.offsetWidth + 4 < innerWidth ? rr.right - 2 : rr.left - sm.offsetWidth + 2) + 'px'; row._sm = sm; box.dataset.sm = '1'; (box._subs ||= []).push(sm); } });
         row.addEventListener('pointerleave', (e) => { if (!it.submenu) row.classList.remove('hl'); });
@@ -202,7 +202,7 @@
     if (e.defaultPrevented || openPop && e.key === 'Escape') return;
     // On macOS the native menu already handles menu accelerators; page-level shortcuts still run here.
     for (const s of shortcutList) if (matches(e, s.a)) { e.preventDefault(); s.fn(e); return; }
-    if (zeng.platform !== 'mac' || !native) for (const [, it] of menuItems) if (it.accel && !it._a) it._a = parseAccel(it.accel); else if (it._a && matches(e, it._a) && it.enabled !== false && it.run) { if (sheetN) return; e.preventDefault(); it.run(); return; }
+    if (zeng.platform !== 'mac' || !native) for (const [, it] of menuItems) { if (it.accel && !it._a) it._a = parseAccel(it.accel); if (it._a && matches(e, it._a) && it.enabled !== false && it.run) { if (sheetN) return; e.preventDefault(); it.run(); return; } }
   }, true);
   const strip = (items) => items.map((it) => (it.separator ? { separator: true } : { id: it.id, label: it.label, accel: it.accel, checked: it.checked, enabled: typeof it.enabled === 'function' ? it.enabled() : it.enabled, submenu: it.submenu && strip(it.submenu) }));
   const index = (items) => items.forEach((it) => { if (it.separator) return; if (!it.id) it.id = 'm' + zk.uid(); menuItems.set(it.id, it); it.submenu && index(it.submenu); });

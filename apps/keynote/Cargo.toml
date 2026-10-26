@@ -1,0 +1,14 @@
+[package]
+name = "zeng-keynote"
+description = "ZengKeynote — presentations"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[[bin]]
+name = "zengkeynote"
+path = "src/main.rs"
+
+[dependencies]
+zeng-shell = { workspace = true }
+include_dir = { workspace = true }

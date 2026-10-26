@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>Freeform</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="stylesheet" href="/kit/zeng.css"><link rel="stylesheet" href="app.css">
+<script src="/kit/icons.js"></script><script src="/kit/vendor/fflate.js"></script><script src="/kit/zeng.js"></script></head>
+<body>
+<div class="zk-app" id="app">
+  <div class="zk-toolbar zk-titlebar" id="tb">
+    <div class="zk-title" data-doc-title>Untitled</div>
+    <div class="zk-spacer"></div>
+    <div class="zk-group"><button class="zk-btn icon" id="b-undo" title="Undo (⌘Z)"></button><button class="zk-btn icon" id="b-redo" title="Redo (⇧⌘Z)"></button></div>
+    <button class="zk-btn" id="b-zoom" title="Zoom" style="min-width:64px;font-variant-numeric:tabular-nums"><span id="zoomlbl">100%</span></button>
+    <div class="zk-sep"></div>
+    <button class="zk-btn icon" id="b-present" title="Present frames"></button>
+    <button class="zk-btn icon" id="b-export" title="Export"></button>
+    <button class="zk-btn icon" id="b-insp" title="Inspector (⌥⌘I)" aria-pressed="false"></button>
+    <button class="zk-btn icon" id="b-cmd" title="Command palette (⌘K)"></button>
+  </div>
+  <div class="zk-row zk-fill" id="work">
+    <div class="zk-fill" id="wrap">
+      <div id="stage" tabindex="0" aria-label="Canvas">
+        <canvas id="main"></canvas><canvas id="over"></canvas>
+        <div id="editlayer"></div>
+      </div>
+      <canvas id="rul-top" class="zk-hidden"></canvas><canvas id="rul-left" class="zk-hidden"></canvas>
+      <div id="tools" class="fl" role="toolbar" aria-label="Tools"></div>
+      <div id="ctxbar" class="fl zk-hidden"></div>
+      <div id="boards" class="fl"></div>
+      <div id="hud">
+        <canvas id="minimap" class="fl" width="180" height="120"></canvas>
+        <div id="zoomctl" class="fl"><button class="zk-btn icon" id="z-out" title="Zoom out (⌘−)"></button><button class="zk-btn icon" id="z-fit" title="Zoom to fit (⇧1)"></button><button class="zk-btn icon" id="z-in" title="Zoom in (⌘+)"></button><button class="zk-btn icon" id="z-map" title="Minimap" aria-pressed="true"></button></div>
+      </div>
+      <div id="presentbar" class="fl zk-hidden"><button class="zk-btn icon" id="p-prev" title="Previous (←)"></button><span id="p-count">1 / 1</span><button class="zk-btn icon" id="p-next" title="Next (→)"></button><button class="zk-btn icon" id="p-laser" title="Laser pointer"></button><button class="zk-btn icon" id="p-exit" title="Exit (Esc)"></button></div>
+    </div>
+    <div class="zk-inspector zk-hidden" id="insp" aria-label="Inspector"></div>
+  </div>
+</div>
+<div id="printroot"></div>
+<script src="js/core.js"></script><script src="js/text.js"></script><script src="js/render.js"></script><script src="js/tools.js"></script><script src="js/actions.js"></script><script src="js/io.js"></script><script src="app.js"></script></body></html>
