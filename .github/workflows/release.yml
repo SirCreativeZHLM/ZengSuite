@@ -22,7 +22,8 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
       - uses: actions/setup-node@v4
-        with: { node-version: 22 }
+        with:
+          node-version: 22
       - name: Linux build deps
         if: startsWith(matrix.os, 'ubuntu')
         run: |
@@ -32,15 +33,21 @@ jobs:
         shell: bash
         run: bash scripts/package.sh all
       - uses: actions/upload-artifact@v4
-        with: { name: ${{ matrix.name }}, path: dist/*, if-no-files-found: error }
+        with:
+          name: ${{ matrix.name }}
+          path: dist/*
+          if-no-files-found: error
   publish:
     needs: build
     runs-on: ubuntu-latest
     steps:
       - uses: actions/download-artifact@v4
-        with: { path: dist, merge-multiple: true }
+        with:
+          path: dist
+          merge-multiple: true
       - name: Create / update the GitHub release
-        env: { GH_TOKEN: '${{ github.token }}' }
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           TAG="${GITHUB_REF_NAME:-v0.1.0}"
           gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1 || gh release create "$TAG" --repo "$GITHUB_REPOSITORY" --title "ZengSuite ${TAG#v}" --notes "Free, open-source office suite for macOS, Windows and Linux. Not notarized yet: on macOS right-click the app and choose Open the first time; on Windows choose More info > Run anyway."
