@@ -1,0 +1,21 @@
+[workspace]
+resolver = "2"
+members = ["crates/zeng-shell", "apps/*"]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+authors = ["ZengSuite contributors"]
+repository = "https://github.com/SirCreativeZHLM/ZengSuite"
+
+[workspace.dependencies]
+zeng-shell = { path = "crates/zeng-shell" }
+include_dir = "0.7"
+
+[profile.release]
+strip = "symbols"
+lto = "thin"
+codegen-units = 4
+opt-level = "s"
+panic = "abort"

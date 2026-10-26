@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>Text</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="stylesheet" href="/kit/zeng.css"><link rel="stylesheet" href="app.css">
+<script src="/kit/icons.js"></script><script src="/kit/zeng.js"></script></head>
+<body>
+<div class="zk-app" id="app">
+  <div class="zk-toolbar zk-titlebar">
+    <div class="zk-title" data-doc-title>Untitled</div>
+    <div class="zk-spacer"></div>
+    <div class="zk-seg" id="mode"><button data-m="plain">Plain</button><button data-m="rich">Rich</button></div>
+    <button class="zk-btn icon" id="find-btn" title="Find"></button>
+  </div>
+  <div class="zk-secondary zk-hidden" id="findbar">
+    <input class="zk-input selectable" id="q" placeholder="Find" style="width:200px">
+    <input class="zk-input selectable" id="r" placeholder="Replace" style="width:200px">
+    <button class="zk-btn bordered" id="next">Next</button><button class="zk-btn bordered" id="repl">Replace</button><button class="zk-btn bordered" id="all">Replace All</button>
+    <span class="zk-label" id="count"></span><div class="zk-spacer"></div><button class="zk-btn icon" id="fclose"></button>
+  </div>
+  <div class="zk-fill zk-col"><textarea id="plain" class="selectable" spellcheck="true" autofocus></textarea><div id="rich" class="selectable zk-hidden" contenteditable="true" spellcheck="true"></div></div>
+  <div class="zk-statusbar"><span id="stats"></span><div class="zk-spacer"></div><span id="where"></span></div>
+</div>
+<script src="app.js"></script></body></html>
