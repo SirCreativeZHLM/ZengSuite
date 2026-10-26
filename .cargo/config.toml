@@ -1,0 +1,5 @@
+# Keep build output small: the suite must not eat the user's disk.
+[build]
+incremental = false
+[profile.dev]
+debug = 0

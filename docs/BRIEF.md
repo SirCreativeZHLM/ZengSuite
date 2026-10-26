@@ -18,3 +18,6 @@ You own exactly one directory: `apps/<id>/`. You are building a **complete, ship
 
 ## Visual quality bar
 Study how Apple's apps look: generous but dense-enough layout, translucent toolbar, tiny hairlines, SF-style type scale (13px UI, 11px secondary), 28px controls, 8px radii, springs on sheets/popovers, selected states in accent colour. Use the `apple-design` skill principles (response, direct manipulation, interruptibility, restraint). Make it beautiful at 1x and 2x, in light and dark.
+
+## Disk budget (hard rule)
+The user must keep ≥130 GB free. Whole-suite build output must stay under ~3 GB. Never create node_modules inside the repo; in scratch, delete `node_modules` after copying what you vendor. No video/large binary fixtures (>5 MB). Don't build for other targets or architectures locally (CI does that). `.cargo/config.toml` already disables incremental builds and debug info — keep it. Delete test artefacts (screenshots, generated big docs) when done.
