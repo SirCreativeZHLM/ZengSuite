@@ -1,4 +1,4 @@
-/* ZengPages tables: insert, grid-aware row/column ops, merge/split, shading/borders, column resize by pointer. */
+/* ZengWrite tables: insert, grid-aware row/column ops, merge/split, shading/borders, column resize by pointer. */
 (() => {
   'use strict';
   const P = window.P, flow = P.flow;

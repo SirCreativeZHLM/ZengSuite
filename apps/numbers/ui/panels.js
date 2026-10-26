@@ -1,4 +1,4 @@
-/* ZengNumbers panels: toolbar, formula bar, sheet tabs, chart overlay, inspector. */
+/* ZengGrid panels: toolbar, formula bar, sheet tabs, chart overlay, inspector. */
 (function () {
   'use strict';
   const ZN = window.ZN, FM = ZN.formula, app = window.app, { MAXR, MAXC } = ZN; const el = zk.el; const $ = (s, r = document) => r.querySelector(s);
@@ -35,7 +35,7 @@
       ibtn('undo-2', 'Undo', () => A.undo(), 'tb-undo'), ibtn('redo-2', 'Redo', () => A.redo(), 'tb-redo'), sep(),
       Object.assign(ibtn('sigma', 'AutoSum', (e) => zk.menu(['SUM', 'AVERAGE', 'COUNT', 'MAX', 'MIN'].map((f) => ({ label: f === 'COUNT' ? 'Count Numbers' : f[0] + f.slice(1).toLowerCase(), run: () => A.autoSum(f) })).concat([{ separator: true }, { label: 'More Functions…', run: () => A.dlgFunctions() }]), { anchor: e.currentTarget })), {}),
       ibtn('chart-column', 'Insert Chart', (e) => zk.menu([['Column', 'column'], ['Bar', 'bar'], ['Line', 'line'], ['Area', 'area'], ['Pie', 'pie'], ['Donut', 'donut'], ['Scatter', 'scatter'], ['Combo', 'combo']].map(([l, t]) => ({ label: l, run: () => A.insertChart(t) })).concat([{ separator: true }, { label: 'Stacked Column', run: () => A.insertChart('column', 'stacked') }, { label: '100% Stacked Column', run: () => A.insertChart('column', 'percent') }, { label: 'Stacked Area', run: () => A.insertChart('area', 'stacked') }]), { anchor: e.currentTarget })),
-      ibtn('table', 'Insert Table', () => A.createTable()), ibtn('funnel', 'Filter', () => A.toggleFilter()), ibtn('square-function', 'Insert Function', () => A.dlgFunctions()), sep(),
+      ibtn('table', 'Insert Table', () => A.createTable()), ibtn('funnel', 'Filter', () => A.toggleFilter()), ibtn('scan-search', 'Formula X-ray', () => A.toggleXray(), 'tb-xray'), ibtn('square-function', 'Insert Function', () => A.dlgFunctions()), sep(),
       ibtn('panel-right', 'Inspector', () => A.toggleInspector(), 'tb-insp'));
     for (const id of ['tb-undo', 'tb-redo']) $('#' + id).disabled = true;
     // ---- format bar ----

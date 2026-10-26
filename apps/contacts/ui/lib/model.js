@@ -60,6 +60,7 @@
     const o = [...(c.org || c.nick || '')][0]; return o ? o.toUpperCase() : '?';
   }
   const PALETTE = [['#ff9a8b', '#ff5e7e'], ['#ffb347', '#ff7a18'], ['#f9d423', '#f5a623'], ['#7ee08a', '#2fb36d'], ['#5fe3c0', '#13a8a0'], ['#6fd3ff', '#2f8cff'], ['#8fa7ff', '#5b5bf0'], ['#d28bff', '#a43cf0'], ['#ff8ad8', '#e5409a'], ['#b7c0cc', '#7b8794']];
+  function hueFor(c) { let h = 7; const s = c.id || displayName(c); for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0; return [8, 24, 38, 85, 140, 165, 190, 215, 245, 270, 295, 330][h % 12]; }
   function gradientFor(c) { let h = 0; const s = c.id || displayName(c); for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0; return PALETTE[h % PALETTE.length]; }
 
   // ---------- phone / search ----------
@@ -262,5 +263,5 @@
     return list;
   }
 
-  return { uid, blank, sanitize, fold, displayName, hasName, sortKey, sectionOf, sortContacts, initials, gradientFor, PALETTE, digits, phoneKey, matchQuery, haystack, mdOf, yearOf, daysUntil, turningAge, upcomingBirthdays, FIELDS, opsFor, ruleMatch, smartMatch, findDuplicates, mergeConflicts, mergeContacts, findIssues, MONTHS, fmtDate, addrLines, addrText, labelText, sampleContacts, startOfDay, cadenceDays, cadenceLabel, dateStr, parseLocal, daysSince, dueInfo, isDue, dueList, dueText, agoText, logCatchup, nudges, clusters };
+  return { uid, blank, sanitize, fold, displayName, hasName, sortKey, sectionOf, sortContacts, initials, gradientFor, hueFor, PALETTE, digits, phoneKey, matchQuery, haystack, mdOf, yearOf, daysUntil, turningAge, upcomingBirthdays, FIELDS, opsFor, ruleMatch, smartMatch, findDuplicates, mergeConflicts, mergeContacts, findIssues, MONTHS, fmtDate, addrLines, addrText, labelText, sampleContacts, startOfDay, cadenceDays, cadenceLabel, dateStr, parseLocal, daysSince, dueInfo, isDue, dueList, dueText, agoText, logCatchup, nudges, clusters };
 });

@@ -25,7 +25,7 @@
   ZC.avatar = (c, size) => {
     const a = el('.avatar' + (c.isOrg && !c.photo ? '.org' : ''), { 'aria-hidden': 'true' });
     if (size) { a.style.width = a.style.height = size + 'px'; a.style.fontSize = Math.round(size * 0.36) + 'px'; }
-    if (c.photo) a.style.backgroundImage = photoBg(c); else { const [x, y] = M.gradientFor(c); a.style.backgroundImage = `linear-gradient(145deg, ${x}, ${y})`; a.textContent = M.initials(c); }
+    if (c.photo) { a.style.backgroundImage = photoBg(c); a.classList.add('ph'); } else { a.style.setProperty('--h', M.hueFor(c)); a.textContent = M.initials(c); }
     return a;
   };
 
@@ -82,7 +82,7 @@
     fn(); ZC.changed();
   };
   ZC.changed = () => { S._rows = null; ZC.scheduleSave(); ZC.renderAll(); };
-  const restore = (snap) => { S.contacts = snap.contacts; S.groups = snap.groups; const ids = new Set(S.contacts.map((c) => c.id)); S.sel = new Set([...S.sel].filter((i) => ids.has(i))); if (!ids.has(S.view) && !['all', 'fav', 'bday'].includes(S.view) && !S.groups.some((g) => g.id === S.view)) S.view = 'all'; if (S.cur && !ids.has(S.cur)) S.cur = null; };
+  const restore = (snap) => { S.contacts = snap.contacts; S.groups = snap.groups; const ids = new Set(S.contacts.map((c) => c.id)); S.sel = new Set([...S.sel].filter((i) => ids.has(i))); if (!ids.has(S.view) && !['all', 'fav', 'bday', 'catchup', 'map'].includes(S.view) && !S.groups.some((g) => g.id === S.view)) S.view = 'all'; if (S.cur && !ids.has(S.cur)) S.cur = null; };
   ZC.undoOne = () => { const s = S.undo.pop(); if (!s) return false; S.redo.push({ label: s.label, contacts: S.contacts, groups: S.groups, t: Date.now() }); restore(s); ZC.changed(); zk.toast('Undid ' + s.label); return true; };
   ZC.redoOne = () => { const s = S.redo.pop(); if (!s) return false; S.undo.push({ label: s.label, contacts: S.contacts, groups: S.groups, t: Date.now() }); restore(s); ZC.changed(); zk.toast('Redid ' + s.label); return true; };
   ZC.undoTo = (n) => { while (n-- > 0 && ZC.undoOne()); };
@@ -113,10 +113,10 @@
 
   // ---------- derived list ----------
   const dayKey = () => new Date().toDateString();
-  ZC.viewName = () => ({ all: 'All Contacts', fav: 'Favourites', bday: 'Birthdays' }[S.view] || (ZC.group(S.view) || {}).name || 'Contacts');
+  ZC.viewName = () => ({ all: 'All Contacts', fav: 'Favourites', bday: 'Birthdays', catchup: 'Catch up', map: 'People map' }[S.view] || (ZC.group(S.view) || {}).name || 'Contacts');
   ZC.baseList = (view = S.view) => {
     const now = Date.now();
-    if (view === 'all') return S.contacts; if (view === 'fav') return S.contacts.filter((c) => c.fav); if (view === 'bday') return S.contacts.filter((c) => c.bday);
+    if (view === 'all' || view === 'map') return S.contacts; if (view === 'catchup') return M.dueList(S.contacts, now).map((x) => x.c); if (view === 'fav') return S.contacts.filter((c) => c.fav); if (view === 'bday') return S.contacts.filter((c) => c.bday);
     const g = ZC.group(view); if (!g) return S.contacts; return g.smart ? S.contacts.filter((c) => M.smartMatch(c, g, now)) : S.contacts.filter((c) => c.groups.includes(view));
   };
   ZC.rows = () => {
@@ -125,7 +125,11 @@
     let list = ZC.baseList(); if (S.query.trim()) list = list.filter((c) => M.matchQuery(c, S.query));
     const rows = []; let y = 0; const order = [];
     const push = (r, h) => { r.y = y; r.h = h; y += h; rows.push(r); };
-    if (S.view === 'bday') {
+    if (S.view === 'catchup') {
+      const now = Date.now(); const tagged = M.dueList(list, now); let last = '';
+      for (const { c, d } of tagged) { const h = d.over >= 0 ? 'Overdue' : 'Due soon'; if (h !== last) { push({ t: 'h', k: h }, HDR_H); last = h; } push({ t: 'c', c, due: d }, ROW_H); order.push(c.id); }
+      S._letters = [];
+    } else if (S.view === 'bday') {
       const now = Date.now(); const tagged = list.map((c) => [c, M.daysUntil(c.bday, now)]).sort((a, b) => a[1] - b[1]);
       let last = ''; for (const [c, d] of tagged) { const h = d === 0 ? 'Today' : d <= 7 ? 'Next 7 Days' : d <= 30 ? 'Next 30 Days' : 'Later'; if (h !== last) { push({ t: 'h', k: h }, HDR_H); last = h; } push({ t: 'c', c, d }, ROW_H); order.push(c.id); }
       S._letters = [];
@@ -152,7 +156,7 @@
     if (extend && S.anchor) { const a = ord.indexOf(S.anchor); const [lo, hi] = a < i ? [a, i] : [i, a]; ZC.select(ord.slice(lo, hi + 1), id, { keepAnchor: true }); } else ZC.select([id], id);
   };
   ZC.selected = () => [...S.sel].map(ZC.get).filter(Boolean);
-  ZC.setView = (v) => { finishEditIfAny(); if (innerWidth < 760) $('#side').classList.remove('force'); S.view = v; S.query = ''; $('#q').value = ''; $('#qclear').hidden = true; S._rows = null; const ord = ZC.order(); S.sel = new Set(); S.cur = null; if (ord.length) { S.sel = new Set([ord[0]]); S.cur = S.anchor = ord[0]; } $('#list').scrollTop = 0; ZC.renderAll(); ZC.prefsSave(); };
+  ZC.setView = (v) => { finishEditIfAny(); if (innerWidth < 760) $('#side').classList.remove('force'); S.view = v; if (v === 'map') { S.mapSel = null; S.mapFit = true; } S.query = ''; $('#q').value = ''; $('#qclear').hidden = true; S._rows = null; const ord = ZC.order(); S.sel = new Set(); S.cur = null; if (ord.length) { S.sel = new Set([ord[0]]); S.cur = S.anchor = ord[0]; } $('#list').scrollTop = 0; ZC.renderAll(); ZC.prefsSave(); };
   ZC.prefsSave = () => ZC.scheduleSave();
 
   // ---------- list rendering (virtualised) ----------
@@ -168,12 +172,17 @@
     updateSticky(); renderIndex();
   };
   const favIcon = () => { const i = zk.icon('star'); i.setAttribute('class', 'zi fav'); return i; };
+  const qbtn = (icon, title, on) => el('button.qa-b', { type: 'button', title, 'aria-label': title, 'data-act': icon, disabled: !on }, zk.icon(icon));
   const rowEl = (r) => {
     if (r.t === 'h') return el('.row.hdr', { style: { top: r.y + 'px' }, 'aria-hidden': 'true' }, r.k);
     const c = r.c; const sel = S.sel.has(c.id);
     const nm = el('.n'); if (S.prefs.order === 'last' || c.isOrg || !c.last) nm.textContent = ZC.name(c); else { nm.append([c.prefix, c.first, c.middle].filter(Boolean).join(' ') + ' ', el('b', c.last), c.suffix ? ' ' + c.suffix : ''); }
-    let sub = c.isOrg ? '' : c.org || c.title || ''; if (r.d != null) sub = `${M.fmtDate(c.bday, true)} · ${r.d === 0 ? 'today' : r.d === 1 ? 'tomorrow' : 'in ' + r.d + ' days'}`; else if (!sub && !c.isOrg) sub = (c.phones[0] && c.phones[0].v) || (c.emails[0] && c.emails[0].v) || '';
-    const row = el('.row' + (sel ? '.sel' : ''), { role: 'option', 'aria-selected': String(sel), 'data-id': c.id, style: { top: r.y + 'px' } }, ZC.avatar(c), el('.meta', nm, sub ? el('.s', sub) : null), c.fav ? favIcon() : null);
+    let sub = c.isOrg ? '' : c.org || c.title || '';
+    const di = r.due || (c.cad ? M.dueInfo(c) : null); if (r.d != null) sub = `${M.fmtDate(c.bday, true)} · ${r.d === 0 ? 'today' : r.d === 1 ? 'tomorrow' : 'in ' + r.d + ' days'}`; else if (!sub && !c.isOrg) sub = (c.phones[0] && c.phones[0].v) || (c.emails[0] && c.emails[0].v) || '';
+    if (r.due) sub = M.dueText(r.due);
+    const qa = r.due ? el('.qa', qbtn('mail', 'Email', c.emails.length), qbtn('phone', 'Call', c.phones.length), qbtn('check', 'Mark as caught up', true)) : null;
+    const dot = !r.due && di && di.state !== 'ok' ? el('span.dot.' + di.state, { title: M.dueText(di) }) : null;
+    const row = el('.row' + (sel ? '.sel' : '') + (r.due ? '.hasqa' : ''), { role: 'option', 'aria-selected': String(sel), 'data-id': c.id, style: { top: r.y + 'px' } }, ZC.avatar(c), el('.meta', nm, sub ? el('.s' + (r.due && r.due.over >= 0 ? '.late' : ''), sub) : null), dot, c.fav && !r.due ? favIcon() : null, qa);
     return row;
   };
   const updateSticky = () => {
@@ -206,7 +215,7 @@
     });
     list.addEventListener('pointerdown', (e) => {
       if (e.button === 2 || (e.button === 0 && e.ctrlKey && zeng.platform === 'mac')) { const row = e.target.closest('.row[data-id]'); if (row && !S.sel.has(row.dataset.id)) ZC.select([row.dataset.id], row.dataset.id); return; }
-      if (e.button !== 0) return; const row = e.target.closest('.row[data-id]'); list.focus({ preventScroll: true }); if (!row) return;
+      if (e.button !== 0 || e.target.closest('.qa')) return; const row = e.target.closest('.row[data-id]'); list.focus({ preventScroll: true }); if (!row) return;
       const id = row.dataset.id, ord = ZC.order(); let collapse = null;
       if (e.metaKey || e.ctrlKey) { const s = new Set(S.sel); s.has(id) ? s.delete(id) : s.add(id); ZC.select([...s], s.has(id) ? id : [...s].pop() || null, { noScroll: true }); }
       else if (e.shiftKey && S.anchor) { const a = ord.indexOf(S.anchor), b = ord.indexOf(id); const [lo, hi] = a < b ? [a, b] : [b, a]; ZC.select(ord.slice(lo, hi + 1), id, { keepAnchor: true, noScroll: true }); }
@@ -229,6 +238,7 @@
       else if (!d.active && d.collapse) ZC.select([d.collapse], d.collapse, { noScroll: true });
     };
     list.addEventListener('pointerup', end); list.addEventListener('pointercancel', end);
+    list.addEventListener('click', (e) => { const b = e.target.closest('.qa-b'); if (!b || b.disabled) return; const id = b.closest('.row').dataset.id; ZC.quickAction(ZC.get(id), b.dataset.act); });
     list.addEventListener('dblclick', (e) => { if (e.target.closest('.row[data-id]') && S.sel.size === 1) ZC.beginEdit(); });
     list.addEventListener('contextmenu', (e) => {
       e.preventDefault(); const row = e.target.closest('.row[data-id]'); if (!row) return; const ids = [...S.sel]; const cs = ZC.selected();
@@ -254,7 +264,7 @@
   ZC.renderSidebar = () => {
     const side = $('#side'); const now = Date.now(); const cnt = {};
     const item = (id, icon, name, count, extra = {}) => {
-      const it = el('.zk-list-item' + (S.view === id ? '.sel' : ''), { 'data-gid': id, role: 'button', tabindex: 0, 'aria-current': S.view === id ? 'true' : null }, zk.icon(icon), el('span.nm', name), el('span.zk-meta', String(count)));
+      const it = el('.zk-list-item' + (S.view === id ? '.sel' : ''), { 'data-gid': id, role: 'button', tabindex: 0, 'aria-current': S.view === id ? 'true' : null }, zk.icon(icon), el('span.nm', name), el('span.zk-meta' + (extra.hot ? '.hot' : ''), String(count)));
       it.addEventListener('click', () => ZC.setView(id)); it.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); ZC.setView(id); } });
       if (extra.menu) it.addEventListener('contextmenu', (e) => { e.preventDefault(); zk.menu(extra.menu(), { x: e.clientX, y: e.clientY }); });
       return it;
@@ -264,11 +274,11 @@
     const gm = (g) => () => [{ label: 'Rename…', enabled: !g.smart, run: () => ZC.renameGroup(g) }, ...(g.smart ? [{ label: 'Edit Smart Group…', run: () => ZC.smartDialog(g) }] : []), { label: 'Export Group…', run: () => ZC.exportDialog('group', g.id) }, { label: 'Print…', run: () => { ZC.setView(g.id); ZC.printDialog(); } }, { separator: true }, { label: 'Delete Group', run: () => ZC.deleteGroup(g) }];
     const hd = (t, act) => el('.zk-heading', el('span', t), act);
     const addG = zk.btn({ icon: 'plus', title: 'New Group', onClick: () => ZC.newGroup(S.sel.size > 0 && false) }); const addS = zk.btn({ icon: 'plus', title: 'New Smart Group', onClick: () => ZC.smartDialog() });
-    const bd = M.upcomingBirthdays(S.contacts, 30, now).slice(0, 5);
-    const scroll = el('.scroll', el('.grp', item('all', 'contact', 'All Contacts', S.contacts.length), item('fav', 'star', 'Favourites', S.contacts.filter((c) => c.fav).length), item('bday', 'calendar-days', 'Birthdays', S.contacts.filter((c) => c.bday).length)),
+    const dueN = M.dueList(S.contacts, now).length; const bd = M.nudges(S.contacts, 14, now).slice(0, 5);
+    const scroll = el('.scroll', el('.grp', item('all', 'contact', 'All Contacts', S.contacts.length), item('catchup', 'bell', 'Catch up', dueN, { hot: dueN > 0 }), item('fav', 'star', 'Favourites', S.contacts.filter((c) => c.fav).length), item('bday', 'calendar-days', 'Birthdays', S.contacts.filter((c) => c.bday).length), item('map', 'share-2', 'People map', '')),
       hd('Groups', addG), el('.grp', man.map((g) => item(g.id, 'users', g.name, cnt[g.id] || 0, { menu: gm(g) })), man.length ? null : el('.zk-list-item', { style: { color: 'var(--fg-3)', fontSize: '12px', height: 'auto', padding: '4px 8px', whiteSpace: 'normal' } }, 'Drag contacts here, or add a group with +')),
       hd('Smart Groups', addS), el('.grp', smart.map((g) => item(g.id, 'sparkles', g.name, S.contacts.filter((c) => M.smartMatch(c, g, now)).length, { menu: gm(g) }))));
-    side.replaceChildren(...[scroll, bd.length ? el('.bdays', el('.zk-heading', el('span', 'Upcoming Birthdays')), bd.map((b) => { const r = el('.bd' + (b.in === 0 ? '.today' : ''), { role: 'button', tabindex: 0 }, el('span.nm', ZC.name(b.c)), el('span.when', b.in === 0 ? 'Today' : b.in === 1 ? 'Tomorrow' : M.fmtDate(b.c.bday, true))); r.onclick = () => { ZC.setView('all'); ZC.select([b.c.id], b.c.id); }; return r; })) : null].filter(Boolean));
+    side.replaceChildren(...[scroll, bd.length ? el('.bdays', el('.zk-heading', el('span', 'Coming up')), bd.map((b) => { const r = el('.bd' + (b.in === 0 ? '.today' : ''), { role: 'button', tabindex: 0, title: b.label }, zk.icon(b.kind === 'birthday' ? 'calendar-days' : 'heart', 12), el('span.nm', ZC.name(b.c)), el('span.when', b.in === 0 ? 'Today' : b.in === 1 ? 'Tomorrow' : M.fmtDate(b.date, true))); r.onclick = () => { ZC.setView('all'); ZC.select([b.c.id], b.c.id); }; return r; })) : null].filter(Boolean));
   };
   ZC.toggleSide = (on) => {
     const side = $('#side');
@@ -290,7 +300,7 @@
     const b = $('#b-edit'); const one = S.sel.size === 1 || S.editing; b.textContent = S.editing ? 'Done' : 'Edit'; b.disabled = !one; b.classList.toggle('primary', S.editing);
     $('#qclear').hidden = !S.query; $('#b-new').disabled = false;
   };
-  ZC.renderAll = () => { ZC.rows(); ZC.renderSidebar(); ZC.renderHead(); ZC.renderList(); ZC.renderCard(); ZC.renderStatus(); ZC.syncToolbar(); ZC.menusSoon(); };
+  ZC.renderAll = () => { document.getElementById('main').classList.toggle('mapmode', S.view === 'map'); ZC.rows(); ZC.renderSidebar(); ZC.renderHead(); ZC.renderList(); ZC.renderCard(); ZC.renderStatus(); ZC.syncToolbar(); ZC.menusSoon(); };
   ZC.menusSoon = () => { clearTimeout(ZC._mt); ZC._mt = setTimeout(() => ZC.buildMenus && ZC.buildMenus(), 60); };
 
   ZC.initUI = () => {

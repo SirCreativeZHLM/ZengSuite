@@ -1,4 +1,4 @@
-/* ZengPages find & replace: regex, case, whole word, highlight all (CSS Custom Highlight API where available). */
+/* ZengWrite find & replace: regex, case, whole word, highlight all (CSS Custom Highlight API where available). */
 (() => {
   'use strict';
   const P = window.P, flow = P.flow;
@@ -31,32 +31,35 @@
     if (F.cur >= 0 && F.matches[F.cur]) CSS.highlights.set('zfind-cur', new Highlight(F.matches[F.cur]));
   };
   F.clear = () => { F.matches = []; F.cur = -1; if (hasHL) { CSS.highlights.delete('zfind'); CSS.highlights.delete('zfind-cur'); } };
+  const inBar = () => document.activeElement && document.activeElement.closest && document.activeElement.closest('#findbar');
   const show = (i) => {
-    F.cur = i; const r = F.matches[i]; if (!r) { F.paint(); return; } const s = getSelection();
-    P.hfActive || flow.focus({ preventScroll: true }); s.removeAllRanges(); s.addRange(r.cloneRange()); F.paint();
-    const sc = P.$('#scroll'), rc = r.getBoundingClientRect(), sr = sc.getBoundingClientRect(); if (rc.top < sr.top + 40 || rc.bottom > sr.bottom - 40) sc.scrollTop += rc.top - sr.top - sr.height * 0.35;
+    F.cur = i; const r = F.matches[i]; if (!r) { F.paint(); return; }
+    if (!inBar()) { const s = getSelection(); if (!P.hfActive) flow.focus({ preventScroll: true }); s.removeAllRanges(); s.addRange(r.cloneRange()); }
+    F.paint(); const sc = P.$('#scroll'), rc = r.getBoundingClientRect(), sr = sc.getBoundingClientRect(); if (rc.top < sr.top + 40 || rc.bottom > sr.bottom - 40) sc.scrollTop += rc.top - sr.top - sr.height * 0.35;
   };
   F.step = (dir) => {
-    F.scan(); if (!F.matches.length) { P.ui && P.ui.findStatus && P.ui.findStatus(); return; }
-    const s = getSelection(); let i = -1;
-    if (s.rangeCount && flow.contains(s.anchorNode)) {
-      const sel = s.getRangeAt(0);
-      if (dir > 0) i = F.matches.findIndex((m) => m.compareBoundaryPoints(Range.START_TO_START, sel) > 0 || (!sel.collapsed && false) ); else { for (let k = F.matches.length - 1; k >= 0; k--) if (F.matches[k].compareBoundaryPoints(Range.END_TO_START, sel) < 0) { i = k; break; } }
-      if (dir > 0 && i < 0) i = 0; if (dir < 0 && i < 0) i = F.matches.length - 1;
-      // when current selection is exactly a match, step from it
-      const exact = F.matches.findIndex((m) => m.compareBoundaryPoints(Range.START_TO_START, sel) === 0 && m.compareBoundaryPoints(Range.END_TO_END, sel) === 0);
-      if (exact >= 0 && !sel.collapsed) i = (exact + dir + F.matches.length) % F.matches.length;
-    } else i = dir > 0 ? 0 : F.matches.length - 1;
+    const prev = F.cur >= 0 ? F.matches[F.cur] : null; const prevText = prev ? prev.toString() : null; F.scan(); if (!F.matches.length) { F.cur = -1; P.ui && P.ui.findStatus && P.ui.findStatus(); return; }
+    let i;
+    if (inBar() && prevText !== null && F.cur >= 0 && F.cur < F.matches.length) i = (F.cur + dir + F.matches.length) % F.matches.length;
+    else {
+      const s = getSelection();
+      if (s.rangeCount && flow.contains(s.anchorNode)) {
+        const sel = s.getRangeAt(0); const exact = F.matches.findIndex((m) => m.compareBoundaryPoints(Range.START_TO_START, sel) === 0 && m.compareBoundaryPoints(Range.END_TO_END, sel) === 0);
+        if (exact >= 0 && !sel.collapsed) i = (exact + dir + F.matches.length) % F.matches.length;
+        else if (dir > 0) { i = F.matches.findIndex((m) => m.compareBoundaryPoints(Range.START_TO_START, sel) >= 0); if (i < 0) i = 0; }
+        else { i = -1; for (let k = F.matches.length - 1; k >= 0; k--) if (F.matches[k].compareBoundaryPoints(Range.END_TO_START, sel) <= 0) { i = k; break; } if (i < 0) i = F.matches.length - 1; }
+      } else i = dir > 0 ? 0 : F.matches.length - 1;
+    }
     show(i); P.ui && P.ui.findStatus && P.ui.findStatus();
   };
   F.next = () => F.step(1); F.prev = () => F.step(-1);
   const replacementFor = (m) => { if (!F.regex) return F.r; const rx = re(); if (!rx) return F.r; const one = new RegExp(rx.source, rx.flags.replace('g', '')); return m.toString().replace(one, F.r); };
   F.replace = () => {
-    F.scan(); const s = getSelection(); if (!s.rangeCount) return F.next(); const sel = s.getRangeAt(0);
-    const i = F.matches.findIndex((m) => m.compareBoundaryPoints(Range.START_TO_START, sel) === 0 && m.compareBoundaryPoints(Range.END_TO_END, sel) === 0);
+    F.scan(); let i = F.cur >= 0 && F.cur < F.matches.length && inBar() ? F.cur : -1;
+    if (i < 0) { const s = getSelection(); if (s.rangeCount) { const sel = s.getRangeAt(0); i = F.matches.findIndex((m) => m.compareBoundaryPoints(Range.START_TO_START, sel) === 0 && m.compareBoundaryPoints(Range.END_TO_END, sel) === 0); } }
     if (i < 0) { F.next(); return; }
     P.checkpoint(false); const m = F.matches[i]; const txt = replacementFor(m); m.deleteContents(); m.insertNode(document.createTextNode(txt)); m.startContainer.parentNode && m.startContainer.parentNode.normalize();
-    P.changed(); P.markDirty(); F.next();
+    P.changed(); P.markDirty(); F.cur = i - 1; F.scan(); F.step(1);
   };
   F.replaceAll = () => {
     const n = F.scan(); if (!n) return 0; P.checkpoint(false);

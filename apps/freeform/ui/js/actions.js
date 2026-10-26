@@ -1,4 +1,4 @@
-/* Freeform actions: text editing, clipboard, arrange, styles, insertion, shape recognition. */
+/* Canvas actions: text editing, clipboard, arrange, styles, insertion, shape recognition. */
 (() => {
   'use strict';
   const S = FF.S, R = FF.R, $ = (s) => document.querySelector(s);
@@ -11,6 +11,20 @@
     const W = o.autoW ? 1e9 : o.w; const L = FF.layout(o, W, 1);
     if (o.autoW) o.w = Math.max(20, Math.ceil(L.w) + 6); o.h = Math.max(L.h, (o.s.fs || 24) * 1.28); o._bb = null; o._lay = null;
   };
+
+  // ---------- web-font readiness ----------
+  // Text measured before a web font (Inter) finishes loading uses fallback metrics and is cached; once fonts load,
+  // drop the measurement + layout caches, refit auto-width text and redraw.
+  FF.refreshFonts = () => {
+    if (FF.clearMeasure) FF.clearMeasure();
+    for (const B of FF.boards || []) for (const o of B.objs) { o._lay = null; o._bb = null; if (o.type === 'text' && FF.hasText(o)) FF.fitText(o); }
+    if (FF.reflow) FF.reflow(); R.cache = null; R.invalidate();
+  };
+  if (document.fonts) {
+    document.fonts.addEventListener('loadingdone', () => FF.refreshFonts());
+    const want = []; for (const w of ['400', '600']) for (const st of ['normal', 'italic']) want.push(`${st} ${w} 16px Inter`);
+    Promise.all(want.map((f) => document.fonts.load(f, 'Welcome to Canvas AaBb').catch(() => null))).then(() => document.fonts.ready).then(() => FF.refreshFonts());
+  }
 
   // ---------- inline editor ----------
   let ed = null;
@@ -133,12 +147,12 @@
   let pasteN = 0, lastCopy = null;
   FF.copy = () => { document.execCommand('copy'); return true; };
   const inEditable = (e) => { const t = e.target; return t && t.closest && t.closest('input,textarea,[contenteditable="true"]'); };
-  document.addEventListener('copy', (e) => { if (inEditable(e) || !sel().length) return; e.preventDefault(); const p = FF.serializeSel(); const text = sel().map(FF.objText).filter(Boolean).join('\n') || 'Freeform objects'; e.clipboardData.setData('text/plain', text); e.clipboardData.setData('application/x-zengfreeform', JSON.stringify(p)); lastCopy = { text, p }; pasteN = 0; });
-  document.addEventListener('cut', (e) => { if (inEditable(e) || !sel().length) return; e.preventDefault(); const p = FF.serializeSel(); const text = sel().map(FF.objText).filter(Boolean).join('\n') || 'Freeform objects'; e.clipboardData.setData('text/plain', text); e.clipboardData.setData('application/x-zengfreeform', JSON.stringify(p)); lastCopy = { text, p }; pasteN = 0; FF.deleteSel(); });
+  document.addEventListener('copy', (e) => { if (inEditable(e) || !sel().length) return; e.preventDefault(); const p = FF.serializeSel(); const text = sel().map(FF.objText).filter(Boolean).join('\n') || 'Canvas objects'; e.clipboardData.setData('text/plain', text); e.clipboardData.setData('application/x-zengcanvas', JSON.stringify(p)); lastCopy = { text, p }; pasteN = 0; });
+  document.addEventListener('cut', (e) => { if (inEditable(e) || !sel().length) return; e.preventDefault(); const p = FF.serializeSel(); const text = sel().map(FF.objText).filter(Boolean).join('\n') || 'Canvas objects'; e.clipboardData.setData('text/plain', text); e.clipboardData.setData('application/x-zengcanvas', JSON.stringify(p)); lastCopy = { text, p }; pasteN = 0; FF.deleteSel(); });
   document.addEventListener('paste', async (e) => {
     if (inEditable(e)) return; e.preventDefault(); const cd = e.clipboardData; if (!cd) return;
     const files = [...(cd.files || [])].filter((f) => /^image\//.test(f.type)); if (files.length) return FF.insertFiles(files.map((f) => ({ name: f.name || 'image.png', file: f })));
-    let raw = cd.getData('application/x-zengfreeform'); const text = cd.getData('text/plain');
+    let raw = cd.getData('application/x-zengcanvas'); const text = cd.getData('text/plain');
     let p = null; if (raw) { try { p = JSON.parse(raw); } catch {} } else if (lastCopy && text === lastCopy.text) p = lastCopy.p;
     if (p && p.objs) { pasteN++; const vc = FF.viewCenter(); const b = FF.unionBB(p.objs.filter((o) => o.type !== 'conn').map((o) => ({ ...o, _bb: null }))) || [0, 0, 0, 0]; const v = R.view, W = FF.getRect(); const vis = b[2] > v.x && b[0] < v.x + W.width / v.z && b[3] > v.y && b[1] < v.y + W.height / v.z; return FF.insertPayload(p, vis ? { offset: 24 * pasteN } : { at: vc }); }
     if (/^\s*<svg[\s>]/i.test(text)) return FF.importSVGText(text, FF.viewCenter());
@@ -226,7 +240,7 @@
     if (Math.min(w, h) < 24 / z) return null;
     const cx = (x0 + x1) / 2, cy = (y0 + y1) / 2, rx = w / 2, ry = h / 2, norm = (w + h) / 2;
     const err = { ellipse: P.reduce((s, p) => s + Math.abs(Math.hypot((p[0] - cx) / rx, (p[1] - cy) / ry) - 1) * ((rx + ry) / 2), 0) / P.length / norm };
-    const polys = { rect: [[x0, y0], [x1, y0], [x1, y1], [x0, y1]], diamond: [[cx, y0], [x1, cy], [cx, y1], [x0, cy]], triangle: [[cx, y0], [x1, y1], [x0, y1]] };
+    const polys = { rect: [[x0, y0], [x1, y0], [x1, y1], [x0, y1]], diamond: [[cx, y0], [x1, cy], [cx, y1], [x0, cy]], triangle: [[cx, y0], [x1, y1], [x0, y1]], merge: [[x0, y0], [x1, y0], [cx, y1]], rtriangle: [[x0, y0], [x1, y1], [x0, y1]] };
     for (const k in polys) err[k] = P.reduce((s, p) => s + polyDist(p[0], p[1], polys[k]), 0) / P.length / norm;
     let best = null, be = 0.085; for (const k in err) if (err[k] < be) { be = err[k]; best = k; }
     return best ? { type: 'shape', kind: best, box: [x0, y0, x1, y1] } : null;

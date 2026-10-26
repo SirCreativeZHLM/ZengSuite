@@ -3,157 +3,240 @@
   "repo": "SirCreativeZHLM/ZengSuite",
   "origin": "https://zengbot.com",
   "base": "/suite",
+  "disclaimer": "ZengSuite is an independent open-source project, not affiliated with or endorsed by Microsoft or Apple; all names, icons and designs here are original.",
   "platforms": [
-    {"key": "macos-arm64", "os": "mac", "label": "macOS", "arch": "Apple Silicon", "ext": "dmg"},
+    {"key": "macos-arm64", "os": "mac", "label": "macOS", "arch": "ARM (M1 or newer)", "ext": "dmg"},
     {"key": "macos-x64", "os": "mac", "label": "macOS", "arch": "Intel", "ext": "dmg"},
     {"key": "windows-x64", "os": "win", "label": "Windows", "arch": "64-bit", "ext": "zip"},
     {"key": "linux-x86_64", "os": "linux", "label": "Linux", "arch": "x86_64", "ext": "tar.gz"},
     {"key": "linux-arm64", "os": "linux-arm", "label": "Linux", "arch": "ARM64", "ext": "tar.gz"}
   ],
-  "sizes": {"all": null},
+  "sizes": {"each": "2", "total": "36", "look": "14"},
   "apps": [
     {
-      "id": "pages", "name": "Pages", "product": "ZengPages", "accent": "#ffb13b", "sizeMB": null,
-      "replaces": "the Word you don't pay for",
-      "line": "Letters, essays, reports, a whole novel. Real pages, real styles, and a .docx that opens anywhere.",
+      "id": "write", "dir": "pages", "name": "Write", "product": "ZengWrite", "accent": "#ff9f0a", "sizeMB": "2.1",
+      "replaces": "the word processor you don't pay for",
+      "line": "A word processor with real pages, a focus mode and a readability lens. Opens and saves .docx.",
+      "signature": ["Focus + Readability Lens", "Focus mode dims everything except the paragraph or sentence you are writing, with optional typewriter scrolling, and the interface steps out of the way. The Lens panel shows reading and speaking time, reading-ease and grade scores, long sentences, possible passive voice, doubled and overused words (click one to highlight every use) and a word count per heading. It all runs on your computer, and the checks are tuned for English."],
       "caps": [
-        ["Real pages, not an endless scroll", "Page layout with headers, footers, page numbers, columns and footnotes, so what you see is what prints."],
-        ["Styles that do the work", "Paragraph and character styles, an outline sidebar and an automatic table of contents."],
-        ["Tables, images and shapes", "Drop them in, drag them where you want, wrap text around them."],
-        ["Word files in, Word files out", "Open and save .docx, export PDF, print. Nobody has to know what you wrote it in."]
+        ["Real pages, visible while you type", "Text flows across separate sheets, with widow and orphan control. Print and PDF output come from the same layout, so they match the screen."],
+        ["Page setup that goes the distance", "Letter, A4, Legal, A5 or custom sizes, margins, one to three columns, headers and footers with page-number fields, page and column breaks."],
+        ["Styles, lists, tables and objects", "Paragraph styles you can change, outline numbering, checklists, tables, images with text wrapping, shapes, footnotes, an automatic table of contents and equations."],
+        ["Review tools", "Comments with replies, track changes, find and replace with regular expressions, and live word and page counts."],
+        ["Templates and safety", "New from template: Letter, Resume, Report, Newsletter, Meeting Notes. Drafts autosave and you are offered recovery after a crash."]
       ],
-      "formats": ["docx", "pdf", "txt", "zpages"],
-      "keys": [["Bold", "Mod+B"], ["Add a link", "Mod+K"], ["Find and replace", "Mod+F"], ["Export to PDF", "Mod+Shift+E"]]
+      "formats": ["zpages", "docx", "html", "md", "txt", "rtf", "pdf (export)"],
+      "keys": [["Focus mode", "Mod+Shift+F"], ["Readability Lens", "Mod+Alt+L"], ["Add a link", "Mod+K"], ["Find and replace", "Mod+F"]],
+      "good": [
+        "The .docx files were checked by unzipping, parsing every part and reading them with an independent library, but not opened in a commercial word processor. Keep the original of anything important.",
+        "PDF export uses the system print dialog: choose Save as PDF.",
+        "Footnotes are placed at the end of the document. In multi-column mode paragraphs move between columns whole. Table header rows do not repeat on later pages.",
+        "Track changes covers typed text and deletions, not formatting changes or pasted content. There are no free-floating text boxes."
+      ]
     },
     {
-      "id": "numbers", "name": "Numbers", "product": "ZengNumbers", "accent": "#5be37d", "sizeMB": null,
-      "replaces": "the Excel you don't pay for",
-      "line": "Spreadsheets with a real formula engine, charts that look like someone cared, and .xlsx that round-trips.",
+      "id": "grid", "dir": "numbers", "name": "Grid", "product": "ZengGrid", "accent": "#30d158", "sizeMB": "2.6",
+      "replaces": "the spreadsheet you don't pay for",
+      "line": "A spreadsheet you can see through. Fast on 100,000 rows, with 480+ functions and a Formula X-ray. Opens and saves .xlsx.",
+      "signature": ["Formula X-ray", "Select any cell and animated arrows flow in from the cells it uses and out to the formulas that depend on it. A card explains the formula in plain English, can trace the whole chain back to the numbers you typed in, warns about hard-coded numbers buried in formulas (and turns them into named constants), and replaces a range like B2:B10 with a readable name. Reduced-motion users get static arrows."],
       "caps": [
-        ["A real formula engine", "SUM, IF, lookups, dates, text and the rest of the everyday functions, recalculating as you type."],
-        ["Many sheets, one file", "Tabs for sheets, frozen rows and columns, sorting and filtering."],
-        ["Charts you would put on a wall", "Bar, line, pie and scatter, live-linked to the cells they draw from."],
-        ["Excel and CSV, both ways", "Open and save .xlsx, import and export .csv, export PDF."]
+        ["A canvas grid that stays smooth", "Stays at 60 fps on 100,000 rows, with a fill handle, multi-range selection, freeze panes, merge, find and replace across all sheets, and undo for everything."],
+        ["A hand-written formula engine", "More than 480 functions, named ranges, structured table references, dynamic arrays (FILTER, SORT, UNIQUE, SEQUENCE), LET and LAMBDA, with incremental recalculation and cycle detection."],
+        ["Tables, formats and data tools", "Conditional formatting, data validation with dropdowns, sort and filter, pivot summaries, text-to-columns, goal seek."],
+        ["Charts you draw yourself", "Column, bar, line, area, pie, donut, scatter, combo and stacked charts that update live, plus sparklines."],
+        ["Templates", "Budget, Invoice, Loan calculator, Checklist."]
       ],
-      "formats": ["xlsx", "csv", "pdf", "znumbers"],
-      "keys": [["Edit a cell", "F2"], ["Sum the selection", "Mod+Shift+T"], ["Fill down", "Mod+D"], ["New sheet", "Mod+Shift+N"]]
+      "formats": ["znumbers", "xlsx", "csv", "tsv", "html (export)", "json (export)"],
+      "keys": [["Formula X-ray", "Mod+Alt+X"], ["Edit a cell", "F2"], ["Fill down", "Mod+D"], ["AutoSum", "Alt+="]],
+      "good": [
+        "Charts are written to .xlsx but not read back from it. Images, comments, hyperlinks and pivot caches in imported .xlsx files are ignored.",
+        "Pivot summaries are static tables you re-run to refresh. There are no cell comments and no print layout options such as page breaks.",
+        "SUBTOTAL 1 to 11 ignores filters (101 to 111 skip hidden rows). Multi-area references are not supported.",
+        ".xlsx output was checked with XML parsing and an independent reader, not with another spreadsheet app."
+      ]
     },
     {
-      "id": "keynote", "name": "Keynote", "product": "ZengKeynote", "accent": "#5ab8ff", "sizeMB": null,
-      "replaces": "the PowerPoint you don't pay for",
-      "line": "Slides that look designed, a presenter view that helps, and .pptx files your boss can open.",
+      "id": "stage", "dir": "keynote", "name": "Stage", "product": "ZengStage", "accent": "#0a84ff", "sizeMB": "2.1",
+      "replaces": "the presentation tool you don't pay for",
+      "line": "Slides that look designed, with 14 original themes, builds, transitions and Remix. Opens and saves .pptx.",
+      "signature": ["Remix", "Remix lays the current slide out again in six designed variants: Hero, Split, Big Number, Grid, Quote and Timeline. It finds your title, bullets, images, the number worth shouting about and any quote, then arranges them with the deck's own fonts and colours. Preview the variants in a spring-driven carousel, apply one, or apply one to the whole deck as a single undo step."],
       "caps": [
-        ["Slide navigator and layouts", "Reorder by dragging, pick a layout, keep a consistent look across the deck."],
-        ["Transitions and builds", "Smooth slide transitions and object animations that run at your display's refresh rate."],
-        ["Presenter view", "Current slide, next slide, your notes and a timer on your screen while the audience sees the deck."],
-        ["PowerPoint in, PowerPoint out", "Open and save .pptx, export PDF for handouts."]
+        ["A proper editor", "Slide navigator with live thumbnails, rulers, guides, smart snapping, grouping, align and distribute, and 120 steps of undo."],
+        ["Lots to put on a slide", "Rich text, 94 shapes, connectors that stay attached, images with cropping and masks, tables, charts with a data grid, audio and video."],
+        ["Themes, transitions and builds", "14 original themes with editable palettes, ten transitions including Magic Move, and object builds with a timeline."],
+        ["Presenting", "Full-screen play with laser pointer and slide overview, presenter display with next slide, notes and timer, and Rehearse to record timings."],
+        ["Many ways out", "Save .pptx, PDF (through the print dialog), PNG or JPEG, or one self-contained HTML presentation."]
       ],
-      "formats": ["pptx", "pdf", "zkey"],
-      "keys": [["Play from the start", "Mod+Alt+P"], ["New slide", "Mod+Shift+N"], ["Next slide", "Right"], ["Leave the show", "Esc"]]
+      "formats": ["zkey", "pptx", "pdf (export)", "png (export)", "jpg (export)", "html (export)"],
+      "keys": [["Remix slide", "Mod+Alt+R"], ["Play", "Mod+Alt+P"], ["New slide", "Mod+Shift+N"], ["Group", "Mod+Alt+G"]],
+      "good": [
+        "Animations and builds are not written to .pptx (they stay in .zkey), and cube, flip, zoom and Magic Move export as a fade. Audio and video are not embedded in .pptx.",
+        ".pptx import skips SmartArt, OLE objects, EMF and WMF images and slide animations.",
+        "The presenter display is an overlay in the same window, not a second-screen window. There is no video export.",
+        ".pptx output was checked by parsing it and round-tripping it through the importer, not in another presentation app."
+      ]
     },
     {
-      "id": "preview", "name": "Preview", "product": "ZengPreview", "accent": "#ff7ab6", "sizeMB": null,
-      "replaces": "the Acrobat you don't pay for",
-      "line": "Read, mark up, sign and reshuffle PDFs and images. No account, no \"upgrade to edit\".",
+      "id": "look", "dir": "preview", "name": "Look", "product": "ZengLook", "accent": "#5e5ce6", "sizeMB": "13.7",
+      "replaces": "the PDF reader you don't pay for",
+      "line": "Read, mark up and sign PDFs and images, and turn photos of paper into clean scans.",
+      "signature": ["Clean Scan", "Photograph a piece of paper and get a clean PDF page. Look finds the page edges (you can drag the corners, with a magnifier), corrects the perspective and snaps to a real paper size, straightens the page, removes shadows and offers Colour, Paper white, Grey and Ink black looks. Batch several pages, and optionally add a searchable text layer with offline OCR (English)."],
       "caps": [
-        ["PDFs that open instantly", "Thumbnails, continuous scroll, search inside the document, zoom that stays sharp."],
-        ["Mark up and sign", "Highlight, underline, draw, add text and place your signature."],
-        ["Rearrange pages", "Reorder, rotate and delete pages, and merge several PDFs into one."],
-        ["Images too", "View, rotate, crop and convert PNG, JPEG and WebP."]
+        ["PDFs that stay fast", "Only visible pages are rendered, so a 260-page file is fine. Thumbnails, outline, search with a results list, and password-protected files."],
+        ["Mark up and sign", "Highlight, underline, strike, notes, text boxes, shapes, pen, drawn or typed signature, redaction and form filling. Markup is saved as real PDF annotations that other viewers show."],
+        ["Page tools", "Reorder, rotate, delete, insert, extract, merge, split by range, crop, compress, and export pages as PNG or JPEG."],
+        ["An image viewer too", "Slideshow, contact sheet, rotate, crop, adjust exposure and colour, resize and export, EXIF panel, and combine images into a PDF."]
       ],
-      "formats": ["pdf", "png", "jpg", "webp"],
-      "keys": [["Find in document", "Mod+F"], ["Zoom in", "Mod+Plus"], ["Rotate page", "Mod+R"], ["Next page", "Page Down"]]
+      "formats": ["pdf", "png", "jpg", "gif", "webp", "bmp", "svg", "tiff", "avif", "ico"],
+      "keys": [["Clean Scan", "Mod+Shift+K"], ["Find", "Mod+F"], ["Highlight", "H"], ["Sign", "G"]],
+      "good": [
+        "Redaction burns the whole page into a picture, so all text, links and fields on that page are lost.",
+        "Reordering, deleting or inserting pages rebuilds the file: bookmarks and interactive form structure of the original are not carried over. Password-protected PDFs can be read and marked up, but saving offers a flattened copy.",
+        "Markup is editable again only in files last saved by Look. OCR is English only and takes a few seconds per page.",
+        "TIFF depends on the system web view (not available on Windows). It is the biggest app, about 14 MB, because it includes a PDF engine and OCR."
+      ]
     },
     {
-      "id": "text", "name": "Text", "product": "ZengText", "accent": "#d9c9ff", "sizeMB": null,
-      "replaces": "the Notepad you outgrew",
-      "line": "A plain text editor that opens a huge file before you finish blinking.",
+      "id": "text", "dir": "text", "name": "Text", "product": "ZengText", "accent": "#f5a300", "sizeMB": "1.7",
+      "replaces": "the plain-text editor you outgrew",
+      "line": "A calm plain-text and rich-text editor that remembers every version.",
+      "signature": ["Time-travel history", "Every document keeps local snapshots as you work, thinned out automatically, with named snapshots kept. Scrub a slider through past versions, see a line-by-line diff against what you have now and restore any of them. Restoring snapshots your current text first, so even that is undoable. Snapshots live in the app's own data folder and are never uploaded."],
       "caps": [
-        ["Opens big files without choking", "Log files and exports that make other editors freeze are fine here."],
-        ["Plain or rich, your choice", "Switch a document between plain text and simple rich text."],
-        ["Find and replace with regular expressions", "Across the document, with a live count of matches."],
-        ["Any encoding", "UTF-8 by default, and it can read the older encodings your files still use."]
+        ["Plain or rich", "Switch between plain text and rich text (rich documents save as HTML)."],
+        ["Find and replace", "With live word and character counts, tab indentation and zoom."],
+        ["Opens what you throw at it", "Text, Markdown, logs, JSON, CSV, HTML, XML, YAML, TOML and most source files. Drop files on the window."],
+        ["Calm by default", "Starts with an empty document and nothing else on screen."]
       ],
-      "formats": ["txt", "md", "rtf", "html"],
-      "keys": [["Find", "Mod+F"], ["Go to line", "Mod+L"], ["Save", "Mod+S"], ["Make plain text", "Mod+Shift+T"]]
+      "formats": ["txt", "md", "log", "json", "csv", "html", "xml", "yml", "toml"],
+      "keys": [["Version history", "Mod+Shift+H"], ["Find", "Mod+F"], ["Plain text mode", "Mod+Shift+T"], ["Bigger text", "Mod+Plus"]],
+      "good": [
+        "History is keyed by file path, so renaming a file starts a new history.",
+        "Snapshots store whole text and are capped at about 120 per file.",
+        "In rich mode find and replace is find-only."
+      ]
     },
     {
-      "id": "notes", "name": "Notes", "product": "ZengNotes", "accent": "#ffe45c", "sizeMB": null,
-      "replaces": "the OneNote you don't pay for",
-      "line": "Quick notes that stay on your computer, with folders, checklists and search that actually finds things.",
+      "id": "notes", "dir": "notes", "name": "Notes", "product": "ZengNotes", "accent": "#ffd60a", "sizeMB": "2.0",
+      "replaces": "the note-taking app you don't pay for",
+      "line": "Notes that link together: checklists, sketches, tables, encrypted notes and a link graph, all offline.",
+      "signature": ["Link Graph", "An interactive map of your notes, the [[links]] between them and your #tags. It runs on its own hand-written physics with momentum panning and eased zoom, and stays smooth with 5,000 nodes. Drag nodes, hover for a preview, click to open, filter by folder or tag, or show just the neighbourhood of the note you are in. Backlinks and a Related notes strip help you find the rest."],
       "caps": [
-        ["Folders and pins", "Keep notes in folders, pin the ones you open all day."],
-        ["Checklists, tables and images", "Rich notes without a rich-note learning curve."],
-        ["Search across everything", "Type and the list narrows as you go."],
-        ["Yours, on your disk", "Notes are stored locally. Export to Markdown or HTML any time."]
+        ["Organised the way you think", "Nested folders, smart folders, tags, pinning, and instant full-text search across titles, bodies and attachment names."],
+        ["A capable editor", "Checklists, tables, code blocks, three heading levels, Markdown shortcuts, image and file attachments, and sketch blocks with pen, marker and highlighter."],
+        ["Daily note and related notes", "One shortcut opens today's note with a checklist and a link to yesterday. A strip under each note ranks related notes by similarity."],
+        ["Lock a note", "Password-protected notes are encrypted with AES-256-GCM. Text and attachments are stored as ciphertext only."],
+        ["Safe storage", "Autosave, two alternating copies of every note, and three rotating copies of the index."]
       ],
-      "formats": ["md", "txt", "html"],
-      "keys": [["New note", "Mod+N"], ["Search notes", "Mod+Alt+F"], ["Checklist", "Mod+Shift+L"], ["Pin note", "Mod+Shift+P"]]
+      "formats": ["znotes (backup)", "md", "txt", "html", "pdf (export)", "docx (import)"],
+      "keys": [["New note", "Mod+N"], ["Daily note", "Mod+D"], ["Link Graph", "Mod+Alt+G"], ["Search", "Mod+F"]],
+      "good": [
+        "If you forget a locked note's password it cannot be recovered. Locked notes are searchable by title only.",
+        "Search covers the first 40,000 characters of each note. Renaming a note does not rewrite links that used its old title.",
+        "Attachments are fine up to tens of megabytes and slow beyond that, with a hard limit of 200 MB per file.",
+        "There is no handwriting recognition, OCR or scanning. .docx import is best effort (no footnotes, comments or text boxes)."
+      ]
     },
     {
-      "id": "freeform", "name": "Freeform", "product": "ZengFreeform", "accent": "#c9a2ff", "sizeMB": null,
+      "id": "canvas", "dir": "freeform", "name": "Canvas", "product": "ZengCanvas", "accent": "#ff375f", "sizeMB": "1.9",
       "replaces": "the whiteboard you don't pay for",
-      "line": "An endless canvas for sketches, plans and messy thinking.",
+      "line": "An infinite canvas for ideas, sketches and diagrams, with a Tidy button for the mess.",
+      "signature": ["Tidy", "Select a pile of objects and pick a mode: Grid, Row, Column, Radial, Tree, Mind map, Colours or Rhythm. Hovering a mode previews it live, with everything gliding there on a spring and gliding back if you move away. Click to commit as one undo step. Related: Rough to neat turns wobbly hand-drawn rectangles, ellipses and lines into crisp shapes."],
       "caps": [
-        ["An infinite canvas", "Pan and zoom smoothly; there is no edge to run into."],
-        ["Shapes with connectors that stick", "Move a box and the arrows follow."],
-        ["Sticky notes and freehand", "Pen, highlighter, text and notes on the same board."],
-        ["Pictures and export", "Drop in images, export the board as PNG, SVG or PDF."]
+        ["Infinite and smooth", "Pan, pinch and zoom with momentum, a minimap, and rendering that only repaints what moves."],
+        ["Draw naturally", "Pen, marker, highlighter, pencil, erasers and lasso. Hold the pen still to snap a wobbly shape."],
+        ["Lots of objects", "26 shapes, text boxes, notes, tables, frames, link cards, images, stamps and connectors that follow their shapes."],
+        ["Boards and presenting", "Several boards per file, and present your frames one by one with a laser pointer."],
+        ["Export anything", "PNG or JPEG at 1 to 4 times size, real vector SVG, PDF through the print dialog, or copy as PNG."]
       ],
-      "formats": ["png", "svg", "pdf", "zfree"],
-      "keys": [["Pan", "Space+Drag"], ["Zoom to fit", "Mod+0"], ["New sticky note", "S"], ["Duplicate", "Mod+D"]]
+      "formats": ["zfree", "png", "jpg", "svg", "pdf (export)", "json"],
+      "keys": [["Command palette", "Mod+K"], ["Tidy as grid", "Mod+Alt+T"], ["Rough to neat", "Mod+Alt+R"], ["Pan", "Space"]],
+      "good": [
+        "PDF goes through the system print dialog rather than being written directly.",
+        "Groups are one level deep. Tidy treats frames as fixed. Rough to neat reads upright shapes only and leaves curves alone.",
+        "SVG import ignores gradients, filters, masks and CSS classes. Table cells hold plain text.",
+        "Only tested in a desktop browser engine and the macOS web view so far."
+      ]
     },
     {
-      "id": "calendar", "name": "Calendar", "product": "ZengCalendar", "accent": "#ff6b5e", "sizeMB": null,
-      "replaces": "the Outlook calendar you don't pay for",
-      "line": "Day, week, month and year, with recurring events and no account to sign into.",
+      "id": "calendar", "dir": "calendar", "name": "Calendar", "product": "ZengCalendar", "accent": "#ff453a", "sizeMB": "2.0",
+      "replaces": "the calendar you don't pay for",
+      "line": "Plan your days and protect your time. Free, offline, standard .ics.",
+      "signature": ["Time Balance", "For the week or month you are looking at, see your time by calendar and category, a meeting-load meter and a free-time ribbon with your longest open window marked. A thin green strip beside each working day shows free windows: drag along it to protect that time as a focus block. Focus blocks are ordinary events, so they export, and quick add and Find Free Time respect them."],
       "caps": [
-        ["Every view you expect", "Day, week, month and year, with drag to create and drag to move."],
-        ["Several calendars, one screen", "Colour-code home, work and school and toggle them on and off."],
-        ["Repeating events done properly", "Daily, weekly, monthly, yearly, with exceptions."],
-        ["Standard .ics", "Import and export so your events are never locked in."]
-      ],
-      "formats": ["ics"],
-      "keys": [["New event", "Mod+N"], ["Today", "Mod+T"], ["Day, week, month, year", "Mod+1 to 4"], ["Next period", "Mod+Right"]]
-    },
-    {
-      "id": "reminders", "name": "Reminders", "product": "ZengReminders", "accent": "#ff9a3d", "sizeMB": null,
-      "replaces": "the To Do you don't pay for",
-      "line": "Lists, due dates and nudges. The smallest possible amount of software for getting things done.",
-      "caps": [
-        ["Lists and smart lists", "Today, Scheduled and Flagged build themselves from your reminders."],
-        ["Due dates, times and repeats", "Daily, weekly, monthly, whatever your life needs."],
-        ["Subtasks", "Break a big thing into small things and tick them off."],
-        ["Offline and private", "Nothing is synced anywhere. It is a file on your computer."]
+        ["Every view", "Day, work week, week, multi-day, month, year and list, with a current-time line and drag to create, move or resize."],
+        ["Quick add in plain language", "Type Lunch with Sam tomorrow 1pm for 1h at Cafe, or Standup every weekday 9:30am."],
+        ["Serious repeats and time zones", "Full RFC 5545 repeat rules, edit one, this and future, or all occurrences, and per-event time zones."],
+        ["Find free time and holidays", "Search, Find Free Time, and holiday calendars for ten countries computed by rule for any year."],
+        ["Yours to move", "Standard .ics import and export, and CSV import and export of spreadsheet-style files."]
       ],
       "formats": ["ics", "csv"],
-      "keys": [["New reminder", "Mod+N"], ["Mark done", "Mod+Shift+D"], ["Flag", "Mod+Shift+F"], ["New list", "Mod+Alt+N"]]
+      "keys": [["Quick add", "N"], ["Time Balance", "Mod+B"], ["Today", "T"], ["Find free time", "Mod+Shift+F"]],
+      "good": [
+        "Invitations cannot be sent or answered. Attendees are stored and exported only.",
+        "Alerts are in-app banners and only fire while the app is running. Missed ones are listed at the next launch.",
+        "Subscribing to a web calendar needs a network, which this app never uses. Subscribe from File mirrors a local .ics instead and refreshes only when you ask.",
+        "Holidays are national dates only. CSV has no recurrence and only English headers are read."
+      ]
     },
     {
-      "id": "contacts", "name": "Contacts", "product": "ZengContacts", "accent": "#a8c3ff", "sizeMB": null,
-      "replaces": "the address book you don't pay for",
-      "line": "People, with all the fields you need and none of the cloud you don't.",
+      "id": "todo", "dir": "reminders", "name": "Todo", "product": "ZengTodo", "accent": "#32ade6", "sizeMB": "1.9",
+      "replaces": "the to-do list you don't pay for",
+      "line": "Lists, due dates and natural-language quick add, with a daily planning ritual.",
+      "signature": ["Today's Three", "An optional daily ritual. Todo scores your open tasks from due date, priority, flag, age and how often you have postponed them, suggests candidates, and you drag up to three into numbered slots. The Today view then shows your three, with a local-only tally and streak. Press P to postpone with a reason, and a task postponed three times is marked Stuck and offered a split into subtasks."],
       "caps": [
-        ["Proper contact cards", "Several phones, emails and addresses, birthdays, notes and a photo."],
-        ["Groups and fast search", "Sort people into groups; type a few letters to find anyone."],
-        ["vCard and CSV", "Import from your phone or your old mail app, export whenever you like."],
-        ["Duplicates, merged", "Find the same person twice and combine the cards."]
+        ["Smart lists and your own", "Today, Scheduled, All, Flagged, Completed and No Date with live counts, plus coloured lists, groups, templates and tags."],
+        ["Quick add that parses as you type", "Pay rent every 1st at 9am !!! #home in Work sets the date, repeat, priority, tag and list."],
+        ["Real tasks", "Due times, repeats, early alerts, priorities, flags, notes, links, image attachments and subtasks with progress."],
+        ["Satisfying to finish", "Spring-animated checkboxes with undo, and 200 levels of undo and redo."],
+        ["Safe data", "Written within 300 ms, with two rotating slots and a daily backup."]
       ],
-      "formats": ["vcf", "csv"],
-      "keys": [["New contact", "Mod+N"], ["Search", "Mod+F"], ["Edit card", "Mod+E"], ["New group", "Mod+Shift+N"]]
+      "formats": ["ics", "csv", "json", "md"],
+      "keys": [["New task", "Mod+N"], ["Plan Today's Three", "Mod+Shift+P"], ["Postpone", "P"], ["Complete", "Space"]],
+      "good": [
+        "Alerts only fire while the app is running. There is no background service and no system notifications.",
+        "Time zones are not modelled: .ics times with a time zone are read as local wall-clock time, and exports use floating local times.",
+        "Subtasks are one level deep. Natural-language parsing is English only, and an ambiguous time such as at 5 is guessed."
+      ]
     },
     {
-      "id": "calculator", "name": "Calculator", "product": "ZengCalculator", "accent": "#ff9f0a", "sizeMB": null,
-      "replaces": "the Calculator you already had, but better",
-      "line": "Basic, scientific and programmer modes, with a tape you can scroll back through.",
+      "id": "people", "dir": "contacts", "name": "People", "product": "ZengPeople", "accent": "#bf5af2", "sizeMB": "1.9",
+      "replaces": "the address book you don't pay for",
+      "line": "Your people, and when you last spoke. Relationship rhythm, smart groups, vCard and CSV, no account.",
+      "signature": ["Relationship rhythm", "Give a contact a cadence such as every two months, and People keeps a timeline of catch-ups and notes. The Catch up view lists who is due, most overdue first, with one-tap email and call. Birthday and anniversary nudges are built in, and the People map shows contacts as a constellation clustered by company or group, sized by how recently you spoke."],
       "caps": [
-        ["Three modes", "Basic for the till, scientific for the exam, programmer for hex, binary and bit work."],
-        ["A tape of everything you did", "Scroll back, click a result and reuse it."],
-        ["Keyboard first", "Type the whole sum and press Enter; no mouse needed."],
-        ["Copy exactly", "Results copy at full precision, not what fits on the display."]
+        ["Proper contact cards", "Photos with crop, structured addresses, birthdays, related names, social profiles, notes, custom labels and phonetic names."],
+        ["Groups and smart groups", "Rules such as is due, company contains or birthday this month, plus favourites and search across everything."],
+        ["Tidy up", "Duplicate finder with per-field merge, and clean-up of empty or invalid cards."],
+        ["Print", "Lists, cards, envelopes and address labels."],
+        ["Open formats", "Import and export vCard 2.1, 3.0 and 4.0 and CSV with a mapping dialog, plus backups."]
+      ],
+      "formats": ["vcf", "csv", "zcontacts (backup)"],
+      "keys": [["New contact", "Mod+N"], ["Log a catch-up", "L"], ["Find", "F"], ["Catch up view", "Mod+4"]],
+      "good": [
+        "There is no sync and no account. Your contacts live on this computer.",
+        "Remote photo URLs in vCards are kept as text and not fetched. Large photos are re-encoded to 320 px.",
+        "The People map draws at most 700 people."
+      ]
+    },
+    {
+      "id": "calc", "dir": "calculator", "name": "Calc", "product": "ZengCalc", "accent": "#12a594", "sizeMB": "1.9",
+      "replaces": "the calculator that shows its work",
+      "line": "Basic, scientific, programmer, converter, dates, graphing and scratch notes, with Show Work for every result.",
+      "signature": ["Show Work", "Every result can explain itself, in any mode. See the steps in evaluation order with a plain reason for each, the same evaluation as a tree, and a what-if view: click a number in the expression, or drag it, and the result, the changed steps and the percentage change update live. In Scratch mode a slider re-evaluates every line that depends on a variable. Copy the working as text or as an image card."],
+      "caps": [
+        ["Exact arithmetic", "Decimal maths that gives 0.1 + 0.2 = 0.3, division and roots to 34 digits, and percent that works the way people mean it."],
+        ["Seven modes", "Basic, Scientific, Programmer, Converter, Date Calculation, Graphing and Scratch."],
+        ["Programmer and Converter", "64, 32, 16 and 8-bit words with a clickable bit grid and linked hex, decimal, octal and binary. Thirteen kinds of unit, with exchange rates you type in."],
+        ["Graphing and Scratch", "Up to six functions with sliders, trace, zeros and intersections. Scratch lines like rent = 1200 and 5 km in miles give live answers."],
+        ["Paper tape history", "A persistent tape you can scroll back through."]
       ],
       "formats": [],
-      "keys": [["Equals", "Enter"], ["Clear", "Esc"], ["Copy result", "Mod+C"], ["Switch mode", "Mod+1 to 3"]]
+      "keys": [["Show Work", "Mod+Shift+K"], ["Switch mode", "Mod+1 to 7"], ["Copy result", "Mod+C"], ["Clear", "Esc"]],
+      "good": [
+        "Trigonometry, logarithms and exponentials use double precision, about 15 digits.",
+        "Graphing is y = f(x) only. Scratch units do not support compound units beyond built-ins like km/h, and multiplying two quantities is an error.",
+        "Currency rates are whatever you type in. Nothing is fetched, because the app never uses the network."
+      ]
     }
   ]
 }

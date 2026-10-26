@@ -1,4 +1,4 @@
-/* Freeform renderer: per-object drawing, stroke outlines, backgrounds, layer cache, overlay. */
+/* Canvas renderer: per-object drawing, stroke outlines, backgrounds, layer cache, overlay. */
 (() => {
   'use strict';
   const f2 = (n) => Math.round(n * 100) / 100;
@@ -47,7 +47,7 @@
 
   // ---------- text colour ----------
   const autoCol = (o, dark) => {
-    const fill = o.s.fill; if (!fill || fill === 'none' || fill === 'paper') return FF.col('ink', dark);
+    const fill = o.s.fill; if (!fill || fill === 'none' || fill === 'paper' || FF.translucent(fill)) return FF.col('ink', dark);
     return FF.lum(fill) < 0.5 ? '#ffffff' : '#1d1d1f';
   };
   FF.autoCol = autoCol;
@@ -119,10 +119,11 @@
       }
       case 'shape': case 'sticky': {
         let p, p2 = null;
-        if (t === 'sticky') { p = o._pth && o._pth.key === 'st' + w + h ? o._pth.p : (o._pth = { key: 'st' + w + h, p: new Path2D(FF.rrPath(0, 0, w, h, 6)) }).p; }
+        if (t === 'sticky') { p = o._pth && o._pth.key === 'st' + w + h ? o._pth.p : (o._pth = { key: 'st' + w + h, p: new Path2D(FF.stickyD(w, h)) }).p; }
         else { const sp = FF.shapePath(o); p = sp.p; p2 = sp.p2; }
         if (s.fill && s.fill !== 'none') { ctx.fillStyle = FF.col(s.fill, dark); ctx.fill(p); }
         ctx.shadowColor = 'transparent';
+        if (t === 'sticky') { const f = FF.foldSize(w, h); ctx.fillStyle = 'rgba(0,0,0,.16)'; ctx.beginPath(); ctx.moveTo(w - f, h); ctx.lineTo(w, h - f); ctx.lineTo(w - f, h - f); ctx.closePath(); ctx.fill(); }
         if (s.sw > 0 && s.stroke && s.stroke !== 'none') { ctx.strokeStyle = FF.col(s.stroke, dark); ctx.lineWidth = s.sw; ctx.lineJoin = 'round'; ctx.lineCap = 'round'; ctx.setLineDash(dashOf(s)); ctx.stroke(p); if (p2) ctx.stroke(p2); ctx.setLineDash([]); }
         drawText(ctx, o, FF.textBox(o), rc);
         break;

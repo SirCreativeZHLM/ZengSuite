@@ -1,4 +1,4 @@
-/* ZengPages objects: images, shapes (with resize handles + wrap), equations (LaTeX-ish -> MathML / OMML). */
+/* ZengWrite objects: images, shapes (with resize handles + wrap), equations (LaTeX-ish -> MathML / OMML). */
 (() => {
   'use strict';
   const P = window.P, flow = P.flow, stack = P.$('#stack'), ov = P.$('#objsel');
@@ -78,6 +78,7 @@
     e.preventDefault(); P.focus(); const wasSel = P.selObj === o; P.selectObj(o);
     if (wasSel || true) startMove(e, o);
   });
+  flow.addEventListener('mousedown', (e) => { const o = e.target.closest && e.target.closest('img,.shp'); if (o && P.isObj(o) && e.button === 0) e.preventDefault(); });
   flow.addEventListener('dblclick', (e) => {
     const o = e.target.closest && e.target.closest('img,.shp'); if (o) { P.selectObj(o); P.ui && P.ui.showTab && P.ui.showTab('object'); return; }
     const q = e.target.closest && e.target.closest('.eq'); if (q) P.editEquation(q);

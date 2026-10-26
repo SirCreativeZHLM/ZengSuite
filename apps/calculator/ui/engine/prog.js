@@ -48,7 +48,8 @@
     const wrapV = (v) => { if (v < rg.min || v > rg.max) overflow = true; return interp(toPattern(v, bits), bits, signed); };
     const pat = (v) => toPattern(v, bits);
     const peekOp = () => (toks[p].t === 'op' ? toks[p].v : null);
-    function lvl(names, sub, apply) { let l = sub(); for (;;) { const op = peekOp(); if (op && names.includes(op)) { p++; const r = sub(); l = apply(op, l, r); } else return l; } }
+    const tr = o.trace;
+    function lvl(names, sub, apply) { let l = sub(); for (;;) { const op = peekOp(); if (op && names.includes(op)) { p++; const r = sub(); const was = overflow; const res = apply(op, l, r); if (tr) tr.push({ op, a: l, b: r, r: res, ov: overflow && !was }); l = res; } else return l; } }
     const expr = () => lvl(['or', 'nor'], xorE, (op, a, b) => { const r = pat(a) | pat(b); return interp(op === 'nor' ? ~r & mask : r, bits, signed); });
     const xorE = () => lvl(['xor'], andE, (op, a, b) => interp(pat(a) ^ pat(b), bits, signed));
     const andE = () => lvl(['and', 'nand'], shiftE, (op, a, b) => { const r = pat(a) & pat(b); return interp(op === 'nand' ? ~r & mask : r, bits, signed); });
@@ -66,9 +67,9 @@
     });
     function unaryE() {
       const op = peekOp();
-      if (op === 'sub') { p++; if (toks[p].t === 'num' && toks[p].dec && signed && toks[p].v === rg.max + 1n && (toks[p + 1].t === 'end' || toks[p + 1].t === 'op')) { const nt = toks[p++]; return rg.min; } const v = unaryE(); return wrapV(-v); }
+      if (op === 'sub') { p++; if (toks[p].t === 'num' && toks[p].dec && signed && toks[p].v === rg.max + 1n && (toks[p + 1].t === 'end' || toks[p + 1].t === 'op')) { const nt = toks[p++]; return rg.min; } const v = unaryE(); const was = overflow; const res = wrapV(-v); if (tr) tr.push({ op: 'neg', a: v, r: res, ov: overflow && !was }); return res; }
       if (op === 'add') { p++; return unaryE(); }
-      if (op === 'not') { p++; const v = unaryE(); return interp(~pat(v) & mask, bits, signed); }
+      if (op === 'not') { p++; const v = unaryE(); const res = interp(~pat(v) & mask, bits, signed); if (tr) tr.push({ op: 'not', a: v, r: res }); return res; }
       return prim();
     }
     function prim() {
@@ -155,9 +156,10 @@
       else if (!this.pieces.length) return;
       const lp = this.pieces[this.pieces.length - 1]; if (lp.k === 'o') this.pieces.push({ k: 'n', val: this.cur, v: '#' + this.cur.toString() });
       const text = this.exprText() + ')'.repeat(this.open); const s = this.pieces.map((p) => p.v).join('') + ')'.repeat(this.open);
-      const r = evalProg(s.replace(/ (add|sub|mul|div) /g, (m, o) => ({ add: '+', sub: '-', mul: '*', div: '/' }[o])), { bits: this.bits, signed: this.signed, base: 10 });
+      const srcStr = s.replace(/ (add|sub|mul|div) /g, (m, o) => ({ add: '+', sub: '-', mul: '*', div: '/' }[o]));
+      const r = evalProg(srcStr, { bits: this.bits, signed: this.signed, base: 10 });
       this.overflow = r.overflow; this.cur = r.pattern; this.pieces = []; this.open = 0; this.fresh = true;
-      this.history.unshift({ expr: text, result: this.fmt(r.pattern) });
+      this.history.unshift({ expr: text, result: this.fmt(r.pattern), src: srcStr, bits: this.bits, signed: this.signed });
     }
   }
   const api = { ProgError, evalProg, formatBase, bitAt, toggleBit, maskOf, range, toPattern, toSignedV, interp, parseLiteral, ProgState, OPSYM };

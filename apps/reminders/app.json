@@ -1,1 +1,14 @@
-{"id":"reminders","name":"ZengTodo","tagline":"Plan your day with Today’s Three, quick natural-language add and lists. Stored on your device.","msEquivalent":"Task and to-do apps","accent":"#32ade6","extensions":["ics","csv","json","md"],"mime":"text/calendar"}
+{
+  "id": "reminders",
+  "name": "Todo",
+  "tagline": "Plan your day with Today\u2019s Three, quick natural-language add and lists. Stored on your device.",
+  "msEquivalent": "",
+  "accent": "#32ade6",
+  "extensions": [
+    "ics",
+    "csv",
+    "json",
+    "md"
+  ],
+  "mime": "text/calendar"
+}

@@ -176,7 +176,7 @@
     const total = vis.length;
     P.onSlide = (k, i) => { if (countEl) countEl.textContent = `${k + 1} / ${total}`; if (notesEl) { const n = deck.slides[i].notes; notesEl.textContent = n || ''; notesEl.classList.toggle('empty', !n); if (!n) notesEl.textContent = 'No notes for this slide.'; } renderNext(k); if (o.preview != null && !o._prev) { o._prev = true; setTimeout(() => P.goto(vis.indexOf(o.preview), 'forward'), 250); } o.onSlideChange && o.onSlideChange(i); };
     P.onEnd = () => { if (o.single) { return; } showEnd(); };
-    const showEnd = () => { if (root.querySelector('.pend')) return; const e = div('pend'); e.textContent = 'End of slideshow — click or press Esc to exit'; stageHost.append(e); e.onclick = () => exit(); P.paused = true; };
+    const showEnd = () => { if (root.querySelector('.pend')) return; const e = div('pend'); e.textContent = o.embedded ? 'End of presentation — click to restart' : 'End of slideshow — click or press Esc to exit'; stageHost.append(e); e.onclick = (ev) => { ev.stopPropagation(); if (o.embedded) { e.remove(); P.paused = false; P.goto(0, 'back', { instant: true }); } else exit(); }; P.paused = true; };
     P.goto(k0, 'forward', { instant: true });
     if (o.preview != null) { /* transition preview handled in onSlide */ }
     const upd = () => { if (timerEl) { const el = (Date.now() - t0) / 1000; const lim = (deck.opts.timer || 0) * 60; if (lim) { const rem = lim - el; timerEl.textContent = (rem < 0 ? '−' : '') + fmtTime(Math.abs(rem)); timerEl.classList.toggle('over', rem < 0); } else timerEl.textContent = fmtTime(el); } if (clockEl) clockEl.textContent = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }); };
@@ -201,7 +201,7 @@
       if (document.querySelector('.zk-scrim')) return; const k = e.key; let used = true;
       if (/^[0-9]$/.test(k)) { jump += k; showJump(); }
       else if (k === 'Enter' && jump) { goTo(+jump); jump = ''; jumpHud && jumpHud.remove(); jumpHud = null; }
-      else if (k === 'Escape') { if (jump) { jump = ''; jumpHud && jumpHud.remove(); jumpHud = null; } else if (overview) toggleOverview(false); else if (helpEl) { helpEl.remove(); helpEl = null; } else exit(); }
+      else if (k === 'Escape') { if (jump) { jump = ''; jumpHud && jumpHud.remove(); jumpHud = null; } else if (overview) toggleOverview(false); else if (helpEl) { helpEl.remove(); helpEl = null; } else if (!o.embedded) exit(); }
       else if (['ArrowRight', 'ArrowDown', ' ', 'PageDown', 'Enter', 'n', 'N'].includes(k)) { if (overview) { used = false; } else P.next(); }
       else if (['ArrowLeft', 'ArrowUp', 'PageUp', 'Backspace', 'p', 'P'].includes(k)) P.prev();
       else if (k === 'Home') P.goto(0, 'back', { instant: true }); else if (k === 'End') P.goto(vis.length - 1, 'forward', { instant: true });

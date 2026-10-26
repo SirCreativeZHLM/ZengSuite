@@ -3,16 +3,16 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>ZengNotes: the OneNote you don't pay for</title>
-<meta name="description" content="ZengNotes is a free, open source app for macOS, Windows and Linux. Quick notes that stay on your computer, with folders, checklists and search that actually finds things.">
+<title>ZengNotes: the note-taking app you don't pay for</title>
+<meta name="description" content="ZengNotes is a free, open source app for macOS, Windows and Linux. Notes that link together: checklists, sketches, tables, encrypted notes and a link graph, all offline.">
 <meta name="color-scheme" content="dark light">
 <meta name="theme-color" content="#000000">
 <link rel="canonical" href="https://zengbot.com/suite/notes/">
 <link rel="icon" href="/suite/icon.svg" type="image/svg+xml">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="ZengSuite">
-<meta property="og:title" content="ZengNotes: the OneNote you don't pay for">
-<meta property="og:description" content="ZengNotes is a free, open source app for macOS, Windows and Linux. Quick notes that stay on your computer, with folders, checklists and search that actually finds things.">
+<meta property="og:title" content="ZengNotes: the note-taking app you don't pay for">
+<meta property="og:description" content="ZengNotes is a free, open source app for macOS, Windows and Linux. Notes that link together: checklists, sketches, tables, encrypted notes and a link graph, all offline.">
 <meta property="og:url" content="https://zengbot.com/suite/notes/">
 <meta property="og:image" content="https://zengbot.com/suite/og/notes.jpg">
 <meta property="og:image:width" content="1200">
@@ -24,7 +24,7 @@
 <script src="/zb.js" defer></script>
 <script src="/suite/js/suite.js" defer></script>
 </head>
-<body style="--app:#ffe45c;--app-ink:#0b0b0a;--hi:#ffe45c;--hi-ink:#0b0b0a">
+<body style="--app:#ffd60a;--app-ink:#0b0b0a;--hi:#ffd60a;--hi-ink:#0b0b0a">
 <a class="skip" href="#main">Skip to content</a>
 <div data-zb-top data-zb-name="Notes" data-zb-links="Apps|/suite/#apps,Download|/suite/download/,About|/suite/about/"></div>
 <main id="main">
@@ -34,37 +34,58 @@
   <div>
     <h1>Notes</h1>
     <p class="prod">ZengNotes</p>
-    <p class="repl"><span>The OneNote you don't pay for.</span></p>
-    <p class="lead">Quick notes that stay on your computer, with folders, checklists and search that actually finds things.</p>
+    <p class="repl"><span>The note-taking app you don't pay for.</span></p>
+    <p class="lead">Notes that link together: checklists, sketches, tables, encrypted notes and a link graph, all offline.</p>
     <div class="actions"><a class="btn app" href="#download" data-primary="ZengNotes">Download ZengNotes</a><a class="btn" href="/suite/">All apps</a></div>
   </div>
 </div>
-<figure class="big-shot reveal"><div class="shot" data-app="notes" style="--app:#ffe45c"><div class="ph"><div><img src="/suite/img/icons/notes.svg" width="120" height="120" alt=""><p>The Notes screenshot goes here.</p></div></div></div><figcaption>ZengNotes on macOS.</figcaption></figure>
+<figure class="big-shot reveal"><div class="shot" data-app="notes" style="--app:#ffd60a"><picture class="dark"><img src="/suite/img/notes-dark.webp" width="1600" height="1000" alt="ZengNotes on macOS: Notes that link together: checklists, sketches, tables, encrypted notes and a link graph, all offline." fetchpriority="high"></picture><picture class="light"><img src="/suite/img/notes-light.webp" width="1600" height="1000" alt="ZengNotes on macOS: Notes that link together: checklists, sketches, tables, encrypted notes and a link graph, all offline." fetchpriority="high"></picture></div><figcaption>ZengNotes on macOS.</figcaption></figure>
 
-<section>
+<section class="sigsec">
+<div class="wrap">
+<h2>Signature feature</h2>
+<p class="signame"><span>Link Graph</span></p>
+<p class="lead">An interactive map of your notes, the [[links]] between them and your #tags. It runs on its own hand-written physics with momentum panning and eased zoom, and stays smooth with 5,000 nodes. Drag nodes, hover for a preview, click to open, filter by folder or tag, or show just the neighbourhood of the note you are in. Backlinks and a Related notes strip help you find the rest.</p>
+</div>
+</section>
+
+<section class="hr">
 <div class="wrap">
 <h2>What it does</h2>
 <ul class="caps" style="margin-top:36px">
-<li><h3>Folders and pins</h3><p>Keep notes in folders, pin the ones you open all day.</p></li>
-<li><h3>Checklists, tables and images</h3><p>Rich notes without a rich-note learning curve.</p></li>
-<li><h3>Search across everything</h3><p>Type and the list narrows as you go.</p></li>
-<li><h3>Yours, on your disk</h3><p>Notes are stored locally. Export to Markdown or HTML any time.</p></li>
+<li><h3>Organised the way you think</h3><p>Nested folders, smart folders, tags, pinning, and instant full-text search across titles, bodies and attachment names.</p></li>
+<li><h3>A capable editor</h3><p>Checklists, tables, code blocks, three heading levels, Markdown shortcuts, image and file attachments, and sketch blocks with pen, marker and highlighter.</p></li>
+<li><h3>Daily note and related notes</h3><p>One shortcut opens today's note with a checklist and a link to yesterday. A strip under each note ranks related notes by similarity.</p></li>
+<li><h3>Lock a note</h3><p>Password-protected notes are encrypted with AES-256-GCM. Text and attachments are stored as ciphertext only.</p></li>
+<li><h3>Safe storage</h3><p>Autosave, two alternating copies of every note, and three rotating copies of the index.</p></li>
 </ul>
 </div>
 </section>
 
 <section class="hr">
 <div class="wrap facts">
-<div><h2>Formats</h2><ul class="fmts"><li>.md</li><li>.txt</li><li>.html</li></ul><p class="fine" style="margin-top:14px">The first one is what it reads and writes best.</p></div>
-<div><h2>Keyboard</h2><ul class="keys"><li><span>New note</span><span><kbd data-mod>Ctrl</kbd><kbd>N</kbd></span></li><li><span>Search notes</span><span><kbd data-mod>Ctrl</kbd><kbd data-alt>Alt</kbd><kbd>F</kbd></span></li><li><span>Checklist</span><span><kbd data-mod>Ctrl</kbd><kbd>Shift</kbd><kbd>L</kbd></span></li><li><span>Pin note</span><span><kbd data-mod>Ctrl</kbd><kbd>Shift</kbd><kbd>P</kbd></span></li></ul></div>
+<div><h2>Formats</h2><ul class="fmts"><li>.znotes <small>backup</small></li><li>.md</li><li>.txt</li><li>.html</li><li>.pdf <small>export</small></li><li>.docx <small>import</small></li></ul><p class="fine" style="margin-top:14px">The first one is the native, open format. Others are read and written as listed.</p></div>
+<div><h2>Keyboard</h2><ul class="keys"><li><span>New note</span><span><kbd data-mod>Ctrl</kbd><kbd>N</kbd></span></li><li><span>Daily note</span><span><kbd data-mod>Ctrl</kbd><kbd>D</kbd></span></li><li><span>Link Graph</span><span><kbd data-mod>Ctrl</kbd><kbd data-alt>Alt</kbd><kbd>G</kbd></span></li><li><span>Search</span><span><kbd data-mod>Ctrl</kbd><kbd>F</kbd></span></li></ul></div>
+</div>
+</section>
+
+<section class="hr">
+<div class="wrap prose">
+<h2 style="margin-top:0">Good to know</h2>
+<ul>
+<li>If you forget a locked note's password it cannot be recovered. Locked notes are searchable by title only.</li>
+<li>Search covers the first 40,000 characters of each note. Renaming a note does not rewrite links that used its old title.</li>
+<li>Attachments are fine up to tens of megabytes and slow beyond that, with a hard limit of 200 MB per file.</li>
+<li>There is no handwriting recognition, OCR or scanning. .docx import is best effort (no footnotes, comments or text boxes).</li>
+</ul>
 </div>
 </section>
 
 <section id="download" class="band" data-scope>
 <div class="wrap">
 <h2>Get Notes.</h2>
-<p class="lead" style="margin-top:18px">Free, about <span data-size="app">X</span> MB, no account. Pick your system; the other platforms are right there too.</p>
-<div class="dl" data-dl><a data-p="macos-arm64" href="https://github.com/SirCreativeZHLM/ZengSuite/releases/download/v0.1.0/ZengNotes-0.1.0-macos-arm64.dmg" rel="noopener" aria-label="Download ZengNotes for macOS Apple Silicon"><span class="os">macOS</span><span class="meta">Apple Silicon</span><span class="file">ZengNotes-0.1.0-macos-arm64.dmg</span></a><a data-p="macos-x64" href="https://github.com/SirCreativeZHLM/ZengSuite/releases/download/v0.1.0/ZengNotes-0.1.0-macos-x64.dmg" rel="noopener" aria-label="Download ZengNotes for macOS Intel"><span class="os">macOS</span><span class="meta">Intel</span><span class="file">ZengNotes-0.1.0-macos-x64.dmg</span></a><a data-p="windows-x64" href="https://github.com/SirCreativeZHLM/ZengSuite/releases/download/v0.1.0/ZengNotes-0.1.0-windows-x64.zip" rel="noopener" aria-label="Download ZengNotes for Windows 64-bit"><span class="os">Windows</span><span class="meta">64-bit</span><span class="file">ZengNotes-0.1.0-windows-x64.zip</span></a><a data-p="linux-x86_64" href="https://github.com/SirCreativeZHLM/ZengSuite/releases/download/v0.1.0/ZengNotes-0.1.0-linux-x86_64.tar.gz" rel="noopener" aria-label="Download ZengNotes for Linux x86_64"><span class="os">Linux</span><span class="meta">x86_64</span><span class="file">ZengNotes-0.1.0-linux-x86_64.tar.gz</span></a><a data-p="linux-arm64" href="https://github.com/SirCreativeZHLM/ZengSuite/releases/download/v0.1.0/ZengNotes-0.1.0-linux-arm64.tar.gz" rel="noopener" aria-label="Download ZengNotes for Linux ARM64"><span class="os">Linux</span><span class="meta">ARM64</span><span class="file">ZengNotes-0.1.0-linux-arm64.tar.gz</span></a></div>
+<p class="lead" style="margin-top:18px">Free, about <span data-size="app">2.0</span> MB, no account. Pick your system; the other platforms are right there too.</p>
+<div class="dl" data-dl><a data-p="macos-arm64" href="https://github.com/SirCreativeZHLM/ZengSuite/releases/download/v0.1.0/ZengNotes-0.1.0-macos-arm64.dmg" rel="noopener" aria-label="Download ZengNotes for macOS ARM (M1 or newer)"><span class="os">macOS</span><span class="meta">ARM (M1 or newer)</span><span class="file">ZengNotes-0.1.0-macos-arm64.dmg</span></a><a data-p="macos-x64" href="https://github.com/SirCreativeZHLM/ZengSuite/releases/download/v0.1.0/ZengNotes-0.1.0-macos-x64.dmg" rel="noopener" aria-label="Download ZengNotes for macOS Intel"><span class="os">macOS</span><span class="meta">Intel</span><span class="file">ZengNotes-0.1.0-macos-x64.dmg</span></a><a data-p="windows-x64" href="https://github.com/SirCreativeZHLM/ZengSuite/releases/download/v0.1.0/ZengNotes-0.1.0-windows-x64.zip" rel="noopener" aria-label="Download ZengNotes for Windows 64-bit"><span class="os">Windows</span><span class="meta">64-bit</span><span class="file">ZengNotes-0.1.0-windows-x64.zip</span></a><a data-p="linux-x86_64" href="https://github.com/SirCreativeZHLM/ZengSuite/releases/download/v0.1.0/ZengNotes-0.1.0-linux-x86_64.tar.gz" rel="noopener" aria-label="Download ZengNotes for Linux x86_64"><span class="os">Linux</span><span class="meta">x86_64</span><span class="file">ZengNotes-0.1.0-linux-x86_64.tar.gz</span></a><a data-p="linux-arm64" href="https://github.com/SirCreativeZHLM/ZengSuite/releases/download/v0.1.0/ZengNotes-0.1.0-linux-arm64.tar.gz" rel="noopener" aria-label="Download ZengNotes for Linux ARM64"><span class="os">Linux</span><span class="meta">ARM64</span><span class="file">ZengNotes-0.1.0-linux-arm64.tar.gz</span></a></div>
 <p class="fine" style="margin-top:22px">Version 0.1.0, MIT license. Want the whole set? <a href="/suite/#download">Download everything</a>.</p>
 </div>
 </section>
@@ -72,14 +93,14 @@
 <section class="hr">
 <div class="wrap">
 <h2>The rest of the suite</h2>
-<div class="next"><a href="/suite/pages/"><img src="/suite/img/icons/pages.svg" width="30" height="30" alt="" loading="lazy">Pages</a><a href="/suite/numbers/"><img src="/suite/img/icons/numbers.svg" width="30" height="30" alt="" loading="lazy">Numbers</a><a href="/suite/keynote/"><img src="/suite/img/icons/keynote.svg" width="30" height="30" alt="" loading="lazy">Keynote</a><a href="/suite/preview/"><img src="/suite/img/icons/preview.svg" width="30" height="30" alt="" loading="lazy">Preview</a><a href="/suite/text/"><img src="/suite/img/icons/text.svg" width="30" height="30" alt="" loading="lazy">Text</a><a href="/suite/freeform/"><img src="/suite/img/icons/freeform.svg" width="30" height="30" alt="" loading="lazy">Freeform</a><a href="/suite/calendar/"><img src="/suite/img/icons/calendar.svg" width="30" height="30" alt="" loading="lazy">Calendar</a><a href="/suite/reminders/"><img src="/suite/img/icons/reminders.svg" width="30" height="30" alt="" loading="lazy">Reminders</a><a href="/suite/contacts/"><img src="/suite/img/icons/contacts.svg" width="30" height="30" alt="" loading="lazy">Contacts</a><a href="/suite/calculator/"><img src="/suite/img/icons/calculator.svg" width="30" height="30" alt="" loading="lazy">Calculator</a></div>
+<div class="next"><a href="/suite/write/"><img src="/suite/img/icons/write.svg" width="30" height="30" alt="" loading="lazy">Write</a><a href="/suite/grid/"><img src="/suite/img/icons/grid.svg" width="30" height="30" alt="" loading="lazy">Grid</a><a href="/suite/stage/"><img src="/suite/img/icons/stage.svg" width="30" height="30" alt="" loading="lazy">Stage</a><a href="/suite/look/"><img src="/suite/img/icons/look.svg" width="30" height="30" alt="" loading="lazy">Look</a><a href="/suite/text/"><img src="/suite/img/icons/text.svg" width="30" height="30" alt="" loading="lazy">Text</a><a href="/suite/canvas/"><img src="/suite/img/icons/canvas.svg" width="30" height="30" alt="" loading="lazy">Canvas</a><a href="/suite/calendar/"><img src="/suite/img/icons/calendar.svg" width="30" height="30" alt="" loading="lazy">Calendar</a><a href="/suite/todo/"><img src="/suite/img/icons/todo.svg" width="30" height="30" alt="" loading="lazy">Todo</a><a href="/suite/people/"><img src="/suite/img/icons/people.svg" width="30" height="30" alt="" loading="lazy">People</a><a href="/suite/calc/"><img src="/suite/img/icons/calc.svg" width="30" height="30" alt="" loading="lazy">Calc</a></div>
 </div>
 </section>
 </main>
 <nav class="sitenav" aria-label="ZengSuite">
 <a href="/suite/">ZengSuite</a><a href="/suite/#apps">Apps</a><a href="/suite/download/">Download</a><a href="/suite/about/">About</a><a href="https://github.com/SirCreativeZHLM/ZengSuite" rel="noopener">Source on GitHub</a><a href="https://github.com/SirCreativeZHLM/ZengSuite/blob/main/LICENSE" rel="noopener">MIT license</a>
 </nav>
-<div data-zb-foot data-zb-note="ZengSuite is free software under the MIT license. Not affiliated with Microsoft or Apple."></div>
+<div data-zb-foot data-zb-note="ZengSuite is an independent open-source project, not affiliated with or endorsed by Microsoft or Apple; all names, icons and designs here are original."></div>
 <a class="btn primary fab" href="#download">Download</a>
 </body>
 </html>

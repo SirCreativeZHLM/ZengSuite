@@ -1,4 +1,4 @@
-/* ZengPages pagination: flows one contenteditable across separate sheets.
+/* ZengWrite pagination: flows one contenteditable across separate sheets.
    Blocks that would cross a page boundary get a margin push; paragraphs / table rows that straddle a boundary get a transient
    spacer (float / spacer row) at the line / row where the page ends. All transient markup is stripped by P.cleanString. */
 (() => {
@@ -56,7 +56,7 @@
 
   /** plan splits for a block that crosses a page limit. returns {push:true} or {splits:[{k,h,at}]} */
   const planSplit = (el, kind, units, top, hn, g, atPageTop, sps) => {
-    const stride = g.stride, Hb = g.hb; let pg = Math.floor((top + 0.01) / stride); let limit = pg * stride + Hb;
+    const stride = g.stride, Hb = g.hb; let pg = Math.floor((top + 0.5) / stride); let limit = pg * stride + Hb;
     const splits = []; let shift = 0, j = 0; const n = units.length;
     for (let guard = 0; guard < 400; guard++) {
       let k = -1; for (let q = j; q < n; q++) if (top + units[q].bottom + shift > limit + 0.5) { k = q; break; }
@@ -108,7 +108,7 @@
     if (N !== P._mode || o.reset) { resetAll(kids); P._mode = N; P.gapVer++; }
     const recs = N > 1 ? layoutCols(kids, g, N) : layoutSingle(kids, g);
     const last = recs[recs.length - 1]; let pages = 1;
-    if (last) pages = Math.max(1, Math.floor((last.top + 0.01) / g.stride) + 1, Math.floor((last.top + last.h - 1) / g.stride) + 1);
+    if (last) pages = Math.max(1, Math.floor((last.top + 0.5) / g.stride) + 1, Math.floor((last.top + last.h - 1) / g.stride) + 1);
     if (N > 1) pages = Math.max(1, ...recs.map((r) => r.page + 1));
     const prevPages = P.layout.pages; P.layout = { pages, recs, n, N, g };
     P._n = n; for (const k of kids) k._h = k.offsetHeight;
@@ -121,15 +121,16 @@
     const n = kids.length, stride = g.stride, Hb = g.hb; const sps = new Map();
     for (const s of flow.querySelectorAll('.pgsp')) { const b = P.blockOf(s); if (b) (sps.get(b) || sps.set(b, []).get(b)).push(s); }
     const tops = new Array(n), hs = new Array(n), spH = new Array(n), oldPush = new Array(n);
+    const fr = flow.getBoundingClientRect(), zz = P.zoom;
     for (let i = 0; i < n; i++) {
-      const el = kids[i]; tops[i] = el.offsetTop; hs[i] = el.offsetHeight; const sl = sps.get(el); spH[i] = sl ? sl.reduce((a, s) => a + s.offsetHeight, 0) : 0;
+      const el = kids[i]; const rc = el.getBoundingClientRect(); tops[i] = (rc.top - fr.top) / zz; hs[i] = rc.height / zz; const sl = sps.get(el); spH[i] = sl ? sl.reduce((a, s) => a + s.getBoundingClientRect().height / zz, 0) : 0;
       oldPush[i] = el.hasAttribute('data-pg') ? parseFloat(el.style.getPropertyValue('--pg')) || 0 : 0;
     }
     let prevBottomNew = 0, prevOld = 0, forceNext = false; const recs = new Array(n); const plans = new Array(n);
     for (let i = 0; i < n; i++) {
       const el = kids[i]; const hn = hs[i] - spH[i];
       const nat = oldPush[i] > 0 ? prevBottomNew + (i ? gapNat(kids[i - 1], el) : numVar(el, '--sb')) : tops[i] + (prevBottomNew - prevOld);
-      let top = nat, push = 0, splitPlan = null; const pg = Math.floor((top + 0.01) / stride); const atPageTop = top - pg * stride < 1; let limit = pg * stride + Hb;
+      let top = nat, push = 0, splitPlan = null; const pg = Math.floor((top + 0.5) / stride); const atPageTop = top - pg * stride < 1; let limit = pg * stride + Hb;
       const forced = forceNext || el.hasAttribute('data-pbb');
       let must = false;
       if (forced) must = !atPageTop;
@@ -139,12 +140,12 @@
         if (kind) { const U = kind === 'p' ? lineUnits(el, sps.get(el)) : rowUnits(el); const plan = planSplit(el, kind, U.units, top, hn, g, atPageTop, sps.get(el)); if (plan.push) must = true; else if (plan.splits.length) { splitPlan = plan.splits; splitPlan.forEach((s) => { s.key = null; s.U = U; }); } }
         else must = !atPageTop;
       } else if (el.hasAttribute('data-kwn') && i + 1 < n) {
-        const nx = kids[i + 1]; const nh = Math.min(hs[i + 1] - (sps.get(nx) ? sps.get(nx).reduce((a, s) => a + s.offsetHeight, 0) : 0), 44);
+        const nx = kids[i + 1]; const nh = Math.min(hs[i + 1] - spH[i + 1], 44);
         if (top + hn + gapNat(el, nx) + nh > limit + 0.5 && !atPageTop && !(nx.classList.contains('pgbreak'))) must = true;
       }
       if (must) { const nt = (pg + 1) * stride; push = nt - prevBottomNew; top = nt; if (hn > 0 && top + hn > nt + Hb + 0.5 && isPara(el) || el.tagName === 'TABLE' && top + hn > nt + Hb + 0.5) { const U = isPara(el) ? lineUnits(el, sps.get(el)) : rowUnits(el); const plan = planSplit(el, isPara(el) ? 'p' : 't', U.units, top, hn, g, true, sps.get(el)); if (plan.splits && plan.splits.length) { splitPlan = plan.splits; splitPlan.forEach((s) => { s.U = U; }); } } }
       let extra = 0; if (splitPlan) { extra = splitPlan.reduce((a, s) => a + s.h, 0); }
-      plans[i] = { push, splits: splitPlan, el }; recs[i] = { el, top, h: hn + extra, page: Math.floor((top + 0.01) / stride) };
+      plans[i] = { push, splits: splitPlan, el }; recs[i] = { el, top, h: hn + extra, page: Math.floor((top + 0.5) / stride) };
       if (!el._g0) el._g0 = 0;
       prevBottomNew = top + hn + extra; prevOld = tops[i] + hs[i]; forceNext = el.classList.contains('pgbreak');
     }
@@ -254,8 +255,9 @@
   };
   P.fitWidth = () => { const g = P.geom(); P.zoomMode = 'width'; const z = Math.max(0.25, Math.min(4, (scroll.clientWidth - 48) / g.w)); P.zoom = z; P.sizeStack(); P.onZoom && P.onZoom(z); };
   P.fitPage = () => { const g = P.geom(); P.zoomMode = 'page'; const z = Math.max(0.25, Math.min(4, Math.min((scroll.clientWidth - 48) / g.w, (scroll.clientHeight - 40) / g.h))); P.zoom = z; P.sizeStack(); scroll.scrollTop = P.currentPage() * g.stride * z; P.onZoom && P.onZoom(z); };
-  new ResizeObserver(() => { if (P.zoomMode === 'width') P.fitWidth(); else if (P.zoomMode === 'page') P.fitPage(); }).observe(scroll);
-  scroll.addEventListener('wheel', (e) => { if (e.ctrlKey) { e.preventDefault(); P.setZoom(P.zoom * Math.exp(-e.deltaY * 0.01), { x: e.clientX, y: e.clientY }); } }, { passive: false });
+  P.autoZoom = () => { const g = P.geom(); const z = Math.max(0.25, Math.min(1, (scroll.clientWidth - 48) / g.w)); if (Math.abs(z - P.zoom) > 0.002) { P.zoom = z; P.sizeStack(); P.onZoom && P.onZoom(z); } };
+  new ResizeObserver(() => { if (P.zoomMode === 'auto') P.autoZoom(); else if (P.zoomMode === 'width') P.fitWidth(); else if (P.zoomMode === 'page') P.fitPage(); }).observe(scroll);
+  scroll.addEventListener('wheel', (e) => { if (e.ctrlKey) { e.preventDefault(); P.setZoom(P.zoom * Math.exp(-e.deltaY * 0.004), { x: e.clientX, y: e.clientY }); } }, { passive: false });
   let gz = 1; addEventListener('gesturestart', (e) => { e.preventDefault(); gz = P.zoom; }); addEventListener('gesturechange', (e) => { e.preventDefault(); P.setZoom(gz * e.scale, { x: e.clientX || scroll.getBoundingClientRect().left + scroll.clientWidth / 2, y: e.clientY || scroll.getBoundingClientRect().top + scroll.clientHeight / 2 }); });
   addEventListener('gestureend', (e) => e.preventDefault());
 

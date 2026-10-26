@@ -40,7 +40,7 @@ window.N = window.N || {};
   // Escape a RegExp source.
   U.reEsc = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
-  // MD5 (needed to match Evernote ENEX <en-media hash>). Returns hex string.
+  // MD5 (needed to match ENEX <en-media hash>). Returns hex string.
   U.md5 = (bytes) => {
     const K = new Int32Array(64), S = [7, 12, 17, 22, 5, 9, 14, 20, 4, 11, 16, 23, 6, 10, 15, 21];
     for (let i = 0; i < 64; i++) K[i] = Math.floor(Math.abs(Math.sin(i + 1)) * 4294967296) | 0;

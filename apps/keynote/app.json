@@ -1,1 +1,12 @@
-{"id":"keynote","name":"Keynote","tagline":"Beautiful presentations, free and open.","msEquivalent":"PowerPoint","accent":"#0a84ff","extensions":["zkey","pptx"],"mime":"application/vnd.zengbot.keynote+zip"}
+{
+  "id": "keynote",
+  "name": "Stage",
+  "tagline": "Beautiful presentations, free and open.",
+  "msEquivalent": "",
+  "accent": "#0a84ff",
+  "extensions": [
+    "zkey",
+    "pptx"
+  ],
+  "mime": "application/vnd.zengbot.keynote+zip"
+}

@@ -1,4 +1,4 @@
-/* ZengNumbers charts: data resolution + SVG renderer (column/bar/line/area/pie/donut/scatter/combo), sparklines, hit-testing, export helpers. */
+/* ZengGrid charts: data resolution + SVG renderer (column/bar/line/area/pie/donut/scatter/combo), sparklines, hit-testing, export helpers. */
 (function (G) {
   'use strict';
   const ZN = G.ZN; const FM = ZN.formula; const CH = ZN.charts = {};

@@ -1,9 +1,9 @@
 ﻿First Name,Middle Name,Last Name,Phonetic First Name,Phonetic Middle Name,Phonetic Last Name,Name Prefix,Name Suffix,Nickname,File As,Organization Name,Organization Title,Organization Department,Birthday,Notes,Photo,Labels,E-mail 1 - Label,E-mail 1 - Value,Phone 1 - Label,Phone 1 - Value,Phone 2 - Label,Phone 2 - Value,Address 1 - Label,Address 1 - Formatted,Address 1 - Street,Address 1 - City,Address 1 - PO Box,Address 1 - Region,Address 1 - Postal Code,Address 1 - Country,Address 1 - Extended Address,Website 1 - Label,Website 1 - Value
-Ada,,Okonkwo,,,,,,,,Lumen Labs,Research Engineer,,1988-10-29,,,Samples ::: Starred,Work,ada@example.com,Mobile,+1 (555) 010-1001,,,Work,"12 Harbour Street
+Ada,,Okonkwo,,,,,,,,Lumen Labs,Research Engineer,,1988-10-30,,,Samples ::: Starred,Work,ada@example.com,Mobile,+1 (555) 010-1001,,,Work,"12 Harbour Street
 Portland OR 97201
 USA",12 Harbour Street,Portland,,OR,97201,USA,,,
 Mateo,,Silva,,,,,,,,Casa Silva,Owner,,--07-19,,,Samples,Work,mateo@example.com,Work,+34 555 010 202,,,,,,,,,,,,Work,https://example.com/casa
-Mei,,Tanaka,メイ,,タナカ,,,,,Northwind Studio,Designer,,1992-11-15,,,Samples,Home,mei@example.com,Mobile,555-010-1003,,,,,,,,,,,,,
+Mei,,Tanaka,メイ,,タナカ,,,,,Northwind Studio,Designer,,1992-11-16,,,Samples,Home,mei@example.com,Mobile,555-010-1003,,,,,,,,,,,,,
 Jonas,,Berg,,,,,,,,Fjord Freight,,,,Met at the logistics meetup.,,Samples,Work,jonas@example.com,Work,555-010-1004,Mobile,555-010-2004,,,,,,,,,,,
 Priya,,Raman,,,,,,,,Lumen Labs,Product Manager,,,,,Samples,Work,priya@example.com,Mobile,555-010-1005,,,,,,,,,,,,,
-Lucas,,Moreau,,,,,,,,,,,1979-10-21,,,Samples,Home,lucas@example.com,Home,555-010-1006,,,,,,,,,,,,,
+Lucas,,Moreau,,,,,,,,,,,1979-10-22,,,Samples,Home,lucas@example.com,Home,555-010-1006,,,,,,,,,,,,,

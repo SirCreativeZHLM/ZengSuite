@@ -1,4 +1,4 @@
-/* ZengNumbers engine core: value types, errors, coercion, ranges, function registry.
+/* ZengGrid engine core: value types, errors, coercion, ranges, function registry.
    Loaded in the browser (global ZN) and in node tests (require -> globalThis.ZN). No eval. */
 (function (G) {
   'use strict';

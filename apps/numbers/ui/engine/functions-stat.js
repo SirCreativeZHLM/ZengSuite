@@ -1,4 +1,4 @@
-/* ZengNumbers functions: Statistical (descriptive, regression, probability distributions, hypothesis tests). Uses ZN.math from functions-math.js. */
+/* ZengGrid functions: Statistical (descriptive, regression, probability distributions, hypothesis tests). Uses ZN.math from functions-math.js. */
 (function (G) {
   'use strict';
   const ZN = G.ZN; const { E, Range } = ZN; const F = ZN.F; const { isErr, toNum } = F; const M = ZN.math;

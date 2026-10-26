@@ -1,4 +1,4 @@
-/* ZengPages formats: native .zpages (zip), HTML, Markdown, plain text, RTF import/export. (.docx lives in docx.js) */
+/* ZengWrite formats: native .zpages (zip), HTML, Markdown, plain text, RTF import/export. (.docx lives in docx.js) */
 (() => {
   'use strict';
   const P = window.P, flow = P.flow, S = P.S;
@@ -20,11 +20,11 @@
   };
 
   /* ================= .zpages (zip: document.html + media/ + meta.json) ================= */
-  P.zpagesBytes = () => {
-    P.endHF(); let html = P.cleanHTML().replace(/\u200b/g, ''); const files = {}; const media = {};
+  P.zpagesBytes = (o = {}) => {
+    if (!o.draft) P.endHF(); let html = P.cleanHTML().replace(/\u200b/g, ''); const files = {}; const media = {};
     const used = new Set(); for (const m of P.media.values()) if (html.includes(m.url)) { const f = `media/${m.id}.${P.mediaExt(m.mime)}`; html = html.split(m.url).join(f); files[f] = [m.bytes, { level: 0 }]; media[m.id] = { file: f, mime: m.mime }; used.add(m.id); }
     const d = JSON.parse(P.docJSON()); const now = new Date().toISOString();
-    const meta = { format: 'zpages', version: 1, generator: 'ZengPages ' + (zeng.info.version || ''), modified: now, created: P.S.created || now, ...d, media };
+    const meta = { format: 'zpages', version: 1, generator: 'ZengWrite ' + (zeng.info.version || ''), modified: now, created: P.S.created || now, ...d, media };
     files['document.html'] = enc(`<!doctype html>\n<meta charset="utf-8">\n<body>${html}</body>\n`); files['meta.json'] = enc(JSON.stringify(meta, null, 1));
     return fflate.zipSync(files, { level: 6 });
   };
@@ -88,7 +88,7 @@
     for (const x of wrap.querySelectorAll('p[data-fnid]')) x.prepend((x.getAttribute('data-n') || '') + '. ');
     const body = listify(wrap); const holder = mk('div', 'pgdoc'); holder.append(body);
     const title = P.docTitle();
-    return `<!doctype html>\n<html lang="en"><head><meta charset="utf-8"><meta name="generator" content="ZengPages"><title>${esc(title)}</title><style>${EXPORT_CSS}\n${P.genStyleCss()}</style></head><body>${holder.outerHTML}</body></html>\n`;
+    return `<!doctype html>\n<html lang="en"><head><meta charset="utf-8"><meta name="generator" content="ZengWrite"><title>${esc(title)}</title><style>${EXPORT_CSS}\n${P.genStyleCss()}</style></head><body>${holder.outerHTML}</body></html>\n`;
   };
   P.importHTML = (text) => {
     const nodes = P.sanitizeExternal(text); const doc = new DOMParser().parseFromString(text, 'text/html'); void doc; P.loadNodes(nodes.length ? nodes : [P.emptyP()]); P.absorbDataImages();
@@ -124,19 +124,20 @@
       if (el.classList.contains('pgbreak')) { out.push('<div style="page-break-after: always"></div>'); continue; }
       if (t === 'HR') continue;
       if (t === 'TABLE') {
-        const rows = [...el.rows].filter((r) => !r.classList.contains('pgsp')).map((r) => [...r.cells].map((c) => mdInline(c).replace(/\n+/g, ' ').replace(/ {2,}\n?/g, ' ').replace(/\|/g, '\\|').trim() || ' '));
+        const G = P.tgrid(el); const rows = G.rows.map((r, ri) => Array.from({ length: G.ncols }, (_, ci) => { const c = G.grid[ri] && G.grid[ri][ci]; if (!c || c._r !== ri || c._c !== ci) return ' '; return mdInline(c).replace(/\n+/g, ' ').replace(/ {2,}\n?/g, ' ').replace(/\|/g, '\\|').trim() || ' '; }));
         const n = Math.max(...rows.map((r) => r.length)); rows.forEach((r) => { while (r.length < n) r.push(' '); });
         out.push('| ' + rows[0].join(' | ') + ' |', '| ' + rows[0].map(() => '---').join(' | ') + ' |', ...rows.slice(1).map((r) => '| ' + r.join(' | ') + ' |'), ''); continue;
       }
       const inner = [...el.querySelectorAll('p')].length && t !== 'P' ? '' : mdInline(el).replace(/\n{2,}/g, '\n').trimEnd();
       if (el.dataset.fnid) { notes.push(`[^${el.getAttribute('data-n') || el.dataset.fnid}]: ${inner}`); continue; }
       const st = el.getAttribute('data-st') || ''; const kind = el.getAttribute('data-list'); const lv = +el.getAttribute('data-lv') || 0;
+      if (!kind && out.length && /^\s*(-|\d+\.)\s/.test(out[out.length - 1])) out.push('');
       if (/^H[1-4]$/.test(t)) out.push('#'.repeat(+t[1]) + ' ' + inner, '');
       else if (st === 'Title') out.push('# ' + inner, '');
       else if (st === 'Subtitle') out.push('*' + inner.replace(/\*/g, '') + '*', '');
       else if (st === 'Code') out.push('```', el.textContent.replace(/\u200b/g, ''), '```', '');
       else if (st === 'Quote') out.push('> ' + inner.replace(/\n/g, '\n> '), '');
-      else if (kind) { const mark = kind === 'b' ? '-' : kind === 'c' ? (el.hasAttribute('data-checked') ? '- [x]' : '- [ ]') : (el.getAttribute('data-mark') || '1.').replace(/^([a-z]+|[\d.]+)\.?$/i, (m, a) => (/^\d+$/.test(a) ? a + '.' : '1.')); out.push('  '.repeat(lv) + mark + ' ' + inner); }
+      else if (kind) { const mm = /^(\d+)\./.exec(el.getAttribute('data-mark') || ''); const mark = kind === 'b' ? '-' : kind === 'c' ? (el.hasAttribute('data-checked') ? '- [x]' : '- [ ]') : (mm ? mm[1] + '.' : '1.'); out.push('    '.repeat(lv) + mark + ' ' + inner); }
       else { if (out.length && /^\s*(-|\d+\.)\s/.test(out[out.length - 1])) out.push(''); out.push(inner, ''); }
     }
     if (notes.length) out.push('', ...notes);
@@ -232,14 +233,14 @@
       const al = { center: '\\qc', right: '\\qr', justify: '\\qj' }[el.style.textAlign] || ''; let pre = ''; const t = el.tagName; const st = el.getAttribute('data-st');
       let fmt = ''; if (/^H[1-4]$/.test(t)) fmt = `\\b\\fs${[0, 40, 32, 26, 22][+t[1]]} `; else if (st === 'Title') fmt = '\\b\\fs60 '; else if (st === 'Subtitle') fmt = '\\fs30 '; else if (st === 'Quote') fmt = '\\i '; else if (st === 'Code') fmt = `\\f${fid('Menlo')}\\fs19 `;
       const il = parseFloat(el.style.getPropertyValue('--il')) || 0; let li = Math.round(il * 15); if (el.hasAttribute('data-list')) { li += (((+el.getAttribute('data-lv') || 0) + 1) * 540); pre = rtfEsc((el.getAttribute('data-mark') || '•') + '\t'); }
-      return `\\pard${al}${li ? `\\li${li}` : ''}${el.hasAttribute('data-list') ? '\\fi-360' : ''}\\sa${Math.round((parseFloat(el.style.getPropertyValue('--sa')) || P.pt2px(8)) * 15)}${extra} ${fmt}${pre}${runs(el)}\\par\n`;
+      return `\\pard${al}${li ? `\\li${li}` : ''}${el.hasAttribute('data-list') ? '\\fi-360' : ''}\\sa${Math.round((parseFloat(el.style.getPropertyValue('--sa')) || P.pt2px(8)) * 15)}${extra} {${fmt}${pre}${runs(el)}}\\par\n`;
     };
     let body = '';
     for (const el of flow.children) {
       if (el.classList.contains('pgbreak')) { body += '\\page\n'; continue; } if (el.tagName === 'HR') continue;
       if (el.tagName === 'TABLE') {
         const G = P.tgrid(el); const cg = el.querySelector(':scope > colgroup'); const ws = cg ? [...cg.children].map((c) => parseFloat(c.style.width) || 80) : Array(G.ncols).fill(80); let x = 0; const edges = ws.map((w) => (x += Math.round(w * 15)));
-        for (const tr of G.rows) { body += '\\trowd\\trgaph108\\trleft0'; for (const c of tr.cells) { const e = edges[Math.min(edges.length - 1, c._c + c.colSpan - 1)]; body += '\\clbrdrt\\brdrs\\clbrdrl\\brdrs\\clbrdrb\\brdrs\\clbrdrr\\brdrs' + (c.style.backgroundColor && hex(c.style.backgroundColor) ? `\\clcbpat${cid(c.style.backgroundColor)}` : '') + `\\cellx${e}`; } body += '\n'; for (const c of tr.cells) { body += [...c.children].map((p) => para(p).replace(/\\par\n$/, '')).join('\\line ') + '\\cell\n'; } body += '\\row\n'; } continue;
+        for (const tr of G.rows) { body += '\\trowd\\trgaph108\\trleft0'; for (const c of tr.cells) { const e = edges[Math.min(edges.length - 1, c._c + c.colSpan - 1)]; body += '\\clbrdrt\\brdrs\\clbrdrl\\brdrs\\clbrdrb\\brdrs\\clbrdrr\\brdrs' + (c.style.backgroundColor && hex(c.style.backgroundColor) ? `\\clcbpat${cid(c.style.backgroundColor)}` : '') + `\\cellx${e}`; } body += '\n'; for (const c of tr.cells) { body += [...c.children].map((p) => para(p, '\\intbl').replace(/\\par\n$/, '')).join('\\line ') + '\\cell\n'; } body += '\\row\n'; } continue;
       }
       body += para(el);
     }
@@ -249,16 +250,16 @@
   const CP1252 = '\u20ac\u0081\u201a\u0192\u201e\u2026\u2020\u2021\u02c6\u2030\u0160\u2039\u0152\u008d\u017d\u008f\u0090\u2018\u2019\u201c\u201d\u2022\u2013\u2014\u02dc\u2122\u0161\u203a\u0153\u009d\u017e\u0178';
   P.importRTF = (text) => {
     let i = 0; const n = text.length; const stack = []; let st = { b: 0, i: 0, ul: 0, strike: 0, sup: 0, sub: 0, fs: 0, f: -1, cf: 0, hl: 0, scaps: 0, skip: 0, uc: 1 };
-    const fonts = {}, colors = [null]; const nodes = []; let para = null, align = '', li = 0, fi = 0, inTable = null, row = null, cell = null, cellDefs = []; let curCellP = null; const pend = []; let picBuf = null; let dest = '';
+    const fonts = {}, colors = [null]; const nodes = []; let para = null, align = '', li = 0, fi = 0, inRow = false, tableNode = null, row = null, cell = null, cellDefs = []; let curCellP = null; const pend = []; let picBuf = null; let dest = '';
     const newPara = () => { const p = mk('p'); if (align) p.style.textAlign = align; if (li > 0 || fi) { if (li > 0) p.style.setProperty('--il', Math.round(li / 15) + 'px'); } return p; };
-    const target = () => { if (inTable) { if (!cell) { cell = mk('td'); } if (!curCellP) { curCellP = newPara(); cell.append(curCellP); } return curCellP; } if (!para) { para = newPara(); nodes.push(para); } return para; };
+    const target = () => { if (inRow) { if (!cell) { cell = mk('td'); } if (!curCellP) { curCellP = newPara(); cell.append(curCellP); } return curCellP; } if (!para) { para = newPara(); nodes.push(para); } return para; };
     const spanFor = (txt) => {
       const sp = mk('span'); const css = []; if (st.fs) css.push(`font-size:${st.fs / 2}pt`); if (st.f >= 0 && fonts[st.f]) css.push(`font-family:"${fonts[st.f]}"`); if (st.cf && colors[st.cf]) css.push(`color:${colors[st.cf]}`); if (st.hl && colors[st.hl]) css.push(`background-color:${colors[st.hl]}`); if (st.scaps) css.push('font-variant:small-caps'); sp.setAttribute('style', css.join(';'));
       let node = document.createTextNode(txt); let w = node; const wrap = (tag) => { const e = mk(tag); e.append(w); w = e; }; if (st.b) wrap('b'); if (st.i) wrap('i'); if (st.ul) wrap('u'); if (st.strike) wrap('s'); if (st.sup) wrap('sup'); if (st.sub) wrap('sub');
       if (css.length) { sp.append(w); return sp; } return w;
     };
-    const emit = (txt) => { if (!txt || st.skip) return; if (picBuf) return; target().append(spanFor(txt)); };
-    const flushPara = () => { if (inTable) { if (curCellP && !curCellP.textContent && !curCellP.childNodes.length) curCellP.append(document.createElement('br')); curCellP = null; } else { if (para && !para.childNodes.length) para.append(document.createElement('br')); if (!para) { const p = newPara(); p.append(document.createElement('br')); nodes.push(p); } para = null; } };
+    const emit = (txt) => { if (!txt || st.skip) return; if (picBuf) return; const tp = target(); tp._n = (tp._n || 0) + txt.length; if (st.b) tp._nb = (tp._nb || 0) + txt.length; if (st.fs) tp._fs = Math.max(tp._fs || 0, st.fs); tp.append(spanFor(txt)); };
+    const flushPara = () => { if (inRow) { if (curCellP && !curCellP.textContent && !curCellP.childNodes.length) curCellP.append(document.createElement('br')); curCellP = null; } else { if (para && !para.childNodes.length) para.append(document.createElement('br')); if (!para) { const p = newPara(); p.append(document.createElement('br')); nodes.push(p); } para = null; } };
     while (i < n) {
       const c = text[i];
       if (c === '{') { stack.push({ ...st, dest }); i++; if (text[i] === '\\' && text[i + 1] === '*') { st.skip = 1; } continue; }
@@ -278,13 +279,13 @@
           case 'fs': st.fs = v; break; case 'cf': st.cf = v; break; case 'highlight': case 'cb': if (w === 'highlight') st.hl = v; break; case 'plain': st.b = st.i = st.ul = st.strike = st.sup = st.sub = st.scaps = 0; st.fs = 0; st.cf = 0; st.hl = 0; break;
           case 'uc': st.uc = v; break;
           case 'u': { let cp = v < 0 ? v + 65536 : v; emit(String.fromCharCode(cp)); let skip = st.uc; while (skip-- > 0 && i < n) { if (text[i] === '\\' && text[i + 1] === "'") i += 4; else i++; } break; }
-          case 'par': case 'line': w === 'par' ? (flushPara(), (para = null)) : emit('\n'); if (w === 'par' && !inTable) { /* new para inherits nothing */ } break;
-          case 'pard': align = ''; li = 0; fi = 0; if (!inTable) para = null; break; case 'qc': align = 'center'; break; case 'qr': align = 'right'; break; case 'qj': align = 'justify'; break; case 'ql': align = ''; break; case 'li': li = v; break; case 'fi': fi = v; break;
+          case 'par': case 'line': w === 'par' ? (flushPara(), (para = null)) : emit('\n');  break;
+          case 'pard': align = ''; li = 0; fi = 0; if (!inRow) para = null; break; case 'qc': align = 'center'; break; case 'qr': align = 'right'; break; case 'qj': align = 'justify'; break; case 'ql': align = ''; break; case 'li': li = v; break; case 'fi': fi = v; break;
           case 'tab': emit('\t'); break; case 'emdash': emit('—'); break; case 'endash': emit('–'); break; case 'bullet': emit('•'); break; case 'lquote': emit('‘'); break; case 'rquote': emit('’'); break; case 'ldblquote': emit('“'); break; case 'rdblquote': emit('”'); break;
           case 'page': nodes.push(Object.assign(mk('div', 'pgbreak'), { contentEditable: 'false' })); para = null; break;
-          case 'trowd': inTable ||= mk('table'); row = mk('tr'); cellDefs = []; cell = null; curCellP = null; break; case 'cellx': cellDefs.push(v); break;
+          case 'trowd': if (!tableNode || nodes[nodes.length - 1] !== tableNode) { tableNode = mk('table'); nodes.push(tableNode); } para = null; inRow = true; row = mk('tr'); cellDefs = []; cell = null; curCellP = null; break; case 'cellx': cellDefs.push(v); break;
           case 'cell': { if (!cell) cell = mk('td'); if (!cell.firstChild) { const p = newPara(); p.append(document.createElement('br')); cell.append(p); } row.append(cell); cell = null; curCellP = null; break; }
-          case 'row': { if (inTable && row) { inTable.append(row); row = null; } break; }
+          case 'row': { if (tableNode && row) { tableNode.append(row); row = null; } inRow = false; break; }
           case 'paperw': if (v) S.page.pw = Math.round(v / 15); break; case 'paperh': if (v) S.page.ph = Math.round(v / 15); break;
           case 'margl': S.page.ml = Math.round(v / 15); break; case 'margr': S.page.mr = Math.round(v / 15); break; case 'margt': S.page.mt = Math.round(v / 15); break; case 'margb': S.page.mb = Math.round(v / 15); break;
           default: break;
@@ -302,13 +303,14 @@
       const pb = picBuf; picBuf = null; if (!pb || !pb.type || pb.hex.length < 20) return; const bytes = new Uint8Array(pb.hex.length / 2); for (let k = 0; k < bytes.length; k++) bytes[k] = parseInt(pb.hex.substr(k * 2, 2), 16);
       const m = P.addMedia(bytes, pb.type); const img = mk('img'); img.src = m.url; img.dataset.m = m.id; img.dataset.wrap = 'inline'; if (pb.w) { img.style.width = pb.w + 'px'; img.style.height = pb.h + 'px'; } target().append(img);
     }
-    if (inTable && !inTable.parentNode) { /* unterminated */ }
+    
     // assemble tables: they were collected in `inTable` only when \trowd seen; we append them where encountered by order
     const assembled = []; let tbl = null; void tbl; void pend;
-    const finalNodes = []; for (const nd of nodes) finalNodes.push(nd); if (inTable) finalNodes.push(inTable);
+    const finalNodes = nodes.filter((x) => x.tagName !== 'TABLE' || x.rows.length);
     void assembled;
     // tables: rebuild properly: rows were appended to inTable, which is a single table (adjacent tables merge; acceptable for basic RTF)
     const tables = finalNodes.filter((x) => x.tagName === 'TABLE'); for (const t of tables) { const cols = Math.max(...[...t.rows].map((r) => r.cells.length)); const cg = mk('colgroup'); const w = Math.floor(P.geom().cw / cols); for (let k = 0; k < cols; k++) { const c = mk('col'); c.style.width = w + 'px'; cg.append(c); } t.prepend(cg); t.dataset.ts = 'grid'; t.style.width = w * cols + 'px'; }
+    finalNodes.forEach((nd, idx) => { if (nd.tagName !== 'P' || !nd._n || nd._nb !== nd._n || !(nd._fs >= 26)) return; const fs = nd._fs / 2; const lvl = fs >= 28 ? 0 : fs >= 19 ? 1 : fs >= 15 ? 2 : 3; nd.querySelectorAll('[style*="font-size"]').forEach((x) => x.style.removeProperty('font-size')); nd.querySelectorAll('b').forEach((x) => { const pr = x.parentNode; while (x.firstChild) pr.insertBefore(x.firstChild, x); x.remove(); }); if (lvl === 0) nd.dataset.st = 'Title'; else { const h = mk('h' + lvl); while (nd.firstChild) h.append(nd.firstChild); finalNodes[idx] = h; } });
     P.resetDocSettings(); const keep = { ...S.page }; void keep;
     P.loadNodes(finalNodes.length ? finalNodes : [P.emptyP()], { keepSettings: true });
   };

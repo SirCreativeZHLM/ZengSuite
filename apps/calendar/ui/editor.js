@@ -23,7 +23,7 @@
     const where = el('input.zk-input.selectable', { placeholder: 'Add location', 'aria-label': 'Location', autocomplete: 'off' });
     const sel = calSelect(cal0.id); const when = el('.qc-when', whenText(start, end, allDay));
     const make = () => { const ev = CAL.draftFor(start, end, allDay, sel.value); if (!ev) return null; ev.title = title.value.trim() || 'New Event'; ev.loc = where.value.trim(); return ev; };
-    const add = () => { const ev = make(); if (!ev) return; added = true; zk.closePop(); commitNew(ev); };
+    const add = async () => { const ev = make(); if (!ev) return; if (!allDay && !(await CAL.checkFocus(start.getTime(), end.getTime()))) return; added = true; zk.closePop(); commitNew(ev); };
     const more = () => { const ev = make(); added = true; zk.closePop(); onCancel && onCancel(); CAL.openEditor(null, ev); };
     const body = el('.qc', title, where, el('.qc-row', tick(cal0.color), sel), when, el('.qc-actions', el('button.zk-btn.bordered', { type: 'button', onclick: more }, 'Details…'), el('button.zk-btn.primary', { type: 'button', onclick: add }, 'Add')));
     sel.addEventListener('change', () => { const c = CAL.calById(sel.value); body.querySelector('.cdot').style.background = c.color; });
@@ -41,10 +41,10 @@
       prev.replaceChildren(); if (!input.value.trim()) { parsed = null; prev.append(el('.hint', 'Try “Dentist next Friday 3-4pm”, “Standup every weekday 9:30am”, “Rent due Nov 1”, “Flight 12/15 6:45am for 5 hours at SFO”.')); return; }
       parsed = NLP.parse(input.value, new Date(), { duration: S.set.defaultDur }); const p = parsed;
       const s = new Date(p.allDay ? p.start + 'T00:00:00' : p.start), e = new Date(p.allDay ? p.end + 'T00:00:00' : p.end);
-      prev.append(el('b', p.title), el('span', whenText(s, e, p.allDay)), p.loc ? el('span', zk.icon('map-pin'), p.loc) : null, p.rrule ? el('span', zk.icon('repeat'), describeRule(p.rrule)) : null, p.alarms.length ? el('span', zk.icon('bell'), p.alarms.map((m) => alertLabel(m)).join(', ')) : null);
+      const clash = !p.allDay && CAL.focusConflicts(s.getTime(), e.getTime()); prev.append(...[el('b', p.title), el('span', whenText(s, e, p.allDay)), clash && clash.length ? el('span.warn', zk.icon('shield'), 'Overlaps focus block \u201c' + I.F(clash[0], 'title') + '\u201d') : null, p.loc ? el('span', zk.icon('map-pin'), p.loc) : null, p.rrule ? el('span', zk.icon('repeat'), describeRule(p.rrule)) : null, p.alarms.length ? el('span', zk.icon('bell'), p.alarms.map((m) => alertLabel(m)).join(', ')) : null].filter(Boolean));
     };
     const build = () => { if (!parsed) return null; const p = parsed; const cal = CAL.calById(sel.value); const ev = CAL.newEventAt(p.start, p.end, p.allDay, cal); ev.title = p.title; ev.loc = p.loc; if (p.rrule) ev.rrule = p.rrule; if (p.alarms.length) ev.alarms = p.alarms.map((m) => ({ m, action: 'DISPLAY' })); return ev; };
-    const add = () => { const ev = build(); if (!ev) return; zk.closePop(); commitNew(ev); };
+    const add = async () => { const ev = build(); if (!ev) return; if (!parsed.allDay && !(await CAL.checkFocus(I.base(ev).s, I.base(ev).e))) return; zk.closePop(); commitNew(ev); };
     const details = () => { const ev = build(); if (!ev) return; zk.closePop(); CAL.openEditor(null, ev); };
     input.addEventListener('input', update); input.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); add(); } });
     const body = el('.qa', input, prev, el('.qc-actions', el('span.qc-row', tick((CAL.defaultCal() || {}).color || '#888'), sel), el('span.zk-spacer'), el('button.zk-btn.bordered', { type: 'button', onclick: details }, 'Details…'), el('button.zk-btn.primary', { type: 'button', onclick: add }, 'Add')));
@@ -153,8 +153,8 @@
         const fSel = el('select.zk-select', { 'aria-label': 'Frequency', onchange: () => { rst.freq = fSel.value; renderRule(); } }, ['DAILY', 'WEEKLY', 'MONTHLY', 'YEARLY'].map((f) => el('option', { value: f, selected: f === rst.freq }, { DAILY: 'Daily', WEEKLY: 'Weekly', MONTHLY: 'Monthly', YEARLY: 'Yearly' }[f])));
         const n = el('input.zk-input.num', { type: 'number', min: 1, max: 999, value: rst.interval, 'aria-label': 'Interval', onchange: () => { rst.interval = Math.max(1, +n.value || 1); renderRule(); } });
         kids.push(el('.er', el('label', 'Every'), el('.ctl', n, el('span', { DAILY: 'day(s)', WEEKLY: 'week(s)', MONTHLY: 'month(s)', YEARLY: 'year(s)' }[rst.freq]), el('span.sp'), fSel)));
-        if (rst.freq === 'WEEKLY') { const order = [...Array(7).keys()].map((i) => (CAL.firstDay() + i) % 7); kids.push(el('.er', el('label', 'On'), el('.ctl.wk', order.map((d) => el('button.zk-btn.bordered.wd' + (rst.days.has(d) ? '.on' : ''), { type: 'button', 'aria-pressed': rst.days.has(d), title: CAL.weekdayName(d, 'long'), onclick: () => { if (rst.days.has(d)) { if (rst.days.size > 1) rst.days.delete(d); } else rst.days.add(d); renderRule(); } }, CAL.weekdayName(d, 'short'))))); }
-        if (rst.freq === 'YEARLY') kids.push(el('.er', el('label', 'In'), el('.ctl.mo', [...Array(12).keys()].map((mi) => el('button.zk-btn.bordered.wd' + (rst.months.has(mi + 1) ? '.on' : ''), { type: 'button', 'aria-pressed': rst.months.has(mi + 1), onclick: () => { if (rst.months.has(mi + 1)) { if (rst.months.size > 1) rst.months.delete(mi + 1); } else rst.months.add(mi + 1); renderRule(); } }, CAL.monthName(mi, 'short')))));
+        if (rst.freq === 'WEEKLY') { const order = [...Array(7).keys()].map((i) => (CAL.firstDay() + i) % 7); kids.push(el('.er', el('label', 'On'), el('.ctl.wk', order.map((d) => el('button.zk-btn.bordered.wd' + (rst.days.has(d) ? '.on' : ''), { type: 'button', 'aria-pressed': rst.days.has(d), title: CAL.weekdayName(d, 'long'), onclick: () => { if (rst.days.has(d)) { if (rst.days.size > 1) rst.days.delete(d); } else rst.days.add(d); renderRule(); } }, CAL.weekdayName(d, 'short'))))) ); }
+        if (rst.freq === 'YEARLY') kids.push(el('.er', el('label', 'In'), el('.ctl.mo', [...Array(12).keys()].map((mi) => el('button.zk-btn.bordered.wd' + (rst.months.has(mi + 1) ? '.on' : ''), { type: 'button', 'aria-pressed': rst.months.has(mi + 1), onclick: () => { if (rst.months.has(mi + 1)) { if (rst.months.size > 1) rst.months.delete(mi + 1); } else rst.months.add(mi + 1); renderRule(); } }, CAL.monthName(mi, 'short'))))));
         if (rst.freq === 'MONTHLY' || rst.freq === 'YEARLY') {
           const dom = el('input.zk-input.selectable', { value: rst.dom, style: { width: '100px' }, 'aria-label': 'Days of month', placeholder: '15 or 1,15,-1', onchange: () => { rst.dom = dom.value; renderRule(); } });
           const nthN = el('select.zk-select', { 'aria-label': 'Which', onchange: () => { rst.nthN = +nthN.value; renderRule(); } }, NTH.map(([v, l]) => el('option', { value: v, selected: v === rst.nthN }, l)));
@@ -205,7 +205,7 @@
     if (!isNew) buttons.push({ label: 'Delete', danger: true, value: 'del', onClick: async (sheet) => { sheet.close('del'); return false; } });
     buttons.push({ label: isNew ? 'Add' : 'Save', primary: true, value: 'ok', onClick: () => { if (rst.on && presetSel.value === 'custom' && rawIn.classList.contains('bad')) { zk.toast('Fix the recurrence rule first'); return false; } return true; } });
     const p = zk.sheet({ title: isNew ? 'New Event' : 'Edit Event', body, buttons, width: 580 }).then(async (r) => {
-      CAL._edRule = null; if (r === 'del') { await CAL.deleteOcc(o); return 'del'; } if (r !== 'ok') return null; const f = collect();
+      CAL._edRule = null; if (r === 'del') { await CAL.deleteOcc(o); return 'del'; } if (r !== 'ok') return null; const f = collect(); if (!f.allDay && !(ev0.x && ev0.x.some((x) => x.n === 'X-ZENG-FOCUS'))) { const s = T.wallToEpoch(f.start, f.tz), e2 = T.wallToEpoch(f.end, f.endTz || f.tz); if (!(await CAL.checkFocus(s, e2, isNew ? '' : ev0.id))) return null; }
       if (isNew) { const ev = CAL.createFrom(f, f.cal); if (f.rrule) ev.rrule = f.rrule; ev.exdates = []; ev.organizer = null; commitNew(ev); return ev; }
       await CAL.applyEdit(o, f, { verb: 'Save', label: 'Edit Event' }); return o;
     });
@@ -223,17 +223,17 @@
   CAL.suggestTime = () => {
     const dur = el('select.zk-select', { 'aria-label': 'Duration' }, [15, 30, 45, 60, 90, 120, 180, 240].map((m) => el('option', { value: m, selected: m === 60 }, m < 60 ? m + ' minutes' : m === 60 ? '1 hour' : m % 60 ? m / 60 + ' hours' : m / 60 + ' hours')));
     const span = el('select.zk-select', { 'aria-label': 'Look ahead' }, [[7, 'next 7 days'], [14, 'next 14 days'], [30, 'next 30 days']].map(([v, l]) => el('option', { value: v }, l)));
-    const list = el('.fl'); const wh = `${fmtMin(S.set.workStart)} – ${fmtMin(S.set.workEnd)}`;
+    const allowFocus = el('input.zk-check', { type: 'checkbox', 'aria-label': 'Allow inside focus blocks' }); const list = el('.fl'); const wh = `${fmtMin(S.set.workStart)} – ${fmtMin(S.set.workEnd)}`;
     const calc = () => {
       list.replaceChildren(); const now = Date.now(); const to = now + +span.value * DAY; const busy = [];
-      for (const o of CAL.occurrences(now - DAY, to + DAY)) { const av = I.F(o, 'avail') || 'busy'; if (o.allDay || av === 'free' || o.ro) continue; const tr = (I.F(o, 'travel') || 0) * MIN; busy.push([o.s - tr, o.e]); }
+      for (const o of CAL.occurrences(now - DAY, to + DAY)) { if (allowFocus.checked && ZC.balance.isFocus(o.ev)) continue; const av = I.F(o, 'avail') || 'busy'; if (o.allDay || av === 'free' || o.ro) continue; const tr = (I.F(o, 'travel') || 0) * MIN; busy.push([o.s - tr, o.e]); }
       const w = FREE.windows(busy, now, to, +dur.value * MIN, { workStart: S.set.workStart, workEnd: S.set.workEnd, days: S.set.workDays, step: S.set.snap }).slice(0, 60);
       if (!w.length) { list.append(el('.zk-empty', el('strong', 'No free time found'), el('span', 'Try a shorter duration or a longer range.'))); return; }
       let lastDay = '';
       for (const x of w) { const s = new Date(x.s); const dk = CAL.fmt('dwd2', { weekday: 'long', month: 'long', day: 'numeric' }, s); if (dk !== lastDay) { list.append(el('.fl-day', dk)); lastDay = dk; } list.append(el('.fl-row', el('span.tm', CAL.fmtTime(s) + ' – ' + CAL.fmtTime(new Date(x.e))), el('span.hint', CAL.fmtDur(x.e - x.s) + ' free'), el('button.zk-btn.bordered', { type: 'button', onclick: () => { sheetRef.close(null); S.date = CAL.day0(s); const ev = CAL.draftFor(s, new Date(x.s + +dur.value * MIN), false); CAL.render({ anim: null }); if (ev) CAL.openEditor(null, ev); } }, 'Schedule…'))); }
     };
-    dur.onchange = span.onchange = calc;
-    const body = el('.ft', el('.er', el('label', 'Duration'), el('.ctl', dur)), el('.er', el('label', 'Look in'), el('.ctl', span)), el('.hint', `Working hours ${wh}; checks visible calendars (all-day events and Free events are ignored). Change hours in Preferences.`), list);
+    dur.onchange = span.onchange = allowFocus.onchange = calc;
+    const body = el('.ft', el('.er', el('label', 'Duration'), el('.ctl', dur)), el('.er', el('label', 'Look in'), el('.ctl', span)), el('label.er', el('label', 'Focus blocks'), el('.ctl', allowFocus, el('span', 'Allow inside protected focus blocks'))), el('.hint', `Working hours ${wh}; checks visible calendars (all-day events and Free events are ignored). Change hours in Preferences.`), list);
     let sheetRef = null; const pr = zk.sheet({ title: 'Find Free Time', body, buttons: [{ label: 'Done', primary: true }], width: 460 }); setTimeout(() => { sheetRef = document.querySelector('.zk-scrim:last-of-type .zk-sheet'); calc(); }, 0); return pr;
   };
 })();

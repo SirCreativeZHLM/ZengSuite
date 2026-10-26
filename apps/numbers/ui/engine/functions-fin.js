@@ -1,4 +1,4 @@
-/* ZengNumbers functions: Financial (time value of money, depreciation, cash-flow IRR/NPV, securities & bond basics). */
+/* ZengGrid functions: Financial (time value of money, depreciation, cash-flow IRR/NPV, securities & bond basics). */
 (function (G) {
   'use strict';
   const ZN = G.ZN; const { E } = ZN; const F = ZN.F; const { isErr, toNum } = F; const DT = ZN.date;

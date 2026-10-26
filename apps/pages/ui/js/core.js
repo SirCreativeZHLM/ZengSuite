@@ -1,4 +1,4 @@
-/* ZengPages core: state, geometry, styles, selection helpers, history, media. */
+/* ZengWrite core: state, geometry, styles, selection helpers, history, media. */
 (() => {
   'use strict';
   const P = (window.P = {});
@@ -107,7 +107,7 @@
   P.cellOf = (node) => { let n = node; while (n && n !== flow) { if (n.nodeType === 1 && (n.tagName === 'TD' || n.tagName === 'TH')) return n; n = n.parentNode; } return null; };
   P.inFlow = (node) => !!node && flow.contains(node);
   P.sel = () => getSelection();
-  P.range = () => { const s = getSelection(); return s.rangeCount && flow.contains(s.anchorNode) ? s.getRangeAt(0) : null; };
+  P.range = () => { const s = getSelection(); return s.rangeCount && (flow.contains(s.anchorNode) || (P.hfEl && P.hfEl.contains(s.anchorNode))) ? s.getRangeAt(0) : null; };
 
   // logical offsets: number of text chars + atoms before a point inside a block, ignoring page-break spacers
   P.lo = (block, node, off) => {
@@ -152,7 +152,7 @@
   /* ---------------- clean HTML / doc JSON ---------------- */
   const reClean = [
     [/<span class="pgsp"[^>]*><\/span>/g, ''], [/<tr class="pgsp"[\s\S]*?<\/tr>/g, ''],
-    [/ data-pg="[^"]*"/g, ''], [/ data-mark="[^"]*"/g, ''], [/ data-sel="[^"]*"/g, ''],
+    [/ data-pg="[^"]*"/g, ''], [/ data-mark="[^"]*"/g, ''], [/ data-sel="[^"]*"/g, ''], [/ data-fc="[^"]*"/g, ''],
     [/--(?:pg|colx|colw):[^;"]*;?/g, ''], [/ style=" *"/g, ''], [/ class=" *"/g, ''],
   ];
   P.cleanString = (h) => { for (const [re, to] of reClean) h = h.replace(re, to); return h; };

@@ -212,4 +212,31 @@
     const r = await zk.sheet({ title: 'Change History', body: dl('', el('.lead', 'Every change this session can be undone. Click an entry to undo back to before it.'), rows), buttons: [{ label: 'Close', primary: true, value: null }], width: 460 });
     if (r && r.n) ZC.undoTo(r.n);
   };
+
+  // ---------- relationship rhythm ----------
+  ZC.actionToast = (text, label, fn) => {
+    document.querySelectorAll('.undo-toast').forEach((t) => t.remove());
+    const b = el('button', { type: 'button', onclick: () => { fn(); t.remove(); } }, label); const t = el('.undo-toast', { role: 'status' }, text, b); document.body.append(t);
+    setTimeout(() => { t.classList.add('out'); setTimeout(() => t.remove(), 220); }, 7000);
+  };
+  ZC.quickLog = (c, note) => { ZC.update([c.id], 'Log Catch-up', (x) => M.logCatchup(x, note || '', '')); };
+  ZC.quickAction = (c, act) => {
+    if (!c) return;
+    if (act === 'mail' && c.emails[0]) { ZC.openUrl('mailto:' + c.emails[0].v); ZC.actionToast('Opened email to ' + ZC.name(c), 'Log catch-up', () => ZC.quickLog(c)); }
+    else if (act === 'phone' && c.phones[0]) { ZC.openUrl('tel:' + c.phones[0].v.replace(/[^\d+#*,;]/g, '')); ZC.actionToast('Calling ' + ZC.name(c), 'Log catch-up', () => ZC.quickLog(c)); }
+    else if (act === 'check') { ZC.quickLog(c); ZC.undoToast('Caught up with ' + ZC.name(c)); }
+  };
+  ZC.catchupDialog = async (c, kind) => {
+    const isNote = kind === 'note'; const date = el('input.zk-input.selectable', { type: 'date', value: M.dateStr(Date.now()), max: M.dateStr(Date.now()), 'aria-label': 'Date' }); const note = el('textarea.zk-textarea.selectable', { rows: 4, placeholder: isNote ? 'What do you want to remember?' : 'What did you talk about? (optional)', style: { width: '100%' }, 'aria-label': 'Note' });
+    const r = await zk.sheet({ title: (isNote ? 'Add Note for ' : 'Catch Up with ') + ZC.name(c), body: dl('', ...(isNote ? [] : [el('.opt', el('span', 'Date'), date)]), note), buttons: [{ label: 'Cancel', value: null }, { label: isNote ? 'Add Note' : 'Log Catch-up', primary: true, value: 'ok', onClick: () => { if (isNote && !note.value.trim()) { note.focus(); return false; } } }], width: 440 });
+    if (r !== 'ok') return; ZC.update([c.id], isNote ? 'Add Note' : 'Log Catch-up', (x) => M.logCatchup(x, note.value, isNote ? '' : date.value || '', isNote ? 'note' : 'catchup'));
+  };
+  ZC.rhythmDialog = async (c) => {
+    const on = el('input.zk-switch', { type: 'checkbox', checked: !!c.cad, 'aria-label': 'Remind me' }); const n = el('input.zk-input.num.selectable', { type: 'number', min: 1, max: 999, value: c.cad ? c.cad.n : 2, 'aria-label': 'Every' });
+    const u = el('select.zk-select', ['day', 'week', 'month', 'year'].map((x) => el('option', { value: x, selected: (c.cad ? c.cad.u : 'month') === x }, x + 's'))); const last = el('input.zk-input.selectable', { type: 'date', value: c.lc || '', max: M.dateStr(Date.now()), 'aria-label': 'Last caught up' });
+    const presets = el('.seg2', [['Weekly', 1, 'week'], ['Monthly', 1, 'month'], ['Every 2 months', 2, 'month'], ['Quarterly', 3, 'month'], ['Yearly', 1, 'year']].map(([l, a, b]) => el('button.zk-btn.bordered', { type: 'button', onclick: () => { on.checked = true; n.value = a; u.value = b; } }, l)));
+    const r = await zk.sheet({ title: 'Rhythm for ' + ZC.name(c), body: dl('', el('.lead', 'How often do you want to be in touch? People who are due appear in Catch up.'), el('label.opt', el('span', 'Remind me to catch up'), on), el('.opt', el('span', 'Every'), el('span', { style: { display: 'flex', gap: '6px' } }, n, u)), presets, el('.opt', el('span', 'Last caught up'), last)), buttons: [{ label: 'Cancel', value: null }, { label: 'Save', primary: true, value: 'ok' }], width: 460 });
+    if (r !== 'ok') return; const cad = on.checked && +n.value >= 1 ? { n: Math.min(999, Math.round(+n.value)), u: u.value } : null;
+    ZC.update([c.id], 'Change Rhythm', (x) => ({ ...x, cad, lc: /^\d{4}-\d\d-\d\d$/.test(last.value) ? last.value : '' }));
+  };
 })();

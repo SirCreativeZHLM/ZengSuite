@@ -6,6 +6,7 @@ const C = require(path.join(E, 'calc.js'));
 const U = require(path.join(E, 'units.js'));
 const P = require(path.join(E, 'prog.js'));
 const N = require(path.join(E, 'notes.js'));
+const W = require(path.join(E, 'work.js'));
 const { CalcState } = require(path.join(E, 'state.js'));
 const { Dec } = C;
 
@@ -174,12 +175,12 @@ table('rounding/misc', [['floor(2.7)', '2'], ['floor(-2.1)', '-3'], ['ceil(2.1)'
   const run = (t) => N.evaluateNotes(t);
   const r = run('rent = 1200\nrent * 12 + 300\n\n20% of 85\nsqrt(2)^3\n5 km in miles\nmonthly rent = 1500\nmonthly rent * 2\nlunch 12\n1/0\n\n10\n20 kg\nsum\n20% off 85\n100 + 10%\nRENT + 1\n# heading\nprice = 19.99\nprice * 3\n2 + 2\nans * 5');
   const t = (i) => (r.lines[i].text !== undefined ? r.lines[i].text : r.lines[i].kind);
-  eq(t(0), '1,200', 'notes assign'); eq(r.lines[0].kind, 'assign', 'notes assign kind'); eq(t(1), '14,700', 'notes var use'); eq(t(2), 'blank', 'notes blank'); eq(t(3), '17', 'notes % of'); eq(t(4), '2.82842712474619', 'notes sqrt'); eq(t(5), '3.10685596118667 mi', 'notes unit conv');
-  eq(t(7), '3,000', 'notes multiword var'); eq(r.lines[8].kind, 'text', 'notes text line'); eq(r.lines[9].kind, 'error', 'notes error line'); eq(r.lines[9].error, 'Cannot divide by zero', 'notes error msg'); eq(t(13), '30 kg', 'notes sum'); eq(t(14), '68', 'notes % off'); eq(t(15), '110', 'notes 100+10%');
+  eq(t(0), '1,200', 'notes assign'); eq(r.lines[0].kind, 'assign', 'notes assign kind'); eq(t(1), '14,700', 'notes var use'); eq(t(2), 'blank', 'notes blank'); eq(t(3), '17', 'notes % of'); eq(t(4), '2.82842712474619', 'notes sqrt'); eq(t(5), '3.106855961 mi', 'notes unit conv');
+  eq(t(7), '3,000', 'notes multiword var'); eq(r.lines[8].kind, 'text', 'notes text line'); eq(r.lines[9].kind, 'error', 'notes error line'); eq(r.lines[9].error, 'Cannot divide by zero', 'notes error msg'); eq(t(13), '30', 'notes sum mixes unit and plain without a unit'); eq(t(14), '68', 'notes % off'); eq(t(15), '110', 'notes 100+10%');
   eq(t(16), '1,201', 'notes case-insens var'); eq(t(17), 'comment', 'notes heading'); eq(t(19), '59.97', 'notes decimal exact'); eq(t(20), '4', 'notes simple'); eq(t(21), '20', 'notes ans');
   eq(String(r.vars.rent), '1200', 'notes vars exported');
   const q = (s) => run(s).lines[0].text;
-  eq(q('5 km + 300 m'), '5.3 km', 'unit add'); eq(q('2 h in min'), '120 min', 'h->min'); eq(q('100 C in F'), '212 °F', 'temp'); eq(q('10 kg to lb'), '22.04622621848776 lb', 'kg->lb'); eq(q('1 GB in MB'), '1,000 MB', 'data'); eq(q('60 mph in km/h'), '96.56064 km/h', 'speed alias'); eq(q('3 ft in cm'), '91.44 cm', 'ft->cm');
+  eq(q('5 km + 300 m'), '5.3 km', 'unit add'); eq(q('2 h in min'), '120 min', 'h->min'); eq(q('100 C in F'), '212 °F', 'temp'); eq(q('10 kg to lb'), '22.04622622 lb', 'kg->lb'); eq(q('1 GB in MB'), '1,000 MB', 'data'); eq(q('60 mph in km/h'), '96.56064 km/h', 'speed alias'); eq(q('3 ft in cm'), '91.44 cm', 'ft->cm');
   eq(q('2 * 5 km'), '10 km', 'scalar*unit'); eq(q('10 km / 2'), '5 km', 'unit/scalar'); eq(q('10 km / 5 km'), '2', 'unit ratio'); eq(q('20% of 5 km'), '1 km', 'pct of unit'); eq(q('(2+3) kg'), '5 kg', 'paren unit'); eq(q('1 + 1'), '2', 'plain');
   eq(q('10 USD in EUR'), undefined, 'currency unset gives no result'); eq(run('x = 5\nx^2').lines[1].text, '25', 'var power'); eq(run('a = 1\nb = a + 1\nb * 10').lines[2].text, '20', 'chained vars'); eq(run('sin = 5').lines[0].kind, 'error', 'reserved name');
   eq(N.exportText('a = 2\na * 3\ntext', run('a = 2\na * 3\ntext')), 'a = 2\t=> 2\na * 3\t=> 6\ntext\n', 'export text');
@@ -190,6 +191,92 @@ table('rounding/misc', [['floor(2.7)', '2'], ['floor(-2.1)', '-3'], ['ceil(2.1)'
   eq(g('x^2', { x: 3 }), 9, 'graph x^2'); eq(g('2x+1', { x: 4 }), 9, 'graph implicit mult'); eq(g('sin(x)', { x: 0 }), 0, 'graph sin'); eq(g('a*x+b', { x: 2, a: 3, b: 1 }), 7, 'graph params'); eq(g('abs(x)', { x: -3 }), 3, 'graph abs'); eq(g('sqrt(x)', { x: 16 }), 4, 'graph sqrt');
   eq(Number.isNaN(g('sqrt(x)', { x: -1 })), true, 'graph nan'); eq(g('x^3', { x: -2 }), -8, 'graph neg cube'); eq(g('x^(1/3)', { x: -8 }), -2, 'graph odd root'); eq(g('1/x', { x: 4 }), 0.25, 'graph recip'); eq(g('100+10%', {}), 110, 'graph pct');
   eq(g('sin(x)', { x: 90 }, { angle: 'deg' }), 1, 'graph deg'); eq(g('e^x', { x: 0 }), 1, 'graph exp'); eq(g('ln(x)', { x: Math.E }), 1, 'graph ln'); eq(g('floor(x)', { x: 2.7 }), 2, 'graph floor'); eq(g('x mod 3', { x: 10 }), 1, 'graph mod'); eq(g('max(x,2)', { x: 5 }), 5, 'graph max');
+}
+
+// ---------------------------------------------------------------- Show Work
+{
+  const ex = (s, o) => W.explain(s, o);
+  const plains = (s, o) => ex(s, o).steps.map((x) => x.plain);
+  const j = (a) => a.join(' | ');
+  eq(j(plains('2+3*4')), '3 × 4 = 12 | 2 + 12 = 14', 'work precedence mul first');
+  eq(ex('2+3*4').resultText, '14', 'work result'); eq(ex('2+3*4').steps[0].note, '× binds tighter than +, so it runs first.', 'work precedence note');
+  eq(j(plains('(2+3)*4')), '2 + 3 = 5 | 5 × 4 = 20', 'work parens first'); eq(ex('(2+3)*4').steps[0].note, 'Inside parentheses, so it runs first.', 'work paren note');
+  eq(j(plains('10-2-3')), '10 − 2 = 8 | 8 − 3 = 5', 'work left to right'); eq(ex('10-2-3').steps[0].note, 'Same level: left to right.', 'work assoc note');
+  eq(j(plains('2^3^2')), '3^2 = 9 | 2^9 = 512', 'work power right assoc'); eq(ex('2^3^2').steps[0].note, 'Powers group from the right.', 'work power note');
+  eq(j(plains('2*3+4*5')), '2 × 3 = 6 | 4 × 5 = 20 | 6 + 20 = 26', 'work two products');
+  eq(j(plains('100+10%')), '100 + 10% = 110', 'work percent step'); eq(ex('100+10%').steps[0].note, '10% of 100 is 10, so 100 + 10.', 'work percent note');
+  eq(j(plains('200-10%')), '200 − 10% = 180', 'work percent minus'); eq(ex('20% of 85').resultText, '17', 'work percent of');
+  eq(j(plains('sqrt(16)+1')), '√(16) = 4 | 4 + 1 = 5', 'work function step'); eq(ex('sin(30)').steps[0].note, 'sin with angles in degrees.', 'work trig note'); eq(ex('sin(pi/6)', { angle: 'rad' }).steps[1].note, 'sin with angles in radians.', 'work trig rad note');
+  eq(j(plains('5!+1')), '5! = 120 | 120 + 1 = 121', 'work factorial'); eq(j(plains('-2^2')), '2^2 = 4 | −4 = -4', 'work unary minus after power');
+  eq(j(plains('0.1+0.2')), '0.1 + 0.2 = 0.3', 'work exact decimal'); eq(plains('7').length, 0, 'work single number has no steps'); eq(ex('7').resultText, '7', 'work single result');
+  eq(j(plains('1+2+3+4')), '1 + 2 = 3 | 3 + 3 = 6 | 6 + 4 = 10', 'work chain');
+  eq(ex('12 + 3 × (4 − 1)').headerText, '12 + 3 × (4 − 1)', 'work header text'); eq(ex('2+3*4').header.filter((x) => x.k === 'op').map((x) => x.order).join(','), '2,1', 'work operator order badges'); eq(ex('2+3*4').header.filter((x) => x.k === 'op').map((x) => x.rank).join(','), '1,2', 'work operator ranks');
+  eq(ex('2+3*4').steps[0].segs.filter((x) => x.hl).map((x) => x.s).join(''), '3 × 4', 'work highlight current node'); eq(ex('2+3*4').steps[1].segs.map((x) => x.s).join(''), '2 + 12', 'work reduced value substituted');
+  eq(ex('2+3*4').leaves.map((l) => l.text).join(','), '2,3,4', 'work editable leaves');
+  // tree
+  const t = ex('2+3*4').tree; eq(t.label, '+', 'tree root'); eq(t.value, '14', 'tree root value'); eq(t.kids.length, 2, 'tree kids'); eq(t.kids[1].label, '×', 'tree child op'); eq(t.kids[1].value, '12', 'tree child value'); eq(t.kids[1].order, 1, 'tree order mul first'); eq(t.order, 2, 'tree order root last'); eq(t.kids[0].leaf, true, 'tree leaf');
+  eq(ex('(1+2)*3').tree.label, '×', 'tree skips parens'); eq(ex('sqrt(9)').tree.kids[0].label, '9', 'tree call arg');
+  // what changed
+  const base = ex('2+3*4'); const alt = ex('2+3*4', { overrides: { 3: '5' } }); const d = W.diffWork(base, alt);
+  eq(alt.resultText, '22', 'work override result'); eq(d.resultFrom, '14', 'diff from'); eq(d.resultTo, '22', 'diff to'); eq(d.changed, true, 'diff changed'); eq(d.deltaText, '+8', 'diff delta'); eq(d.pctText, '+57.14%', 'diff percent');
+  eq(d.steps.map((x) => x.i + ':' + x.from + '>' + x.to).join(' '), '1:12>20 2:14>22', 'diff per-step changes');
+  const same = W.diffWork(base, ex('2+3*4', { overrides: { 1: '2' } })); eq(same.changed, false, 'diff unchanged'); eq(same.steps.length, 0, 'diff no steps');
+  const neg = W.diffWork(base, ex('2+3*4', { overrides: { 1: '0' } })); eq(neg.deltaText, '−2', 'diff negative delta'); eq(neg.pctText, '−14.29%', 'diff negative percent');
+  eq(W.diffWork(ex('1/3'), ex('1/3', { overrides: { 1: '2' } })).resultTo, '0.6666666666666667', 'diff decimals');
+  eq(ex('2+3*4', { overrides: { 99: '7' } }).resultText, '14', 'override unknown id ignored');
+  // variables and units
+  const vs = ex('rent*12+300', { vars: { rent: Dec.of(1200) }, fmt: {} }); eq(vs.resultText, '14,700', 'work vars result'); eq(vs.steps[0].plain, '1,200 × 12 = 14,400', 'work var substituted'); eq(vs.headerText, 'rent × 12 + 300', 'work var header keeps name');
+  eq(ex('5 km in miles', { units: true }).resultText, '3.10685596118667 mi', 'work unit conversion'); eq(ex('10 km / 2', { units: true }).resultText, '5 km', 'work quantity division');
+  eq(ex('2(3+4)').resultText, '14', 'work implicit multiplication'); eq(ex('2(3+4)').steps[1].plain, '2 × 7 = 14', 'work implicit as times');
+  eq(ex('8 logy 2').resultText, '3', 'work logy'); eq(ex('3 yroot 27').steps.length, 1, 'work yroot step');
+  // text export
+  const tx = W.workText(ex('2+3*4')); eq(tx.split('\n')[0], '2 + 3 × 4 = 14', 'text header'); eq(tx.includes('1. 3 × 4 = 12   (× binds tighter than +, so it runs first.)'), true, 'text step 1'); eq(tx.includes('2. 2 + 12 = 14'), true, 'text step 2'); eq(tx.endsWith('Shown with Calc'), true, 'text footer');
+  const tw = W.workText(alt, { diff: d, what: '3 → 5' }); eq(tw.includes('What if: 3 → 5'), true, 'text what-if'); eq(tw.includes('14 → 22 (+8, +57.14%)'), true, 'text what-if delta');
+  // history keeps evaluable source
+  { const st = keys('2 add 3 mul 4 eq'); eq(st.history[0].ev, '2+3*4', 'state history ev'); eq(W.explain(st.history[0].ev).resultText, '14', 'history entry replays'); eq(st.history[0].angle, 'deg', 'state history angle');
+    const s2 = keys('1 0 0 add 1 0 pct eq'); eq(W.explain(s2.history[0].ev).steps[0].plain, '100 + 10 = 110', 'history percent replay'); const s3 = keys('lp 1 add 2 rp mul 3 eq'); eq(W.explain(s3.history[0].ev).resultText, '9', 'history parens replay'); eq(W.explain(s3.history[0].ev).steps.length, 2, 'history parens steps'); }
+  // converter / date / programmer models
+  const cw = (v, a, b) => W.convWork(v, U.unit(a), U.unit(b), {});
+  eq(cw(5, 'km', 'mi').steps.map((x) => x.plain).join(' | '), '5 km × 1,000 = 5,000 m | 5,000 ÷ 1,609.344 = 3.10685596118667 mi', 'conv work length'); eq(cw(5, 'km', 'mi').resultText, '3.10685596118667 mi', 'conv work result');
+  eq(cw(100, 'C', 'F').steps.map((x) => x.plain).join(' | '), '100 + 273.15 = 373.15 K | 373.15 × 9 ÷ 5 − 459.67 = 212 °F', 'conv work temperature'); eq(cw(1, 'm', 'm').steps.length, 1, 'conv work same unit'); eq(cw(1, 'km', 'm').steps.length, 1, 'conv work base target');
+  eq(cw(8, 'l100', 'kml').resultText, '12.5 km/L', 'conv work fuel');
+  U.setRates({ USD: '1', EUR: '0.9' }); eq(cw(100, 'USD', 'EUR').steps.length, 2, 'conv work currency steps'); eq(cw(100, 'USD', 'EUR').steps[1].plain, '100 × 0.9 = 90 EUR', 'conv work currency'); eq(cw(100, 'USD', 'EUR').steps[0].note, 'Rates are the ones you entered.', 'conv work currency note'); U.setRates({ USD: '1', EUR: '' });
+  const dd = W.dateDiffWork(U.parseISO('2020-01-31'), U.parseISO('2026-10-26')); eq(dd.resultText, '6 years, 8 months, 26 days (2460 days)', 'date work result'); eq(dd.steps[1].plain, 'Whole months: 80 = 6 years + 8 months', 'date work months'); eq(dd.steps[3].plain, 'Total days: 2460 = 351 weeks + 3 days', 'date work total');
+  const da = W.dateAddWork(U.parseISO('2024-01-31'), { years: 0, months: 1, weeks: 0, days: 0 }, 1, false); eq(da.resultText, '2024-02-29', 'date add work result'); eq(da.steps[1].note, 'February has no day 31, so it clamps to 29.', 'date add clamp note');
+  eq(W.dateAddWork(U.parseISO('2026-10-30'), { years: 0, months: 0, weeks: 0, days: 1 }, 1, true).resultText, '2026-11-02', 'date weekdays work');
+  const pw = W.progWork('127+1', { bits: 8, signed: true, base: 10 }); eq(pw.resultText, '-128', 'prog work result'); eq(pw.steps[0].plain, '127 + 1 = -128', 'prog work step'); eq(pw.steps[0].note, 'Result does not fit in 8 bits (signed), so it wraps around.', 'prog work overflow note'); eq(pw.overflow, true, 'prog work overflow flag');
+  const pb = W.progWork('0xF0 & 0x3C', { bits: 8, signed: false, base: 10 }); eq(pb.steps[0].plain, '240 AND 60 = 48', 'prog work and'); eq(pb.steps[0].note, '1111 0000 AND 0011 1100 → 0011 0000', 'prog work bit note');
+  eq(W.progWork('~0', { bits: 8, signed: false, base: 10 }).steps[0].plain, 'NOT 0 = 255', 'prog work not'); eq(W.progWork('1+2*3', { bits: 16, signed: true, base: 10 }).steps.map((x) => x.plain).join(' | '), '2 × 3 = 6 | 1 + 6 = 7', 'prog work precedence');
+  { const st = new P.ProgState({ bits: 8 }); '1 2 7 add 1 eq'.split(' ').forEach((k) => st.press(k)); eq(typeof st.history[0].src, 'string', 'prog history keeps src'); eq(W.progWork(st.history[0].src, { bits: 8, signed: true, base: 10 }).resultText, '-128', 'prog history replays'); }
+  // Scratch what-if + sum + line sources
+  const sc = 'price = 20\nqty = 3\nsubtotal = price * qty\nsubtotal * 2\n\n10\n5\nsum';
+  const b0 = N.evaluateNotes(sc); const t0 = b0.lines.map((l) => l.text);
+  eq(t0.join('|'), '20|3|60|120||10|5|15', 'scratch baseline');
+  const w1 = N.evaluateNotes(sc, { override: { line: 0, value: Dec.of(25) } }); eq(w1.lines.map((l) => l.text).join('|'), '25|3|75|150||10|5|15', 'what-if updates dependents live');
+  eq(w1.lines.filter((l, i) => l.text !== t0[i]).length, 3, 'what-if changes exactly the dependent lines'); eq(String(w1.vars.price), '25', 'what-if vars updated');
+  const w2 = N.evaluateNotes(sc, { override: { line: 1, value: Dec.of(0) } }); eq(w2.lines[2].text, '0', 'what-if zero'); eq(w2.lines[3].text, '0', 'what-if zero propagates');
+  const w3 = N.evaluateNotes(sc, { override: { line: 0, value: Dec.parse('19.99') } }); eq(w3.lines[2].text, '59.97', 'what-if exact decimals');
+  eq(b0.lines[2].src, 'price * qty', 'scratch line keeps source'); eq(Object.keys(b0.lines[2].vars).join(','), 'price,qty,ans,prev', 'scratch line keeps variable snapshot');
+  eq(b0.lines[7].parts.join('+'), '10+5', 'scratch sum parts');
+  { const t = (x) => N.evaluateNotes(x).lines.map((l) => l.text).join('|');
+    eq(t('rent = 1200\n50\n25\nsum'), '1,200|50|25|75', 'sum skips earlier definitions');
+    eq(t('10\nrent = 5\n20\n30\nsum'), '10|5|20|30|50', 'sum stops at an assignment');
+    eq(t('1\n2\n\n3\n4\nsum'), '1|2||3|4|7', 'sum stops at a blank line');
+    eq(t('d = 1000 mi\n5 mi\n3 mi\nsum'), '1,000 mi|5 mi|3 mi|8 mi', 'sum of same units keeps unit');
+    eq(t('1 km\n500 m\nsum'), '1 km|500 m|1.5 km', 'sum converts to the first unit');
+    eq(t('5 km\n3\nsum'), '5 km|3|8', 'sum of mixed unit and plain drops the unit');
+    eq(t('5 km\n3 kg\nsum'), '5 km|3 kg|8', 'sum of incompatible units drops the unit');
+    eq(t('x = 5\nsum'), '5|', 'sum after only a definition has nothing to add');
+    eq(t('4\n6\navg'), '4|6|5', 'avg uses the same block');
+    eq(t('5 km in miles'), '3.106855961 mi', 'scratch conversion shows 10 significant digits');
+    eq(t('1 mi in km'), '1.609344 km', 'scratch conversion strips trailing zeros');
+    eq(t('d = 5 km in miles\nd in km'), '3.106855961 mi|5 km', 'rounded display keeps exact internal value');
+    eq(t('1/3'), '0.3333333333333333', 'plain results keep full precision');
+  }
+  const sw = W.explain(b0.lines[2].src, { vars: b0.lines[2].vars, varNames: new Set(Object.keys(b0.lines[2].vars)), units: true }); eq(sw.steps[0].plain, '20 × 3 = 60', 'scratch show work'); eq(sw.headerText, 'price × qty', 'scratch header names');
+  const mw = N.evaluateNotes('monthly rent = 1500\nmonthly rent * 2', { override: { line: 0, value: Dec.of(1000) } }); eq(mw.lines[1].text, '2,000', 'what-if multi-word variable');
+  const uw = N.evaluateNotes('d = 5 km\nd * 2', { override: { line: 0, value: new C.Q(Dec.of(8), U.unit('km')) } }); eq(uw.lines[1].text, '16 km', 'what-if keeps units');
+  eq(W.explain('d * 2 + 1 km', { vars: { d: new C.Q(Dec.of(5), U.unit('km')) }, units: true }).resultText, '11 km', 'work with quantities');
 }
 
 console.log(`${pass} passed, ${fail} failed (${pass + fail} assertions)`);

@@ -1,4 +1,4 @@
-/* ZengNumbers data tools: autofill, sort, filter, pivot, goal seek, text-to-columns, duplicates, validation,
+/* ZengGrid data tools: autofill, sort, filter, pivot, goal seek, text-to-columns, duplicates, validation,
    find/replace, selection stats, auto-fit, merges, names, tables. Pure engine logic (no DOM).
    Mutations go through wb.put / setInput / mergeStyle / setProp / mod (journaled); the UI wraps calls in wb.tx(). */
 (function (G) {
@@ -611,7 +611,7 @@
   TL.validate = function validate(wb, sheet, r, c, value) {
     for (const { rule, origin } of dvRulesAt(sheet, r, c)) {
       if (checkRule(wb, sheet, r, c, rule, origin, value, false)) continue; if (rule.showError === false) continue;
-      return { ok: false, style: rule.errStyle || 'stop', title: rule.errTitle || 'Microsoft Excel', message: rule.errMsg || "This value doesn't match the data validation restrictions defined for this cell." };
+      return { ok: false, style: rule.errStyle || 'stop', title: rule.errTitle || 'Invalid value', message: rule.errMsg || "This value doesn't match the data validation restrictions defined for this cell." };
     }
     return { ok: true };
   };

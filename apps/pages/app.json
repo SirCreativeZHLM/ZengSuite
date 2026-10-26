@@ -1,1 +1,16 @@
-{"id":"pages","name":"Pages","tagline":"Word processing with real pages.","msEquivalent":"Word","accent":"#ff9f0a","extensions":["zpages","docx","html","md","txt","rtf"],"mime":"application/vnd.zengbot.zpages+zip"}
+{
+  "id": "pages",
+  "name": "Write",
+  "tagline": "A word processor with real pages, focus mode and a readability lens.",
+  "msEquivalent": "",
+  "accent": "#ff9f0a",
+  "extensions": [
+    "zpages",
+    "docx",
+    "html",
+    "md",
+    "txt",
+    "rtf"
+  ],
+  "mime": "application/vnd.zengbot.zpages+zip"
+}

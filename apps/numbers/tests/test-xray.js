@@ -1,0 +1,17 @@
+const T = require('./_h'); const { ZN } = T; const X = ZN.xray; const { wb, sheet } = T;
+T.fill('A1', [['Category', 'Amount'], ['Food', 10], ['Rent', 100], ['Food', 5]]);
+const ex = (f) => { T.set('E1', f); return X.explain(wb, sheet, 0, 4).text; };
+T.eq(ex('=SUMIF(A2:A4,"Food",B2:B4)'), 'Adds Amount (B2:B4) where Category (A2:A4) equals “Food”.', 'sumif');
+T.eq(ex('=SUM(B2:B4)'), 'Adds up Amount (B2:B4).', 'sum');
+T.eq(ex('=B2*1.08'), 'Amount (B2) times 1.08.', 'mult');
+T.eq(ex('=IF(B2>5,"big","small")'), 'If Amount (B2) is greater than 5, then “big”, otherwise “small”.', 'if');
+T.eq(ex('=COUNTIF(B2:B4,">5")'), 'Counts cells in Amount (B2:B4) that is greater than 5.', 'countif');
+T.eq(ex('=VLOOKUP("Rent",A2:B4,2,FALSE)'), 'Looks up “Rent” in the first column of A2:B4 and returns column 2 (exact match).', 'vlookup');
+T.eq(ex('=AVERAGE(B2:B4)'), 'Averages Amount (B2:B4).', 'avg');
+T.set('E1', '=B2+B3'); T.set('F1', '=E1*2'); T.set('G1', '=F1+E1');
+T.eq(X.precedents(wb, sheet, 0, 4).length, 2, 'precedents'); T.eq(X.dependents(wb, sheet, 0, 4).length, 2, 'dependents');
+const tr = X.trace(wb, sheet, 0, 6); T.eq(tr.sources.map((s) => ZN.addr(s.r, s.c)).sort().join(), 'B2,B3', 'trace sources'); T.eq(tr.nodes.length, 5, 'trace nodes ' + tr.nodes.length);
+T.eq(X.hardcodes(ZN.formula.parse('B2*1.08')).length, 1, 'hardcode flagged'); T.eq(X.hardcodes(ZN.formula.parse('B2*1')).length, 0, 'one ok'); T.eq(X.hardcodes(ZN.formula.parse('ROUND(B2,2)')).length, 0, 'round arg ok'); T.eq(X.hardcodes(ZN.formula.parse('B2/100')).length, 0, 'percent ok'); T.eq(X.hardcodes(ZN.formula.parse('SUM(B2,500)')).length, 1, 'sum literal');
+T.eq(X.replaceRefWithName('SUM(B2:B4)+1', { r1: 1, c1: 1, r2: 3, c2: 1 }, 'Amount'), 'SUM(Amount)+1', 'name replace'); T.eq(X.replaceNumberWithName('B2*1.08', 1.08, 'TaxRate'), 'B2*TaxRate', 'num replace');
+T.eq(X.suggestName(wb, sheet, { r1: 1, c1: 1, r2: 3, c2: 1 }), 'Amount', 'suggest name');
+T.done('xray');

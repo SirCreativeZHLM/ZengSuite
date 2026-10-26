@@ -44,6 +44,10 @@
         { label: 'Add to Group', enabled: sel > 0 && groups.length > 0 && !S.editing, submenu: groups.length ? groups.map((g) => ({ label: g.name, run: () => ZC.addToGroup([...S.sel], g.id) })) : [{ label: 'No Groups', enabled: false }] },
         { label: 'Remove from This Group', enabled: sel > 0 && !!ZC.group(S.view) && !ZC.group(S.view).smart, run: guard(() => ZC.removeFromGroup([...S.sel], S.view)) },
         { separator: true },
+        { label: 'Log Catch-up…', accel: 'CmdOrCtrl+L', enabled: oneSel(), run: guard(() => ZC.catchupDialog(ZC.selected()[0], 'catchup')) },
+        { label: 'Add Note…', enabled: oneSel(), run: guard(() => ZC.catchupDialog(ZC.selected()[0], 'note')) },
+        { label: 'Set Rhythm…', enabled: oneSel(), run: guard(() => ZC.rhythmDialog(ZC.selected()[0])) },
+        { separator: true },
         { label: 'Merge Selected Contacts…', enabled: sel > 1, run: guard(() => ZC.mergeSelected()) },
         { label: 'Find Duplicates…', enabled: S.contacts.length > 1, run: guard(() => ZC.dupesDialog()) },
         { label: 'Clean Up Missing or Invalid Data…', enabled: has, run: guard(() => ZC.cleanupDialog()) },
@@ -56,6 +60,8 @@
         { label: 'All Contacts', accel: 'CmdOrCtrl+1', checked: S.view === 'all', run: guard(() => ZC.setView('all')) },
         { label: 'Favourites', accel: 'CmdOrCtrl+2', checked: S.view === 'fav', run: guard(() => ZC.setView('fav')) },
         { label: 'Birthdays', accel: 'CmdOrCtrl+3', checked: S.view === 'bday', run: guard(() => ZC.setView('bday')) },
+        { label: 'Catch up', accel: 'CmdOrCtrl+4', checked: S.view === 'catchup', run: guard(() => ZC.setView('catchup')) },
+        { label: 'People Map', accel: 'CmdOrCtrl+5', checked: S.view === 'map', run: guard(() => ZC.setView('map')) },
         { separator: true },
         { label: 'Sort By', submenu: [{ label: 'First Name', checked: S.prefs.sortBy === 'first', run: () => setPref('sortBy', 'first') }, { label: 'Last Name', checked: S.prefs.sortBy === 'last', run: () => setPref('sortBy', 'last') }] },
         { label: 'Show Names As', submenu: [{ label: 'First Last', checked: S.prefs.order === 'first', run: () => setPref('order', 'first') }, { label: 'Last, First', checked: S.prefs.order === 'last', run: () => setPref('order', 'last') }] },
@@ -106,5 +112,7 @@
   await ZC.load();
   const ord = ZC.order(); if (ord.length) { S.sel = new Set([ord[0]]); S.cur = S.anchor = ord[0]; }
   $('#b-side').title = 'Show or Hide Groups'; ZC.renderAll(); ZC.buildMenus();
+  // gentle once-a-day nudge for birthdays and anniversaries that fall today
+  try { const today = M.dateStr(Date.now()); if (S.prefs.nudged !== today) { const t = M.nudges(S.contacts, 0); if (t.length) { S.prefs.nudged = today; ZC.prefsSave(); setTimeout(() => zk.toast('Today: ' + t.slice(0, 3).map((x) => `${ZC.name(x.c)}’s ${x.kind}`).join(', ') + (t.length > 3 ? ` and ${t.length - 3} more` : ''), 4200), 700); } } } catch {}
   window.__ready = true;
 })();

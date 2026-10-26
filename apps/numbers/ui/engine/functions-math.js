@@ -1,4 +1,4 @@
-/* ZengNumbers functions: Math & Trig, engineering (base conversion, bit ops, complex, CONVERT), matrices, special functions.
+/* ZengGrid functions: Math & Trig, engineering (base conversion, bit ops, complex, CONVERT), matrices, special functions.
    Also exports ZN.math (special functions shared with functions-stat / functions-fin) and ZN.reg (typed registration helper). */
 (function (G) {
   'use strict';

@@ -1,4 +1,4 @@
-/* ZengNumbers CSV import/export (ZN.io.csv) + shared IO helpers (ZN.io._u). */
+/* ZengGrid CSV import/export (ZN.io.csv) + shared IO helpers (ZN.io._u). */
 (function (G) {
   'use strict';
   const ZN = G.ZN; const IO = ZN.io || (ZN.io = {});

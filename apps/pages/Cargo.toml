@@ -1,6 +1,6 @@
 [package]
 name = "zeng-pages"
-description = "ZengPages — word processor with real pages"
+description = "ZengWrite — a word processor with real pages"
 version.workspace = true
 edition.workspace = true
 license.workspace = true

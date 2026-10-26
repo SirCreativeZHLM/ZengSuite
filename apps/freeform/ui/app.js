@@ -1,4 +1,4 @@
-/* ZengFreeform UI: toolbar, tools palette, inspector, menus, boards, minimap, rulers, palette, present, autosave. */
+/* ZengCanvas UI: toolbar, tools palette, inspector, menus, boards, minimap, rulers, palette, present, autosave. */
 (async () => {
   'use strict';
   await zeng.ready;
@@ -15,7 +15,7 @@
   const exportDefs = [['PNG Image…', 'png'], ['JPEG Image…', 'jpeg'], ['SVG Vector…', 'svg'], ['PDF…', 'pdf'], ['JSON…', 'json']];
   const imgExts = ['png', 'jpg', 'jpeg', 'gif', 'webp', 'bmp', 'avif'];
   const doc = zeng.doc({
-    name: 'Freeform', ext: 'zfree', filters: [{ name: 'Freeform Board', exts: ['zfree'] }],
+    name: 'Canvas', ext: 'zfree', filters: [{ name: 'Canvas Board', exts: ['zfree'] }],
     openExts: ['zfree', 'json', 'svg', ...imgExts],
     blank: () => { FF.newDoc(); centerView(FF.B); },
     load: async (buf, ext, h) => {
@@ -312,6 +312,8 @@
       { label: 'Tools', items: [['Select', 'select', 'V'], ['Hand', 'hand', 'G'], ['Pen', 'pen', 'P'], ['Marker', 'marker', 'M'], ['Highlighter', 'hl', 'H'], ['Pencil', 'pencil', 'B'], ['Eraser', 'eraser', 'E'], ['Lasso', 'lasso', 'L'], ['Shape', 'shape', 'S'], ['Text', 'text', 'T'], ['Sticky Note', 'sticky', 'N'], ['Connector', 'conn', 'C'], ['Frame', 'frame', 'F'], ['Table', 'table', 'Shift+T'], ['Stamp', 'stamp', 'Shift+E'], ['Laser Pointer', 'laser', 'W'], ['Eyedropper', 'eyedrop', 'D']].map(([l, id, k]) => ({ label: l, checked: S.tool === id, run: () => (id === 'eyedrop' ? (S.prevTool = 'select', FF.setTool(id)) : FF.setTool(id)), _k: k })) },
       { label: 'Arrange', items: [
         { label: 'Group', accel: 'CmdOrCtrl+G', run: FF.group, enabled: () => sel1() > 1 }, { label: 'Ungroup', accel: 'CmdOrCtrl+Shift+G', run: FF.ungroup }, { label: 'Lock / Unlock', accel: 'CmdOrCtrl+L', run: FF.toggleLock, enabled: () => sel1() > 0 }, { separator: true },
+        { label: 'Tidy', submenu: FF.TIDY_MODES.map((m) => ({ label: m.label, accel: m.id === 'grid' ? 'CmdOrCtrl+Alt+T' : undefined, run: () => FF.tidyCommit(m.id), enabled: () => FF.tidyTargets().length > 1 })) },
+        { label: 'Rough to Neat', accel: 'CmdOrCtrl+Alt+R', run: () => FF.roughToNeat() }, { separator: true },
         ...orderMenu(), { separator: true },
         { label: 'Align', submenu: [['Left', 'left'], ['Centre Horizontally', 'hcenter'], ['Right', 'right'], ['Top', 'top'], ['Centre Vertically', 'vmiddle'], ['Bottom', 'bottom']].map(([l, k]) => ({ label: l, run: () => FF.align(k) })) },
         { label: 'Distribute', submenu: [{ label: 'Horizontally', run: () => FF.distribute('h') }, { label: 'Vertically', run: () => FF.distribute('v') }] },
@@ -411,7 +413,7 @@
   const draft = await zeng.store.get(draftKey, null);
   if (draft && draft.json) {
     hasDraft = true; const when = new Date(draft.t).toLocaleString();
-    const r = await zk.sheet({ title: 'Recover unsaved board?', message: `Freeform found an autosaved draft of “${draft.name}” from ${when}.`, buttons: [{ label: 'Discard', value: 'no' }, { label: 'Recover', primary: true, value: 'yes' }], dismissable: false });
+    const r = await zk.sheet({ title: 'Recover unsaved board?', message: `Canvas found an autosaved draft of “${draft.name}” from ${when}.`, buttons: [{ label: 'Discard', value: 'no' }, { label: 'Recover', primary: true, value: 'yes' }], dismissable: false });
     if (r === 'yes') { try { FF.loadDoc(draft.json, null); doc.untitled = draft.name.replace(/\.[^.]+$/, ''); doc.markDirty(); doc.refreshTitle(); } catch (e) { zk.alert('Couldn’t recover the draft', e.message); await clearDraft(); } } else await clearDraft();
   }
 })();

@@ -3,9 +3,9 @@
   const A = ZR.A, V = ZR.views, D = ZR.dates, IO = ZR.io, ST = ZR.store, h = zk.el; await zeng.ready;
   // ---------- load ----------
   const note = await ST.load(); const S0 = ST.state; A.view = S0.prefs.view || { k: 'smart', id: 'today' }; if (A.view.k === 'search') A.view = { k: 'smart', id: 'today' }; A.inspOpen = !!S0.prefs.insp;
-  for (const [id, ic] of [['b-side', 'panel-left'], ['b-sort', 'arrow-up-down'], ['b-group', 'layout-list'], ['b-done', 'eye'], ['b-insp', 'info'], ['b-new', 'plus']]) A.$('#' + id).append(zk.icon(ic));
+  for (const [id, ic] of [['b-side', 'panel-left'], ['b-three', 'sparkles'], ['b-sort', 'arrow-up-down'], ['b-group', 'layout-list'], ['b-done', 'eye'], ['b-insp', 'info'], ['b-new', 'plus']]) A.$('#' + id).append(zk.icon(ic));
   A.$('#b-side').onclick = () => A.showSide(A.$('#side').classList.contains('hidden')); A.$('#side-scrim').onclick = () => A.showSide(false);
-  A.$('#b-sort').onclick = (e) => A.sortMenu(e.currentTarget); A.$('#b-group').onclick = (e) => A.groupMenu(e.currentTarget); A.$('#b-done').onclick = () => A.toggleShowDone(); A.$('#b-insp').onclick = () => A.setInsp(!A.inspOpen); A.$('#b-new').onclick = () => A.newReminder();
+  A.$('#b-three').onclick = () => A.planSheet(); A.$('#b-sort').onclick = (e) => A.sortMenu(e.currentTarget); A.$('#b-group').onclick = (e) => A.groupMenu(e.currentTarget); A.$('#b-done').onclick = () => A.toggleShowDone(); A.$('#b-insp').onclick = () => A.setInsp(!A.inspOpen); A.$('#b-new').onclick = () => A.newReminder();
   const body = A.$('#body'); const ro = new ResizeObserver(() => { body.classList.toggle('wide', body.clientWidth >= 1040); const c = body.clientWidth < 780; if (c !== A.compact) { A.compact = c; body.classList.toggle('compact', c); A.showSide(!c && A.setting('sideOn', true)); } }); ro.observe(body); A.compact = body.clientWidth < 780; body.classList.toggle('compact', A.compact); A.showSide(!A.compact && A.setting('sideOn', true));
   A.$('#b-side').addEventListener('click', () => { if (!A.compact) A.setPref({ sideOn: !A.$('#side').classList.contains('hidden') }); });
   let sav; ST.onStatus((s) => { const e = A.$('#saved'); e.textContent = s === 'saving' ? 'Saving…' : s === 'error' ? 'Couldn’t save' : 'Saved'; e.style.color = s === 'error' ? 'var(--danger)' : ''; if (zeng.isNative) window.ipc.postMessage(JSON.stringify({ cmd: 'dirty', dirty: s !== 'saved' })); });
@@ -81,7 +81,7 @@
       ...(zeng.platform === 'mac' && zeng.isNative ? [] : [{ separator: true }, { label: 'Exit', accel: zeng.platform === 'win' ? 'Alt+F4' : 'Ctrl+Q', run: () => closeApp() }]),
     ];
     const edit = zeng.stdEdit({ undo: doUndo, redo: doRedo, extra: [
-      { label: 'Select All Reminders', accel: 'CmdOrCtrl+Shift+A', run: () => { if (!editable()) A.selectAll(); } }, { separator: true },
+      { label: 'Select All Tasks', accel: 'CmdOrCtrl+Shift+A', run: () => { if (!editable()) A.selectAll(); } }, { separator: true },
       { label: 'Find…', accel: 'CmdOrCtrl+F', run: () => A.focusSearch() }, { separator: true },
       { label: 'Mark Completed', enabled: has, run: withSel((i) => A.toggleDone(i)) },
       { label: 'Flag', accel: 'CmdOrCtrl+Shift+F', enabled: has, run: withSel((i) => A.toggleFlag(i)) },
@@ -90,6 +90,8 @@
       { label: 'Add Link…', accel: 'CmdOrCtrl+K', enabled: one, run: async () => { const r = A.primary(); if (!r) return; const u = await zk.prompt('Add Link', r.url || '', { placeholder: 'https://example.com', ok: 'Set Link' }); if (u != null) A.setProp([r.id], { url: u.trim() }, 'Edit URL'); } },
       { label: 'Add Subtask', enabled: one, accel: 'CmdOrCtrl+Shift+T', run: () => one && A.addSubtask(ids[0]) },
       { label: 'Make Subtask of Previous', enabled: one, run: () => one && A.indent(ids[0]) }, { label: 'Make Top-Level', enabled: one, run: () => one && A.outdent(ids[0]) },
+      { label: 'Postpone…', accel: undefined, enabled: has, run: () => A.postponePop(null, [...A.sel]) },
+      { label: 'Split into Subtasks…', enabled: one, run: () => one && A.splitSheet(ids[0]) },
       { label: 'Duplicate', accel: 'CmdOrCtrl+D', enabled: has, run: withSel((i) => A.duplicate(i)) },
       { label: 'Move to List', enabled: has, submenu: A.moveMenu([...A.sel]).map((m) => ({ ...m, run: () => A.moveToList([...A.sel], m.label && S.lists.find((l) => l.name === m.label).id) })) },
       { separator: true }, { label: 'Delete', accel: 'CmdOrCtrl+Backspace', enabled: has, run: () => { if (editable()) { document.execCommand('deleteSoftLineBackward'); return; } if (A.sel.size) A.delete(); } },
@@ -102,7 +104,7 @@
       { label: 'Sort By', submenu: [sortItem('Manual', 'manual'), sortItem('Due Date', 'due'), sortItem('Priority', 'priority'), sortItem('Title', 'title'), sortItem('Creation Date', 'created'), { separator: true }, { label: 'Ascending', checked: p.dir === 'asc', run: () => A.setViewPrefs({ dir: 'asc' }) }, { label: 'Descending', checked: p.dir === 'desc', run: () => A.setViewPrefs({ dir: 'desc' }) }] },
       { label: 'Group By', submenu: [grpItem('None', 'none'), grpItem('List', 'list'), grpItem('Due Date', 'due'), grpItem('Priority', 'priority'), grpItem('Tag', 'tag'), grpItem('Time of Day', 'time')] }, { separator: true },
       ...V.SMART.map((s, i) => ({ label: s.name, accel: 'CmdOrCtrl+' + (i + 1), checked: A.view.k === 'smart' && A.view.id === s.id, run: () => A.setView({ k: 'smart', id: s.id }) })),
-      { separator: true }, { label: 'Quick Add', accel: 'CmdOrCtrl+L', run: () => A.focusQuick() },
+      { separator: true }, { label: 'Plan Today’s Three…', accel: 'CmdOrCtrl+Shift+P', run: () => A.planSheet() }, { label: 'Quick Add', accel: 'CmdOrCtrl+L', run: () => A.focusQuick() },
     ];
     zeng.setMenus([{ label: 'File', items: file }, { label: 'Edit', items: edit }, { label: 'View', items: view }]);
   }

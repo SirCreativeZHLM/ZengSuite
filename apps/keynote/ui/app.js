@@ -1,4 +1,4 @@
-/* ZengKeynote: boot, document, menus, toolbar. */
+/* ZengStage: boot, document, menus, toolbar. */
 (async () => {
   await zeng.ready;
   const K = window.K, A = window.A, $ = (s) => document.querySelector(s), h = zk.el;
@@ -11,19 +11,19 @@
   };
   const blankDeck = () => { const d = K.newDeck('clean'); const s = K.newSlide(d, 'title'); d.slides.push(s); return d; };
   const sanitize = (d) => {
-    if (!d || !d.slides || !d.size) throw new Error('This file is not a ZengKeynote presentation.');
+    if (!d || !d.slides || !d.size) throw new Error('This file is not a Stage presentation.');
     d.media ||= {}; d.opts = Object.assign({ showNumbers: false, showDate: false, footer: '', loop: false, advance: 0, laser: '#ff3b30', timer: 0 }, d.opts || {});
     d.theme ||= K.themeData('clean'); d.theme.pal ||= K.themeData('clean').pal; d.layouts = d.layouts && d.layouts.length ? d.layouts : K.makeLayouts(d.theme, d.size.w, d.size.h);
     if (!d.slides.length) d.slides.push(K.newSlide(d, 'title'));
     d.slides.forEach((s) => { s.id ||= K.uid(); s.objs ||= []; s.builds ||= []; s.tr ||= { type: 'none' }; K.walk(s.objs, (o) => { o.id ||= K.uid(); if (!(o.w >= 0)) o.w = 100; if (!(o.h >= 0)) o.h = 100; }); }); return d;
   };
   const doc = zeng.doc({
-    name: 'Keynote', ext: 'zkey', filters: [{ name: 'ZengKeynote Presentation', exts: ['zkey'] }, { name: 'PowerPoint Presentation', exts: ['pptx'] }], openExts: ['zkey', 'pptx'],
+    name: 'Stage', ext: 'zkey', filters: [{ name: 'Stage Presentation', exts: ['zkey'] }, { name: 'Presentation (.pptx)', exts: ['pptx'] }], openExts: ['zkey', 'pptx'],
     blank: async () => A.setDeck(blankDeck()),
     load: async (buf, ext) => { const d = ext === 'pptx' ? await K.pptxImport(new Uint8Array(buf)) : K.zkeyLoad(new Uint8Array(buf)); A.setDeck(sanitize(d)); },
     save: async (ext) => (ext === 'pptx' ? await K.pptxExport(A.deck) : ext === 'html' ? await K.htmlExport(A.deck) : K.zkeySave(A.deck)),
     export: [
-      { label: 'PowerPoint (.pptx)…', ext: 'pptx' },
+      { label: 'Presentation (.pptx)…', ext: 'pptx' },
       { label: 'PDF…', ext: 'pdf', run: () => K.exportPDF(A.deck) },
       { label: 'Current Slide as PNG…', ext: 'png', run: (base) => K.exportImages(A.deck, 'png', base, A.cur) },
       { label: 'All Slides as PNG (zip)…', ext: 'zip', run: (base) => K.exportImages(A.deck, 'png', base) },
@@ -48,6 +48,7 @@
   $('#tb-left').append(
     tb('plus', 'Slide', (e) => zk.menu([{ label: 'New Slide', accel: 'CmdOrCtrl+Shift+N', run: () => A.slides.add() }, { separator: true }, ...A.deck.layouts.map((l) => ({ label: l.name, run: () => A.slides.add(l.id) }))], { anchor: e.currentTarget }), { title: 'Add Slide' }),
     tb('play', 'Play', () => play(0), { cls: 'play', title: 'Play Slideshow' }),
+    tb('sparkles', 'Remix', () => K.openRemix(A), { title: 'Remix: re-lay out this slide (⌥⌘R)' }),
   );
   $('#tb-mid').append(
     tb('table', 'Table', (e) => tablePicker(e.currentTarget)), tb('chart-column', 'Chart', (e) => zk.menu(K.CHART_KINDS.map(([v, label]) => ({ label, run: () => A.insertChart(v) })), { anchor: e.currentTarget })),
@@ -120,7 +121,7 @@
         { label: 'Line', submenu: [{ label: 'Line', run: () => A.insertLine('straight', 'none') }, { label: 'Arrow', run: () => A.insertLine('straight', 'arrow') }, { label: 'Elbow Connector', run: () => A.insertLine('elbow', 'arrow') }, { label: 'Curved Connector', run: () => A.insertLine('curve', 'arrow') }] }, { separator: true },
         fm('Image…', 'CmdOrCtrl+Alt+I', () => A.pickMedia('image')), fm('Audio…', null, () => A.pickMedia('audio')), fm('Movie…', null, () => A.pickMedia('video')), { label: 'Table', submenu: [[2, 2], [3, 3], [4, 4], [5, 4], [6, 5], [8, 6]].map(([r, c]) => ({ label: `${r} × ${c}`, run: () => A.insertTable(r, c) })) }, { label: 'Chart', submenu: K.CHART_KINDS.map(([v, label]) => ({ label, run: () => A.insertChart(v) })) }, { separator: true },
         { label: 'Field', submenu: [{ label: 'Slide Number', run: () => A.insertField('slideno') }, { label: 'Slide Count', run: () => A.insertField('count') }, { label: 'Date', run: () => A.insertField('date') }] }, fm('Hyperlink…', 'CmdOrCtrl+K', A.insertLink)] },
-      { label: 'Slide', items: [fm('New Slide', null, () => A.slides.add()), fm('Duplicate Slide', null, () => A.slides.duplicate()), fm('Delete Slide', null, () => A.slides.remove()), { separator: true }, fm('Skip Slide', null, () => A.slides.skip(), { checked: !!(d.slides[A.cur] && d.slides[A.cur].skip) }), fm('Indent Slide', null, () => A.slides.indent(1)), fm('Outdent Slide', null, () => A.slides.indent(-1)), fm('Add Section…', null, () => A.slides.section()), { separator: true }, { label: 'Change Layout', submenu: layoutItems((id) => A.slides.setLayout(id)) }, fm('Edit Slide Layouts', null, () => A.layoutMode(A.mode !== 'layouts'), { checked: A.mode === 'layouts' }), { separator: true }, fm('Previous Slide', 'PageUp', () => A.slides.go(A.cur - 1)), fm('Next Slide', 'PageDown', () => A.slides.go(A.cur + 1)), fm('First Slide', 'Home', () => A.slides.go(0)), fm('Last Slide', 'End', () => A.slides.go(d.slides.length - 1))] },
+      { label: 'Slide', items: [fm('New Slide', null, () => A.slides.add()), fm('Duplicate Slide', null, () => A.slides.duplicate()), fm('Delete Slide', null, () => A.slides.remove()), { separator: true }, fm('Skip Slide', null, () => A.slides.skip(), { checked: !!(d.slides[A.cur] && d.slides[A.cur].skip) }), fm('Indent Slide', null, () => A.slides.indent(1)), fm('Outdent Slide', null, () => A.slides.indent(-1)), fm('Add Section…', null, () => A.slides.section()), { separator: true }, { label: 'Change Layout', submenu: layoutItems((id) => A.slides.setLayout(id)) }, fm('Remix Slide…', 'CmdOrCtrl+Alt+R', () => K.openRemix(A)), fm('Remix Whole Deck…', 'CmdOrCtrl+Alt+Shift+R', () => K.openRemix(A, { whole: true })), { separator: true }, fm('Edit Slide Layouts', null, () => A.layoutMode(A.mode !== 'layouts'), { checked: A.mode === 'layouts' }), { separator: true }, fm('Previous Slide', 'PageUp', () => A.slides.go(A.cur - 1)), fm('Next Slide', 'PageDown', () => A.slides.go(A.cur + 1)), fm('First Slide', 'Home', () => A.slides.go(0)), fm('Last Slide', 'End', () => A.slides.go(d.slides.length - 1))] },
       { label: 'Format', items: [
         { label: 'Font', submenu: [fm('Bold', 'CmdOrCtrl+B', () => A.fmt.run('b')), fm('Italic', 'CmdOrCtrl+I', () => A.fmt.run('i')), fm('Underline', 'CmdOrCtrl+U', () => A.fmt.run('u')), fm('Strikethrough', null, () => A.fmt.run('s')), { separator: true }, fm('Bigger', 'CmdOrCtrl+Shift+=', () => bump(2)), fm('Smaller', 'CmdOrCtrl+Shift+-', () => bump(-2)), { separator: true }, fm('Superscript', null, () => A.fmt.run('sup')), fm('Subscript', null, () => A.fmt.run('sub'))] },
         { label: 'Text Alignment', submenu: [...[['Left', 'l', 'CmdOrCtrl+Shift+L'], ['Center', 'c', 'CmdOrCtrl+Shift+E'], ['Right', 'r', 'CmdOrCtrl+Shift+R'], ['Justify', 'j', 'CmdOrCtrl+Shift+J']].map(([n, v, a]) => fm(n, a, () => A.fmt.para('al', v))), { separator: true }, ...[['Top', 't'], ['Middle', 'm'], ['Bottom', 'b']].map(([n, v]) => fm(n, null, () => A.fmt.para('va', v)))] },
@@ -142,16 +143,17 @@
     if (document.querySelector('.zk-scrim')) return; const t = e.target; const typing = t.matches && t.matches('input,textarea,select,[contenteditable="true"]');
     const mod = e.metaKey || e.ctrlKey;
     if (mod && !e.shiftKey && !e.altKey && !typing && !A.editing) {
-      if (e.key === 'c') { if (A.focus === 'nav') return; const c = A.cmd.copy(false); if (c) { e.preventDefault(); try { navigator.clipboard.writeText(c.objs.map((o) => K.plain(o.paras)).filter(Boolean).join('\n')); } catch { } } }
+      if (e.key === 'c') { if (A.focus === 'nav') return; const c = A.cmd.copy(false); if (c) { e.preventDefault(); A.clipText = c.objs.map((o) => K.plain(o.paras)).filter(Boolean).join('\n') || '\u200b'; try { navigator.clipboard.writeText(A.clipText); } catch { } } }
       else if (e.key === 'x') { if (A.focus === 'nav') return; if (A.sel.length) { e.preventDefault(); A.cmd.copy(true); } }
       else if (e.key === 'v') { if (A.focus === 'nav') return; if (A.clip && !A._pasting) { /* real paste event handles it; fall back below */ A._pasting = true; setTimeout(() => { A._pasting = false; }, 120); setTimeout(() => { if (A._pasteHandled) { A._pasteHandled = false; return; } A.cmd.paste(); }, 60); } }
       else if (e.key === 'a' && A.focus !== 'nav') { e.preventDefault(); A.cmd.selectAll(); }
     }
   });
   document.addEventListener('paste', () => { A._pasteHandled = true; setTimeout(() => (A._pasteHandled = false), 200); }, true);
+  matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => setTimeout(() => A.drawRulers(), 50));
   addEventListener('resize', () => { A.computeZoom(); A.overlay(); A.drawRulers(); });
-  zeng.onFiles(async (hs) => { const media = hs.filter((x) => /\.(png|jpe?g|gif|webp|svg|bmp|mp3|wav|m4a|aac|mp4|m4v|mov|webm)$/i.test(x.name)); if (!media.length) return true; for (const f of media) { try { await A.insertFile({ name: f.name, data: new Uint8Array(await zeng.files.read(f)) }); } catch (e) { zk.alert('Can’t insert “' + f.name + '”', e.message); } } return false; });
+  zeng.onFiles((hs) => { const media = hs.filter((x) => /\.(png|jpe?g|gif|webp|svg|bmp|mp3|wav|m4a|aac|mp4|m4v|mov|webm)$/i.test(x.name)); if (!media.length) return false; (async () => { for (const f of media) { try { await A.insertFile({ name: f.name, data: new Uint8Array(await zeng.files.read(f)) }); } catch (e) { zk.alert('Can’t insert “' + f.name + '”', e.message); } } })(); return true; });
   A.on('layoutmode', buildMenus);
-  await doc.ready; A.setDeck(blankDeck()); doc.setClean();
+  A.setDeck(blankDeck()); doc.setClean(); await doc.ready;
   window.__setDeckForTest = A.setDeck; window.__ready = true;
 })();

@@ -1,1 +1,21 @@
-{"id":"preview","name":"Look","tagline":"Read, mark up and sign PDFs and images.","msEquivalent":"PDF reader and image viewer","accent":"#5e5ce6","extensions":["pdf","png","jpg","jpeg","gif","webp","bmp","svg","tiff","avif","ico"],"mime":"application/pdf"}
+{
+  "id": "preview",
+  "name": "Look",
+  "tagline": "Read, mark up and sign PDFs and images.",
+  "msEquivalent": "",
+  "accent": "#5e5ce6",
+  "extensions": [
+    "pdf",
+    "png",
+    "jpg",
+    "jpeg",
+    "gif",
+    "webp",
+    "bmp",
+    "svg",
+    "tiff",
+    "avif",
+    "ico"
+  ],
+  "mime": "application/pdf"
+}

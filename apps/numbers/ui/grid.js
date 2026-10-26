@@ -1,4 +1,4 @@
-/* ZengNumbers grid: canvas-rendered, natively scrolled, virtualised sheet view with selection, resize, fill-drag and move-drag. */
+/* ZengGrid grid: canvas-rendered, natively scrolled, virtualised sheet view with selection, resize, fill-drag and move-drag. */
 (function () {
   'use strict';
   const ZN = window.ZN; const MAXR = ZN.MAXR, MAXC = ZN.MAXC;
@@ -86,7 +86,7 @@
     colAtScreen(x) { const f = this.frozen, z = this.z, fw = this.frozenW(); if (x < this.hw + fw && f.c > 0) return this.colAt((x - this.hw) / z); return this.colAt(this.colX(f.c) + (x - this.hw - fw + this.sc.scrollLeft) / z); }
     rowAtScreen(y) { const f = this.frozen, z = this.z, fh = this.frozenH(); if (y < this.hh + fh && f.r > 0) return this.rowAt((y - this.hh) / z); return this.rowAt(this.rowY(f.r) + (y - this.hh - fh + this.sc.scrollTop) / z); }
     scrollTo(r, c) { // minimal scroll to make cell visible
-      const sc = this.sc, z = this.z, f = this.frozen; const rc = this.cellRect(r, c); const fw = this.frozenW(), fh = this.frozenH();
+      if (!this.vw) return; const sc = this.sc, z = this.z, f = this.frozen; const rc = this.cellRect(r, c); const fw = this.frozenW(), fh = this.frozenH();
       const left = this.hw + fw, top = this.hh + fh;
       if (c >= f.c) { if (rc.x < left) sc.scrollLeft += rc.x - left; else if (rc.x + rc.w > this.vw) sc.scrollLeft += rc.x + rc.w - this.vw + 2; }
       if (r >= f.r) { if (rc.y < top) sc.scrollTop += rc.y - top; else if (rc.y + rc.h > this.vh) sc.scrollTop += rc.y + rc.h - this.vh + 2; }
@@ -203,7 +203,7 @@
       let iconW = 0; if (fx && fx.icon) { iconW = Math.min(h - 4, 16 * z); this.drawIcon(fx.icon.set, fx.icon.idx, fx.icon.n, x + 3, y + (h - iconW) / 2, iconW); iconW += 5; }
       if (!text) return;
       if (d.numeric && d.fits === false && (st.nf || 'General') !== 'General' || (d.numeric && this.measure(text, font) > w - pad * 2 && (st.nf || 'General') !== 'General' && !st.wr)) text = '#'.repeat(Math.max(1, Math.floor((w - pad) / this.measure('#', font))));
-      ctx.save(); ctx.font = font; ctx.fillStyle = color; ctx.textBaseline = 'alphabetic';
+      ctx.save(); ctx.font = font; ctx.fillStyle = color; ctx.textBaseline = 'alphabetic'; ctx.textAlign = 'left';
       const va = st.va || 'bottom';
       if (st.rot && st.rot !== 255) { const ang = -st.rot * Math.PI / 180; ctx.beginPath(); ctx.rect(x, y, w, h); ctx.clip(); ctx.translate(x + w / 2, y + h / 2); ctx.rotate(ang); ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(text, 0, 0); ctx.restore(); return; }
       if (st.rot === 255) { ctx.beginPath(); ctx.rect(x, y, w, h); ctx.clip(); ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; const chars = [...text]; const lh = fpx * 1.05; let yy = y + (h - chars.length * lh) / 2 + lh / 2; for (const ch of chars) { ctx.fillText(ch, x + w / 2, yy); yy += lh; } ctx.restore(); return; }

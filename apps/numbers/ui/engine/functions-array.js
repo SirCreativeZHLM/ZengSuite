@@ -1,4 +1,4 @@
-/* ZengNumbers: dynamic-array functions (FILTER, SORT, SORTBY, UNIQUE, SEQUENCE, TAKE, VSTACK, ...) and SUMPRODUCT. */
+/* ZengGrid: dynamic-array functions (FILTER, SORT, SORTBY, UNIQUE, SEQUENCE, TAKE, VSTACK, ...) and SUMPRODUCT. */
 (function (G) {
   'use strict';
   const ZN = G.ZN; const { E, Range } = ZN; const F = ZN.F;

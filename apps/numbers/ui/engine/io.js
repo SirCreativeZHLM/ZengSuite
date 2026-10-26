@@ -1,4 +1,4 @@
-/* ZengNumbers IO: .znumbers container, HTML/JSON export, clipboard helpers, open() dispatcher. */
+/* ZengGrid IO: .znumbers container, HTML/JSON export, clipboard helpers, open() dispatcher. */
 (function (G) {
   'use strict';
   const ZN = G.ZN; const IO = ZN.io || (ZN.io = {}); const U = IO._u; const FM = ZN.formula;
@@ -7,7 +7,7 @@
 
   // ===================== .znumbers =====================
   const README = [
-    'ZengNumbers workbook (.znumbers)', '================================', '',
+    'ZengGrid workbook (.znumbers)', '================================', '',
     'This file is a standard ZIP archive. Contents:', '',
     '  mimetype       application/vnd.zengbot.numbers+zip (stored, first entry)',
     '  meta.json      {format:"znumbers", version, app, created, modified}',
@@ -22,7 +22,7 @@
   znumbers.write = (wb, o = {}) => {
     const now = new Date().toISOString(); const created = (wb.props && wb.props.created) || now;
     const j = wb.toJSON(); j.props = Object.assign({}, j.props, { created, modified: now });
-    const meta = { format: 'znumbers', version: 1, app: 'ZengNumbers', created, modified: now };
+    const meta = { format: 'znumbers', version: 1, app: 'ZengGrid', created, modified: now };
     const f = { mimetype: [U.utf8Enc(MIME), { level: 0 }], 'meta.json': U.utf8Enc(JSON.stringify(meta, null, 2)), 'workbook.json': U.utf8Enc(JSON.stringify(j)), 'README.txt': U.utf8Enc(README) };
     let th = o.thumbnail; if (typeof th === 'string') { const m = /^data:image\/png;base64,(.*)$/.exec(th); th = m ? U.b64decode(m[1]) : null; }
     if (th instanceof Uint8Array) f['thumbnail.png'] = [th, { level: 0 }];
@@ -35,7 +35,7 @@
     if (files['meta.json']) { let m; try { m = JSON.parse(U.utf8(files['meta.json'])); } catch (e) { throw new Error('Corrupt meta.json: ' + e.message); } if (m.format !== 'znumbers') throw new Error('Not a ZengNumbers file (format "' + m.format + '")'); if (typeof m.version === 'number' && m.version > 1) throw new Error('This file was saved by a newer version of ZengNumbers (format version ' + m.version + '); please update the app'); }
     let j; try { j = JSON.parse(U.utf8(files['workbook.json'])); } catch (e) { throw new Error('Corrupt workbook.json: ' + e.message); }
     if (!j || !Array.isArray(j.sheets) || !j.sheets.length) throw new Error('Corrupt workbook.json: no sheets');
-    if (j.format && j.format !== 'znumbers') throw new Error('Not a ZengNumbers workbook (format "' + j.format + '")');
+    if (j.format && j.format !== 'znumbers') throw new Error('Not a ZengGrid workbook (format "' + j.format + '")');
     if (typeof j.version === 'number' && j.version > 1) throw new Error('Unsupported workbook version ' + j.version);
     return ZN.Workbook.fromJSON(j);
   };

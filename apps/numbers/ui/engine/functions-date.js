@@ -1,4 +1,4 @@
-/* ZengNumbers date & time functions (Excel 1900 date system incl. the 1900 leap-year bug). */
+/* ZengGrid date & time functions (Excel 1900 date system incl. the 1900 leap-year bug). */
 (function (G) {
   'use strict';
   const ZN = G.ZN; const { E } = ZN; const F = ZN.F; const { isErr, toNum, scalar } = F; const D = ZN.date;

@@ -1,4 +1,4 @@
-/* ZengNumbers XLSX reader/writer (ZN.io.xlsx). Hand-written OOXML; no DOM, no eval. Uses global fflate. */
+/* ZengGrid XLSX reader/writer (ZN.io.xlsx). Hand-written OOXML; no DOM, no eval. Uses global fflate. */
 (function (G) {
   'use strict';
   const ZN = G.ZN; const IO = ZN.io || (ZN.io = {}); const U = IO._u; const FM = ZN.formula;

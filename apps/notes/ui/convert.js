@@ -1,4 +1,4 @@
-/* Conversion between the canonical note HTML and Markdown / HTML / text, plus importers (ENEX, Keep, docx, Word/OneNote HTML).
+/* Conversion between the canonical note HTML and Markdown / HTML / text, plus importers (ENEX, Takeout JSON, docx, Word HTML).
    Canonical HTML (what is stored):
      blocks  p h1 h2 h3 ul(.dash|.check) ol li(data-done) blockquote pre.code[data-lang] table hr
              div.att[data-att,data-name,data-type,data-size] (.img|.file)  div.sketch[data-strokes,data-h]
@@ -20,7 +20,7 @@
   // o: { img(src, alt, el) -> html or '' }
   CV.clean = (input, o = {}) => {
     const root = typeof input === 'string' ? parse(input).body : input;
-    const isCheckbox = (n) => n.nodeType === 1 && n.tagName === 'INPUT' && n.type === 'checkbox';
+    const isCheckbox = (n) => !!n && n.nodeType === 1 && n.tagName === 'INPUT' && n.type === 'checkbox';
     const fmtWrap = (el, s) => {
       const st = styleOf(el); if (!s) return s;
       if (/font-weight:\s*(bold|[6-9]00)/.test(st)) s = `<b>${s}</b>`;
@@ -92,12 +92,12 @@
       let rows = ''; let n = 0;
       for (const tr of el.querySelectorAll('tr')) {
         if (tr.closest('table') !== el) continue; let cells = '';
-        for (const td of tr.children) { if (!/^T[DH]$/.test(td.tagName)) continue; const t = td.tagName.toLowerCase(); cells += `<${t}>${trimBr(inl(td)) || '<br>'}</${t}>`; }
+        for (const td of tr.children) { if (!/^T[DH]$/.test(td.tagName)) continue; const t = td.tagName.toLowerCase(); cells += `<${t}>${trimBr(Array.from(td.childNodes).map((c) => inl(c)).join('')) || '<br>'}</${t}>`; }
         if (cells) { rows += `<tr>${cells}</tr>`; n++; }
       }
       return n ? `<table><tbody>${rows}</tbody></table>` : '';
     }
-    // Blocks of a container. Handles Word/Evernote list paragraphs by grouping.
+    // Blocks of a container. Handles Word/ENEX list paragraphs by grouping.
     function flow(parent) {
       let out = '', buf = '', pend = null;
       const flushBuf = () => { if (hasText(buf) || /<br>/.test(buf)) out += para(buf); buf = ''; };
@@ -107,7 +107,7 @@
         if (c.nodeType === 3) { if (!pend || c.nodeValue.trim()) { flushList(); buf += inl(c); } continue; }
         if (c.nodeType !== 1) continue; const tag = c.tagName; if (SKIP.has(tag)) continue;
         const st = styleOf(c);
-        // Word list paragraph / Evernote todo paragraph
+        // Word list paragraph / ENEX todo paragraph
         if ((tag === 'P' || tag === 'DIV') && !c.querySelector('p,div,ul,ol,table,img')) {
           const first = c.firstElementChild; const firstText = c.firstChild;
           if (/mso-list/.test(st) || /MsoListParagraph/i.test(c.className || '')) {
@@ -210,7 +210,7 @@
           const w = head.length; const cell = (t, tg) => `<${tg}>${inlineMd(t || '') || '<br>'}</${tg}>`;
           o.push(`<table><tbody><tr>${head.map((c) => cell(c, 'th')).join('')}</tr>${rows.map((r) => `<tr>${Array.from({ length: w }, (_, j) => cell(r[j], 'td')).join('')}</tr>`).join('')}</tbody></table>`); continue;
         }
-        if ((m = listRe.exec(l)) && !isHr(l)) { flushP(); const items = []; while (k < lines.length) { const mm = listRe.exec(lines[k]); if (mm) items.push({ ind: indentOf(lines[k]), mk: mm[2], text: mm[3], extra: [] }); else if (lines[k].trim() && /^\s{2,}\S/.test(lines[k]) && items.length) items[items.length - 1].extra.push(lines[k].trim()); else if (!lines[k].trim() && k + 1 < lines.length && listRe.test(lines[k + 1])) { /* loose list */ } else break; k++; } o.push(buildList(items)); continue; }
+        if ((m = listRe.exec(l)) && !isHr(l)) { flushP(); const items = []; while (k < lines.length) { const mm = listRe.exec(lines[k]); if (mm && items.length && indentOf(lines[k]) === items[0].ind && /\d/.test(mm[2][0]) !== /\d/.test(items[0].mk[0])) break; if (mm) items.push({ ind: indentOf(lines[k]), mk: mm[2], text: mm[3], extra: [] }); else if (lines[k].trim() && /^\s{2,}\S/.test(lines[k]) && items.length) items[items.length - 1].extra.push(lines[k].trim()); else if (!lines[k].trim() && k + 1 < lines.length && listRe.test(lines[k + 1])) { /* loose list */ } else break; k++; } o.push(buildList(items)); continue; }
         if (/^<(div|p|span|br|img|table|h[1-6]|ul|ol|pre|blockquote)\b/i.test(l.trim())) { flushP(); const h = []; while (k < lines.length && lines[k].trim()) h.push(lines[k++]); o.push(h.join('\n')); continue; }
         para.push(l.trim()); k++;
       }
@@ -324,7 +324,7 @@
   CV.CSS = `body{font:16px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Inter,sans-serif;max-width:760px;margin:40px auto;padding:0 20px;color:#1d1d1f}h1.title{font-size:2em;margin:.2em 0 .6em}h1{font-size:1.6em}h2{font-size:1.3em}h3{font-size:1.1em}img{max-width:100%;border-radius:6px}pre{background:#f5f5f7;padding:12px 14px;border-radius:8px;overflow:auto;font:13px/1.5 ui-monospace,Menlo,monospace;white-space:pre-wrap}code{font:.9em ui-monospace,Menlo,monospace;background:#f1f1f3;padding:1px 4px;border-radius:4px}pre code{background:none;padding:0}blockquote{margin:1em 0;padding-left:14px;border-left:3px solid #d0d0d5;color:#555}table{border-collapse:collapse;margin:1em 0}td,th{border:1px solid #d0d0d5;padding:6px 10px;min-width:60px}th{background:#f5f5f7}hr{border:0;border-top:1px solid #d0d0d5;margin:1.5em 0}ul.check{list-style:none;padding-left:4px}ul.check li:before{content:"\\2610  "}ul.check li[data-done]:before{content:"\\2611  "}ul.check li[data-done]{color:#888;text-decoration:line-through}ul.dash{list-style:none}ul.dash li:before{content:"\\2013  ";margin-left:-1.1em}.tk-kw{color:#a626a4}.tk-str{color:#50a14f}.tk-com{color:#999;font-style:italic}.tk-num{color:#986801}.tk-fn{color:#4078f2}.att.file{display:inline-block;padding:6px 10px;border:1px solid #d0d0d5;border-radius:8px;margin:4px 0}`;
   // Build a self-contained HTML document. ctx.dataUrl(el) -> data URL or ''
   CV.toHtmlDoc = (title, html, ctx = {}) => {
-    const d = parse(html); const body = d.body;
+    const body = typeof html === 'string' ? parse(html).body : html; const d = body.ownerDocument;
     for (const el of [...body.querySelectorAll('.att, .sketch')]) {
       if (el.classList.contains('sketch')) { const u = ctx.dataUrl && ctx.dataUrl(el); const im = d.createElement(u ? 'img' : 'span'); if (u) { im.src = u; im.alt = 'Sketch'; } el.replaceWith(im); continue; }
       const u = ctx.dataUrl && ctx.dataUrl(el);
@@ -394,7 +394,7 @@
   };
 
   CV.importKeep = (json, lookup) => {
-    const j = typeof json === 'string' ? JSON.parse(json) : json; if (typeof j !== 'object' || !j || !('userEditedTimestampUsec' in j || 'textContent' in j || 'listContent' in j || 'title' in j)) throw new Error('Not a Google Keep note');
+    const j = typeof json === 'string' ? JSON.parse(json) : json; if (typeof j !== 'object' || !j || !('userEditedTimestampUsec' in j || 'textContent' in j || 'listContent' in j || 'title' in j)) throw new Error('Not a Takeout note file');
     const ctx = mkCtx((src) => lookup && lookup(src)); let html = '';
     if (Array.isArray(j.listContent) && j.listContent.length) html += `<ul class="check">${j.listContent.map((it) => `<li${it.isChecked ? ' data-done="1"' : ''}>${esc(it.text || '') || '<br>'}</li>`).join('')}</ul>`;
     if (j.textContent) html += j.textContent.split('\n').map((l) => `<p>${l.trim() ? esc(l) : '<br>'}</p>`).join('');
@@ -404,7 +404,7 @@
     return { title: j.title || '', html: html || '<p><br></p>', files: ctx.files, tags, created: Math.floor((j.createdTimestampUsec || 0) / 1000), modified: Math.floor((j.userEditedTimestampUsec || 0) / 1000), pinned: !!j.isPinned, trashed: !!j.isTrashed, archived: !!j.isArchived };
   };
 
-  // .docx (Word / OneNote export)  best effort
+  // .docx (Word export)  best effort
   CV.importDocx = (bytes, name) => {
     const z = fflate.unzipSync(bytes); const doc = z['word/document.xml']; if (!doc) throw new Error('Not a Word document');
     const rels = {}; const rx = z['word/_rels/document.xml.rels']; if (rx) { const rd = new DOMParser().parseFromString(fflate.strFromU8(rx), 'text/xml'); for (const r of rd.getElementsByTagName('Relationship')) rels[r.getAttribute('Id')] = { target: r.getAttribute('Target'), type: r.getAttribute('Type') }; }

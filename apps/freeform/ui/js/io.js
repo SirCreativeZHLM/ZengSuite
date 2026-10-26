@@ -1,4 +1,4 @@
-/* Freeform I/O: .zfree zip, JSON, raster/SVG/PDF export, SVG import. */
+/* Canvas I/O: .zfree zip, JSON, raster/SVG/PDF export, SVG import. */
 (() => {
   'use strict';
   const R = FF.R, S = FF.S, f2 = (n) => Math.round(n * 100) / 100;
@@ -11,7 +11,7 @@
   FF.docJSON = (inline) => {
     const media = {}; for (const id of usedMedia()) { const m = FF.media.get(id); if (!m) continue; media[id] = inline ? { mime: m.mime, b64: b64(m.bytes) } : { mime: m.mime, file: `media/${id}.${ext(m.mime)}` }; }
     FF.boards.forEach((b) => (b.view = { ...b.view }));
-    return { format: 'zengfreeform', version: 1, active: Math.max(0, FF.boards.indexOf(FF.B)), boards: FF.boards.map(FF.serializeBoard), media };
+    return { format: 'zengcanvas', version: 1, active: Math.max(0, FF.boards.indexOf(FF.B)), boards: FF.boards.map(FF.serializeBoard), media };
   };
   FF.saveZip = async () => {
     const j = FF.docJSON(false); const files = { 'board.json': fflate.strToU8(JSON.stringify(j)) };
@@ -20,7 +20,7 @@
     return fflate.zipSync(files, { level: 6 });
   };
   FF.loadDoc = (j, files) => {
-    if (!j || j.format !== 'zengfreeform' || !Array.isArray(j.boards) || !j.boards.length) throw new Error('This file is not a Freeform board.');
+    if (!j || (j.format !== 'zengcanvas' && j.format !== 'zengfreeform') || !Array.isArray(j.boards) || !j.boards.length) throw new Error('This file is not a Canvas board.');
     const media = new Map();
     for (const [id, m] of Object.entries(j.media || {})) { let bytes = null; if (m.file && files) { const f = files[m.file]; if (f) bytes = f; } else if (m.b64) bytes = unb64(m.b64); if (bytes) media.set(id, { id, mime: m.mime, bytes }); }
     FF.media.forEach((m) => m.url && URL.revokeObjectURL(m.url)); FF.media = media;
@@ -99,7 +99,7 @@
     switch (o.type) {
       case 'stroke': { const sp = FF.strokePath(o), c = col(s.stroke); const a = s.tool === 'hl' ? 0.4 : s.tool === 'pencil' ? 0.82 : 1; return `<path${tf} d="${sp.d}" fill="${c}"${a !== 1 ? ` fill-opacity="${a * (s.op != null ? s.op : 1)}"` : op}${s.tool === 'hl' && !dark ? ' style="mix-blend-mode:multiply"' : ''}/>`; }
       case 'shape': { const sp = FF.shapePath(o); return `<g${tf}${op}${sh}><path d="${sp.d}" fill="${fl}"${st}/>${sp.d2 ? `<path d="${sp.d2}" fill="none"${st}/>` : ''}${textSVG(o, FF.textBox(o), dark)}</g>`; }
-      case 'sticky': return `<g${tf}${op}${sh}><rect width="${f2(o.w)}" height="${f2(o.h)}" rx="6" fill="${fl}"/>${textSVG(o, FF.textBox(o), dark)}</g>`;
+      case 'sticky': { const f = FF.foldSize(o.w, o.h); return `<g${tf}${op}${sh}><path d="${FF.stickyD(o.w, o.h)}" fill="${fl}"/><path d="M${f2(o.w - f)} ${f2(o.h)}L${f2(o.w)} ${f2(o.h - f)}L${f2(o.w - f)} ${f2(o.h - f)}Z" fill="#000" fill-opacity=".16"/>${textSVG(o, FF.textBox(o), dark)}</g>`; }
       case 'text': return `<g${tf}${op}>${textSVG(o, { x: 0, y: 0, w: o.w, h: o.h }, dark)}</g>`;
       case 'image': { const m = FF.media.get(o.media); if (!m) return ''; return `<image${tf}${op} width="${f2(o.w)}" height="${f2(o.h)}" preserveAspectRatio="none" href="data:${m.mime};base64,${b64(m.bytes)}"/>`; }
       case 'stamp': return `<text${tf}${op} x="${f2(o.w / 2)}" y="${f2(o.h / 2 + o.h * 0.3)}" text-anchor="middle" font-size="${f2(Math.min(o.w, o.h) * 0.82)}" font-family="Apple Color Emoji,Segoe UI Emoji,Noto Color Emoji,sans-serif">${esc(o.ch || '')}</text>`;
@@ -159,7 +159,7 @@
         objs.push(o);
       }
       const finals = []; for (const o of objs) { if (o.__img) { const bb = o.base; try { const m = FF.media; const id = FF.id(); FF.media.set(id, { id, mime: o.__img.mime, bytes: o.__img.bytes }); finals.push(FF.make('image', { ...bb, media: id })); } catch {} } else finals.push(o); }
-      if (!finals.length) throw new Error('This SVG has no shapes Freeform can import.');
+      if (!finals.length) throw new Error('This SVG has no shapes Canvas can import.');
       const bbx = FF.unionBB(finals); const scale = Math.min(1, 900 / (bbx[2] - bbx[0]), 700 / (bbx[3] - bbx[1])); const c0 = [(bbx[0] + bbx[2]) / 2, (bbx[1] + bbx[3]) / 2]; const c = at || FF.viewCenter();
       for (const o of finals) { const ox = o.x + o.w / 2, oy = o.y + o.h / 2; o.w *= scale; o.h *= scale; if (o.s.sw) o.s.sw *= scale; if (o.type === 'text') { o.s.fs *= scale; FF.fitText(o); } o.x = c[0] + (ox - c0[0]) * scale - o.w / 2; o.y = c[1] + (oy - c0[1]) * scale - o.h / 2; FF.touch(o); }
       if (finals.length === 1) delete finals[0].g;

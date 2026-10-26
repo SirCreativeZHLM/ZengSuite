@@ -104,7 +104,7 @@
   // ------------------------------------------------------------------ events
   CAL.blank = (o) => { const e = I.newEvent(o); if (!e.uid) e.uid = I.uid(); e.id = e.uid; return e; };
   /** store an event (insert/replace); returns change record. */
-  CAL.put = (e) => { const before = S.ev.get(e.id); const b = before ? clone(before) : null; e.modified = Date.now(); if (!e.created) e.created = e.modified; S.ev.set(e.id, e); dirtyCals.add(e.cal); if (b && b.cal !== e.cal) dirtyCals.add(b.cal); return { before: b, after: clone(e) }; };
+  CAL.put = (e, snap) => { const before = S.ev.get(e.id); const b = snap !== undefined ? snap : before ? clone(before) : null; e.modified = Date.now(); if (!e.created) e.created = e.modified; S.ev.set(e.id, e); dirtyCals.add(e.cal); if (b && b.cal !== e.cal) dirtyCals.add(b.cal); return { before: b, after: clone(e) }; };
   CAL.remove = (e) => { const b = clone(e); S.ev.delete(e.id); dirtyCals.add(e.cal); return { before: b, after: null }; };
   const alertsFor = (cal, allDay) => { const m = cal && cal.alert != null ? cal.alert : S.set.defaultAlert; if (m == null || m === '') return []; return [{ m: allDay && +m >= 0 && +m < 1440 && cal.alert == null && S.set.defaultAlert != null ? +m : +m, action: 'DISPLAY' }]; };
   CAL.newEventAt = (startWall, endWall, allDay, cal) => { cal = cal || CAL.defaultCal(); const tz = allDay ? 'floating' : 'floating'; return CAL.blank({ cal: cal ? cal.id : '', start: startWall, end: endWall, allDay, tz, alarms: alertsFor(cal, allDay) }); };
@@ -141,7 +141,8 @@
     for (const k of FIELDS) { if (k === 'start' || k === 'end') continue; if (k in f && !isSame(f[k], ev[k] === undefined ? null : ev[k])) p[k] = clone(f[k]); }
     if (f.allDay !== ev.allDay) p.allDay = f.allDay;
     const start = f.allDay ? f.start.slice(0, 10) : f.start, end = f.allDay ? f.end.slice(0, 10) : f.end;
-    if (start !== base.wallStart || end !== base.wallEnd || 'tz' in p || 'endTz' in p || 'allDay' in p) { p.start = start; p.end = end; if (!f.allDay) { p.tz = f.tz; p.endTz = f.endTz && f.endTz !== f.tz ? f.endTz : ''; } }
+    if (!f.allDay) { if (f.tz !== ev.tz) p.tz = f.tz; const et = f.endTz && f.endTz !== f.tz ? f.endTz : ''; if (et !== (ev.endTz || '')) p.endTz = et; }
+    if (start !== base.wallStart || end !== base.wallEnd || 'tz' in p || 'endTz' in p || 'allDay' in p) { p.start = start; p.end = end; }
     return Object.fromEntries(FIELDS.filter((k) => k in p).map((k) => [k, p[k]]));
   };
   CAL.untilBefore = (ev, key) => { // UNTIL value 1 second before occurrence `key`
@@ -151,13 +152,13 @@
 
   /** Edit one occurrence with field set `f` (see fieldsOfOcc). scope: 'this' | 'future' | 'all'. Returns change list. */
   CAL.editOccurrence = (o, f, scope) => {
-    const ev = o.ev; const recurring = I.isRecurring(ev); const changes = [];
+    const ev = o.ev; const recurring = I.isRecurring(ev); const changes = []; const snap = clone(ev);
     if (!recurring || scope === 'all' || (scope === 'future' && o.key === ev.start)) {
-      applyFieldsToMaster(ev, f, o); changes.push(CAL.put(ev)); return changes;
+      applyFieldsToMaster(ev, f, o); changes.push(CAL.put(ev, snap)); return changes;
     }
     if (scope === 'this') {
       const p = overrideFrom(ev, o.key, f); if (Object.keys(p).length) ev.overrides[o.key] = p; else delete ev.overrides[o.key];
-      changes.push(CAL.put(ev)); return changes;
+      changes.push(CAL.put(ev, snap)); return changes;
     }
     // future: split the series at o.key; the tail becomes a new series carrying the edit
     const rr = I.ruleOf(ev); const before = rr && rr.count ? I.countBefore(ev, o.key) : 0;
@@ -171,14 +172,14 @@
     applyFieldsToMaster(tail, f2, { wallStart: tail.start, ev: tail });
     ev.rrule = withUntil(ev.rrule, CAL.untilBefore(ev, o.key));
     for (const k of Object.keys(ev.overrides)) if (k >= o.key) delete ev.overrides[k]; ev.exdates = ev.exdates.filter((k) => k < o.key); ev.rdates = ev.rdates.filter((k) => k < o.key);
-    changes.push(CAL.put(ev), CAL.put(tail)); return changes;
+    changes.push(CAL.put(ev, snap), CAL.put(tail)); return changes;
   };
   const withCount = (rule, n) => { const r = I.parseRRule(rule); r.count = n; r.until = ''; return I.stringifyRRule(r); };
   CAL.deleteOccurrence = (o, scope) => {
-    const ev = o.ev; const changes = [];
+    const ev = o.ev; const changes = []; const snap = clone(ev);
     if (!I.isRecurring(ev) || scope === 'all' || (scope === 'future' && o.key === ev.start)) { changes.push(CAL.remove(ev)); }
-    else if (scope === 'this') { if (!ev.exdates.includes(o.key)) ev.exdates.push(o.key); delete ev.overrides[o.key]; changes.push(CAL.put(ev)); }
-    else { ev.rrule = withUntil(ev.rrule, CAL.untilBefore(ev, o.key)); for (const k of Object.keys(ev.overrides)) if (k >= o.key) delete ev.overrides[k]; ev.exdates = ev.exdates.filter((k) => k < o.key); changes.push(CAL.put(ev)); }
+    else if (scope === 'this') { if (!ev.exdates.includes(o.key)) ev.exdates.push(o.key); delete ev.overrides[o.key]; changes.push(CAL.put(ev, snap)); }
+    else { ev.rrule = withUntil(ev.rrule, CAL.untilBefore(ev, o.key)); for (const k of Object.keys(ev.overrides)) if (k >= o.key) delete ev.overrides[k]; ev.exdates = ev.exdates.filter((k) => k < o.key); changes.push(CAL.put(ev, snap)); }
     return changes;
   };
   /** new standalone event from an occurrence field set (duplicate / paste) */
@@ -201,12 +202,12 @@
     const calMap = new Map(S.cals.map((c) => [c.id, c])); const out = [];
     for (const e of S.ev.values()) { const c = calMap.get(e.cal); if (!c || !(c.visible || opts.all)) continue; const n = out.length; I.expand(e, from, to, out); for (let i = n; i < out.length; i++) { out[i].cal = c; } }
     for (const c of S.cals) if ((c.visible || opts.all) && c.kind !== 'local') { const n = out.length; specialOccs(c, from, to, out); for (let i = n; i < out.length; i++) out[i].cal = c; }
-    for (const o of out) { o.color = I.F(o, 'color') || o.cal.color; o.ro = !!o.ev.ro || !!o.cal.readOnly; }
+    for (const o of out) { o.color = I.F(o, 'color') || o.cal.color; o.ct = CAL.onColor(o.color); o.ro = !!o.ev.ro || !!o.cal.readOnly; }
     out.sort((a, b) => a.s - b.s || b.e - a.e || (I.F(a, 'title') || '').localeCompare(I.F(b, 'title') || ''));
     qcache.unshift({ key, occs: out }); qcache.length = Math.min(qcache.length, 6); return out;
   };
   CAL.occById = (id, near) => { // locate an occurrence again after a re-render
-    const [eid, key] = [id.slice(0, id.indexOf('|')), id.slice(id.indexOf('|') + 1)]; const ev = S.ev.get(eid) || hcache.get(eid); if (!ev) return null; const o = I.occurrenceAt(ev, key); o.cal = CAL.calById(ev.cal); if (!o.cal) return null; o.color = I.F(o, 'color') || o.cal.color; o.ro = !!ev.ro || !!o.cal.readOnly; return o;
+    const [eid, key] = [id.slice(0, id.indexOf('|')), id.slice(id.indexOf('|') + 1)]; const ev = S.ev.get(eid) || hcache.get(eid); if (!ev) return null; const o = I.occurrenceAt(ev, key); o.cal = CAL.calById(ev.cal); if (!o.cal) return null; o.color = I.F(o, 'color') || o.cal.color; o.ct = CAL.onColor(o.color); o.ro = !!ev.ro || !!o.cal.readOnly; return o;
   };
   /** the first occurrence of ev on or after `from` (epoch) */
   CAL.nextOcc = (ev, from) => { const out = []; I.expand(ev, from, from + 800 * DAY, out); out.sort((a, b) => a.s - b.s); if (out[0]) return out[0]; I.expand(ev, from - 800 * DAY, from, out); out.sort((a, b) => b.s - a.s); return out[0] || null; };
@@ -261,4 +262,5 @@
   CAL.parseAttendees = (txt) => txt.split(/[\n;]+|,(?=\s*[^,<]*<)|,(?=\s*[^\s,@]+@)/).map((s) => s.trim()).filter(Boolean).map((s) => { const m = /^(.*?)\s*<([^>]+)>$/.exec(s); if (m) return { name: m[1].replace(/^"|"$/g, ''), email: m[2].trim() }; return /^[^\s@]+@[^\s@]+$/.test(s) ? { name: '', email: s } : { name: s, email: '' }; });
   CAL.fmtAttendee = (a) => (a.name && a.email ? `${a.name} <${a.email}>` : a.email || a.name);
   CAL.colorOf = (o) => o.color;
+  CAL.onColor = (hex) => { const m = /^#?([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i.exec(hex || ''); if (!m) return '#fff'; const f = (x) => { x = parseInt(x, 16) / 255; return x <= 0.03928 ? x / 12.92 : Math.pow((x + 0.055) / 1.055, 2.4); }; const L = 0.2126 * f(m[1]) + 0.7152 * f(m[2]) + 0.0722 * f(m[3]); return L > 0.42 ? '#1d1d1f' : '#fff'; };
 })();

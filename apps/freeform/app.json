@@ -1,1 +1,11 @@
-{"id":"freeform","name":"Freeform","tagline":"An infinite canvas for ideas, sketches and diagrams.","msEquivalent":"Whiteboard","accent":"#ff375f","extensions":["zfree"],"mime":"application/x-zengfreeform+zip"}
+{
+  "id": "freeform",
+  "name": "Canvas",
+  "tagline": "An infinite canvas for ideas, sketches and diagrams.",
+  "msEquivalent": "",
+  "accent": "#ff375f",
+  "extensions": [
+    "zfree"
+  ],
+  "mime": "application/x-zengcanvas+zip"
+}

@@ -32,7 +32,7 @@
     function parse(i) { try { return C.parseISO(i.value); } catch (e) { return null; } }
     const fullDate = (o) => `${DAYS[C.weekday(o)]}, ${MONTHS[o.m - 1]} ${o.d}, ${o.y}`;
     function calc() {
-      out.replaceChildren(); const a = parse(d1);
+      out.replaceChildren(); lastModel = null; const a = parse(d1);
       if (!a) { out.append(zk.el('.zc-note', 'Choose a valid start date.')); return; }
       if (mode === 'diff') {
         const b = parse(d2); if (!b) { out.append(zk.el('.zc-note', 'Choose a valid end date.')); return; }
@@ -40,16 +40,16 @@
         if (r.years) parts.push(plural(r.years, 'year')); if (r.months) parts.push(plural(r.months, 'month')); if (r.days || !parts.length) parts.push(plural(r.days, 'day'));
         out.append(zk.el('.zc-label', r.totalDays === 0 ? 'Same date' : r.negative ? 'The end date is before the start date' : 'Difference'), zk.el('.zc-field.out.selectable', { style: 'font-size:1.5rem;white-space:normal' }, r.totalDays === 0 ? '0 days' : parts.join(', ')),
           zk.el('table.zc-table', zk.el('tbody', ...[['Total days', H.fmt(C.Dec.of(r.totalDays))], ['Weeks and days', `${plural(r.weeks, 'week')}, ${plural(r.remDays, 'day')}`], ['Weekdays (Mon to Fri)', H.fmt(C.Dec.of(r.weekdays))], ['Start', fullDate(a)], ['End', fullDate(b)]].map(([k, v]) => zk.el('tr', zk.el('td', k), zk.el('td.selectable', v))))));
-        lastText = `${parts.join(', ')} (${r.totalDays} days)`;
+        lastText = `${parts.join(', ')} (${r.totalDays} days)`; lastModel = C.dateDiffWork(a, b); out.append(workBtn);
       } else {
         const delta = { years: +yy.value || 0, months: +mm.value || 0, weeks: +ww.value || 0, days: +dd.value || 0 };
         let res; if (wk.checked) res = C.addWeekdays(C.addToDate(a, { years: delta.years, months: delta.months }, sign), sign * (delta.weeks * 5 + delta.days)); else res = C.addToDate(a, delta, sign);
         out.append(zk.el('.zc-label', (sign > 0 ? 'Date after' : 'Date before')), zk.el('.zc-field.out.selectable', { style: 'font-size:1.5rem;white-space:normal' }, fullDate(res)), zk.el('.zc-note', C.toISO(res)));
-        lastText = C.toISO(res);
+        lastText = C.toISO(res); lastModel = C.dateAddWork(a, delta, sign, wk.checked); out.append(workBtn);
       }
     }
-    let lastText = ''; function persist() { H.save('date', { mode, sign }); }
+    let lastText = '', lastModel = null; const workBtn = zk.el('button.zc-btn', { type: 'button', onclick: () => showWork() }, 'Show work'); const showWork = () => { if (lastModel) H.work.openModel(lastModel, { title: 'Show work' }); else H.toast('Choose valid dates first'); }; function persist() { H.save('date', { mode, sign }); }
     const ready = (async () => { const s = await H.load('date', null); if (s) { mode = s.mode || 'diff'; sign = s.sign || 1; } render(); })();
-    return { el: root, ready, show: calc, refresh: calc, copyText: () => lastText, paste(tx) { const m = /\d{4}-\d{2}-\d{2}/.exec(tx); if (m) { d1.value = m[0]; calc(); } } };
+    return { el: root, ready, show: calc, refresh: calc, copyText: () => lastText, showWork, paste(tx) { const m = /\d{4}-\d{2}-\d{2}/.exec(tx); if (m) { d1.value = m[0]; calc(); } } };
   };
 })();

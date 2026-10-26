@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>Calendar</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="stylesheet" href="/kit/zeng.css"><link rel="stylesheet" href="app.css">
+<script src="/kit/icons.js"></script><script src="/kit/zeng.js"></script>
+<script src="lib/zc-time.js"></script><script src="lib/zc-ical.js"></script><script src="lib/zc-misc.js"></script><script src="lib/zc-csv.js"></script><script src="lib/zc-nlp.js"></script><script src="lib/zc-balance.js"></script>
+</head>
+<body>
+<div class="zk-app" id="app">
+  <div class="zk-toolbar zk-titlebar" id="tb"></div>
+  <div class="cal-body">
+    <main class="cal-main"><div id="view" class="cal-view"></div><div id="results" class="cal-results zk-hidden"></div></main>
+    <aside class="cal-rail" id="side" aria-label="Sidebar"></aside>
+  </div>
+  <div id="alerts" class="cal-alerts" aria-live="polite"></div>
+</div>
+<script src="core.js"></script><script src="balance.js"></script><script src="views.js"></script><script src="interact.js"></script><script src="editor.js"></script><script src="dialogs.js"></script><script src="io.js"></script><script src="app.js"></script>
+</body></html>

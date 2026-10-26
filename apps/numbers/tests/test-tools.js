@@ -197,7 +197,7 @@ const dateStyle = (wb) => wb.mergeStyle(0, { nf: 'yyyy-mm-dd' });
   dv({ type: 'whole', op: 'eq', v1: '=B1+1' }); setCol(wb, sh, 1, [4, 9]); T.eq([TL.validate(wb, sh, 0, 0, 5).ok, TL.validate(wb, sh, 1, 0, 10).ok, TL.validate(wb, sh, 1, 0, 5).ok], [true, true, false], 'formula operand relative');
   dv({ type: 'whole', op: 'gt', v1: 0, promptTitle: 'Hint', prompt: 'Enter positive', showPrompt: true }); T.eq(TL.inputMessage(wb, sh, 0, 0), { title: 'Hint', message: 'Enter positive' }, 'input message'); T.eq(TL.inputMessage(wb, sh, 8, 0), null, 'no input message');
   sh.dv[0].ranges = [[0, 0, 3, 0]]; setCol(wb, sh, 0, [5, -1, 'x', undefined]); T.eq(TL.circleInvalid(wb, sh), [{ r: 1, c: 0 }, { r: 2, c: 0 }], 'circleInvalid');
-  T.eq(TL.validate(wb, sh, 0, 0, -3).message, "This value doesn't match the data validation restrictions defined for this cell.", 'default message'); T.eq(TL.validate(wb, sh, 0, 0, -3).title, 'Microsoft Excel', 'default title');
+  T.eq(TL.validate(wb, sh, 0, 0, -3).message, "This value doesn't match the data validation restrictions defined for this cell.", 'default message'); T.eq(TL.validate(wb, sh, 0, 0, -3).title, 'Invalid value', 'default title');
 }
 
 // ---------- find / replace ----------

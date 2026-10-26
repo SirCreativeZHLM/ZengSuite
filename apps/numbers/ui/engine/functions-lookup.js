@@ -1,4 +1,4 @@
-/* ZengNumbers: Lookup & Reference functions (VLOOKUP, XLOOKUP, MATCH, INDEX, OFFSET, INDIRECT, ADDRESS, ...). */
+/* ZengGrid: Lookup & Reference functions (VLOOKUP, XLOOKUP, MATCH, INDEX, OFFSET, INDIRECT, ADDRESS, ...). */
 (function (G) {
   'use strict';
   const ZN = G.ZN; const { E, Range, ZErr, MAXR, MAXC } = ZN; const F = ZN.F; const FM = ZN.formula;

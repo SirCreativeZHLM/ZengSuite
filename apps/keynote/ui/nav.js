@@ -141,6 +141,7 @@
   const ctx = (e, i) => {
     e.preventDefault(); const d = deck(); const s = d.slides[i]; if (!A.navSel.has(s.id)) { A.navSel = new Set([s.id]); S.go(i, true); }
     const multi = A.navSel.size > 1; zk.menu([
+      { label: 'Remix Slide…', run: () => K.openRemix(A) },
       { label: 'New Slide', run: () => S.add(null, i + 1) },
       { label: 'New Slide With Layout', submenu: d.layouts.map((l) => ({ label: l.name, run: () => S.add(l.id, i + 1) })) },
       { separator: true },

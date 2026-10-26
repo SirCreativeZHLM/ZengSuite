@@ -425,14 +425,14 @@
 
   // ---------- context menu & dbl click ----------
   stage.addEventListener('dblclick', (e) => {
-    if (!A.deck || A.tool) return; const id = topId(e.target); if (!id) return; const o = A.byId(id); if (!o) return;
+    if (!A.deck || A.tool) return; const tgt = document.elementFromPoint(e.clientX, e.clientY) || e.target; const id = topId(tgt); if (!id) return; const o = A.byId(id); if (!o) return;
     if (o.type === 'text' || o.type === 'shape') { A.startEdit(o, e); }
-    else if (o.type === 'table') { const td = e.target.closest('td'); if (td) A.startEdit(o, e, false, { r: +td.dataset.r, c: +td.dataset.c }); }
+    else if (o.type === 'table') { const td = tgt.closest('td'); if (td) A.startEdit(o, e, false, { r: +td.dataset.r, c: +td.dataset.c }); }
     else if (o.type === 'image') { if (!o.m) A.emit('pickImage', o); else A.cropMode(true); }
     else if (o.type === 'chart') A.emit('editChart', o);
     else if (o.type === 'media') A.emit('toggleMedia', o);
   });
-  stage.addEventListener('contextmenu', (e) => { if (!A.deck || A.editing) return; const id = topId(e.target); e.preventDefault(); A.emit('context', e, id ? A.byId(id) : null); });
+  stage.addEventListener('contextmenu', (e) => { if (!A.deck || A.editing) return; const id = topId(document.elementFromPoint(e.clientX, e.clientY) || e.target); e.preventDefault(); A.emit('context', e, id ? A.byId(id) : null); });
 
   // ---------- keyboard on canvas ----------
   A.canvasFocus = () => A.focus === 'canvas';

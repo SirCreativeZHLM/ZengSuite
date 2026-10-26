@@ -9,11 +9,12 @@
   const k = (id, label, aria, cls = '', alt = null) => ({ id, label, aria, cls, alt });
   const NUM = (d) => k(d, d, d, 'num');
   const OPS = { add: k('add', '+', 'Add', 'op'), sub: k('sub', '−', 'Subtract', 'op'), mul: k('mul', '×', 'Multiply', 'op'), div: k('div', '÷', 'Divide', 'op') };
-  const RIGHT = [
-    [k('clear', 'AC', 'All clear', ''), k('neg', '+/−', 'Change sign', ''), k('pct', '%', 'Percent', ''), OPS.div],
-    [NUM('7'), NUM('8'), NUM('9'), OPS.mul], [NUM('4'), NUM('5'), NUM('6'), OPS.sub], [NUM('1'), NUM('2'), NUM('3'), OPS.add],
-    [Object.assign(NUM('0'), { cls: 'num wide' }), k('.', '.', 'Decimal point', 'num'), k('eq', '=', 'Equals', 'op')],
+  const TRAY = [
+    [k('clear', 'AC', 'All clear', ''), k('neg', '+/−', 'Change sign', ''), k('pct', '%', 'Percent', '')],
+    [NUM('7'), NUM('8'), NUM('9')], [NUM('4'), NUM('5'), NUM('6')], [NUM('1'), NUM('2'), NUM('3')],
+    [Object.assign(NUM('0'), { cls: 'num wide' }), k('.', '.', 'Decimal point', 'num')],
   ];
+  const RAIL = [OPS.div, OPS.mul, OPS.sub, OPS.add, k('eq', '=', 'Equals', 'op eq')];
   const LEFT = [
     [k('sec', '2<sup>nd</sup>', 'Second function', 'toggle'), k('lp', '(', 'Open parenthesis'), k('rp', ')', 'Close parenthesis'), k('mc', 'mc', 'Memory clear'), k('mplus', 'm+', 'Memory add'), k('mminus', 'm−', 'Memory subtract'), k('mr', 'mr', 'Memory recall')],
     [k('sq', 'x<sup>2</sup>', 'x squared', '', k('cube', 'x<sup>3</sup>', 'x cubed')), k('sqrt', '<span class="it">√x</span>', 'Square root', '', k('cbrt', '<sup>3</sup>√x', 'Cube root')),
@@ -36,7 +37,8 @@
     const exprEl = zk.el('.zc-expr', { 'aria-hidden': 'true' });
     const mainEl = zk.el('.zc-main.selectable', { role: 'status', 'aria-live': 'polite', 'aria-label': 'Display', tabindex: 0 });
     const indEl = zk.el('.zc-ind');
-    const display = zk.el('.zc-display', indEl, exprEl, mainEl);
+    const workBtn = zk.el('button.zk-btn.zc-workbtn', { type: 'button', hidden: true, title: 'Show how this result was computed', 'aria-label': 'Show work', onclick: () => showWork() }, zk.icon('list-tree', 13), 'Show work');
+    const display = zk.el('.zc-display', indEl, exprEl, mainEl, workBtn);
     const keys = zk.el('.zc-keys', { role: 'group', 'aria-label': 'Keys' });
     root.append(display, keys);
     let second = false, hyp = false; const btns = {}; let sizeKey = '';
@@ -48,7 +50,7 @@
       let realId = id; const b = btns[id];
       if (b && b._def) { realId = resolve(b._def); }
       const before = state.history.length; state.press(realId);
-      if (state.history.length > before) { const e = state.history[0]; H.addHistory({ expr: e.expr, result: e.result, kind: 'dec', mode: modeId }); }
+      if (state.history.length > before) { const e = state.history[0]; H.addHistory({ expr: e.expr, result: e.result, ev: e.ev, angle: e.angle, kind: 'dec', mode: modeId }); }
       if (second && ['sq', 'sqrt', 'pow', 'exp', 'ln', 'log', 'sin', 'cos', 'tan'].includes(id) && false) second = false;
       refresh();
     };
@@ -60,16 +62,20 @@
       const b = zk.el('button.zc-key' + (def.cls ? '.' + def.cls.split(' ').join('.') : ''), { type: 'button', 'aria-label': def.aria, 'data-id': def.id, title: def.aria });
       b.innerHTML = def.label; b._def = def; btns[def.id] = b; H.bindKey(b, () => press(def.id)); return b;
     }
-    // ---- build keys
+    // ---- build keys: [scientific block] [number tray] [operator rail]
+    const pad = zk.el('.zc-pad'); const tray = zk.el('.zc-tray'); const rail = zk.el('.zc-rail');
     if (!sci) {
-      const mem = zk.el('.zc-memrow', { style: 'grid-column:1/-1;display:flex;gap:.25rem;' });
-      for (const d of [k('mc', 'mc', 'Memory clear', 'sm'), k('mplus', 'm+', 'Memory add', 'sm'), k('mminus', 'm−', 'Memory subtract', 'sm'), k('mr', 'mr', 'Memory recall', 'sm'), k('back', '⌫', 'Delete last digit', 'sm')]) { const b = makeKey(d); b.style.flex = '1'; b.style.height = '1.7rem'; mem.append(b); }
-      keys.append(mem); keys.style.gridTemplateRows = 'auto'; keys.style.gridAutoRows = 'minmax(2.6rem,1fr)';
-      for (const row of RIGHT) for (const d of row) keys.append(makeKey(d));
+      const mem = zk.el('.zc-memrow');
+      for (const d of [k('mc', 'mc', 'Memory clear', 'sm'), k('mplus', 'm+', 'Memory add', 'sm'), k('mminus', 'm−', 'Memory subtract', 'sm'), k('mr', 'mr', 'Memory recall', 'sm'), k('back', '⌫', 'Delete last digit', 'sm')]) mem.append(makeKey(d));
+      keys.append(mem);
     } else {
-      for (let r = 0; r < 5; r++) { for (const d of LEFT[r]) { const b = makeKey(d); if (d.cls.includes('wide')) b.style.gridColumn = d.id === 'angle' ? 'span 3' : 'span 2'; if (['mc', 'mplus', 'mminus', 'mr'].includes(d.id)) b.classList.add('sm'); keys.append(b); } for (const d of RIGHT[r]) keys.append(makeKey(d)); }
-      // the 0 key spans two of the four right-hand columns; left block already totals 7 columns
+      const block = zk.el('.zc-sciblock');
+      for (let r = 0; r < 5; r++) for (const d of LEFT[r]) { const b = makeKey(d); if (d.cls.includes('wide')) b.style.gridColumn = d.id === 'angle' ? 'span 3' : 'span 2'; if (['mc', 'mplus', 'mminus', 'mr'].includes(d.id)) b.classList.add('sm'); block.append(b); }
+      pad.append(block);
     }
+    for (const row of TRAY) for (const d of row) tray.append(makeKey(d));
+    for (const d of RAIL) rail.append(makeKey(d));
+    pad.append(tray, rail); keys.append(pad);
 
     function labels() {
       for (const id in btns) {
@@ -96,8 +102,16 @@
       for (const id of BINARY_IDS) if (btns[id]) btns[id].classList.toggle('active', id === active);
       if (btns.clear) { const lbl = state.entry && !state.error ? 'C' : 'AC'; if (btns.clear.textContent !== lbl) { btns.clear.textContent = lbl; btns.clear.setAttribute('aria-label', lbl === 'C' ? 'Clear entry' : 'All clear'); } }
       for (const id of ['mc', 'mr']) if (btns[id]) btns[id].classList.toggle('has', state.hasMemory);
-      fit();
+      const ws = workSource(); workBtn.hidden = !ws; fit();
     }
+    function workSource() {
+      if (state.error) return null;
+      if (state.fresh && state.history[0]) { const e = state.history[0]; return e.ev ? { src: e.ev, angle: e.angle || state.angle } : null; }
+      if (state.pieces.some((p) => p.k === 'o') && !state.entry) { const s = state.exprString(); return s && state.previewValue() ? { src: s, angle: state.angle } : null; }
+      if (state.pieces.some((p) => p.k === 'o') && state.entry) { const keep = state.entry; try { state.commit(); const s = state.exprString(); state.pieces.pop(); state.entry = keep; return state.previewValue() ? { src: s, angle: state.angle } : null; } catch (e) { return null; } }
+      return null;
+    }
+    function showWork() { const ws = workSource(); if (ws) H.work.openExpr({ src: ws.src, angle: ws.angle, title: 'Show work' }); else H.toast('Enter a calculation first'); }
     function setAngle(a) { state.angle = a; H.settings.angle = a; H.saveSettings(); labels(); refresh(); }
 
     // ---- keyboard
@@ -126,7 +140,7 @@
     labels(); refresh();
     return {
       el: root, refresh: () => { state.group = H.settings.group; state.sep = H.sep; refresh(); }, resize: fit, show() { state.group = H.settings.group; labels(); refresh(); },
-      onKey, copyText, paste, undo: () => press('back'),
+      onKey, copyText, paste, undo: () => press('back'), showWork, canShowWork: () => !!workSource(),
       useResult(e) { state.pasteValue(C.Dec.parse(e.result)); refresh(); }, useExpr(e) { state.loadExpr(e.expr.replace(/\s*=\s*$/, ''), C.Dec.parse(e.result)); refresh(); },
       angle: sci ? { get: () => state.angle, set: setAngle } : null,
       state,

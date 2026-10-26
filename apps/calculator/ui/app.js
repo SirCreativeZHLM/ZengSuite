@@ -49,7 +49,7 @@
     notify() { buildMenus(); },
   });
   const saveHistory = zk.debounce(() => zeng.store.set('history', H.history), 400);
-  C.setRates(settings.rates);
+  C.setRates(settings.rates); H.work = window.ZM.work(H);
 
   // ---------------------------------------------------------------- text size
   const applyScale = () => document.documentElement.style.setProperty('--ts', settings.textScale);
@@ -98,9 +98,9 @@
     H.history.forEach((e, i) => {
       const row = zk.el('.zc-hist-item', { role: 'listitem', tabindex: 0, title: 'Click to use this result. Right-click for more.' },
         zk.el('button.zk-btn.icon.cp', { 'aria-label': 'Copy result', title: 'Copy result', onclick: (ev) => { ev.stopPropagation(); H.copy(histText(e)); } }, zk.icon('copy')),
-        zk.el('.e', e.expr), zk.el('.r', histText(e)));
+        zk.el('button.zk-btn.icon.sw', { 'aria-label': 'Show work', title: 'Show work', onclick: (ev) => { ev.stopPropagation(); H.work.openEntry(e); } }, zk.icon('list-tree')), zk.el('.e', e.expr), zk.el('.r', histText(e)));
       const use = () => useResult(e); row.onclick = use; row.onkeydown = (ev) => { if (ev.key === 'Enter') use(); };
-      row.oncontextmenu = (ev) => zk.contextMenu(ev, [{ label: 'Use Result', run: use }, { label: 'Use Expression', run: () => useExpr(e) }, { separator: true }, { label: 'Copy Result', run: () => H.copy(histText(e)) }, { label: 'Copy Expression', run: () => H.copy(e.expr) },
+      row.oncontextmenu = (ev) => zk.contextMenu(ev, [{ label: 'Show Work', run: () => H.work.openEntry(e) }, { label: 'Use Result', run: use }, { label: 'Use Expression', run: () => useExpr(e) }, { separator: true }, { label: 'Copy Result', run: () => H.copy(histText(e)) }, { label: 'Copy Expression', run: () => H.copy(e.expr) },
         { separator: true }, { label: 'Delete', run: () => { H.history.splice(i, 1); renderHistory(); saveHistory(); } }]);
       list.append(row);
     });
@@ -118,7 +118,7 @@
   function buildMenus() {
     const extra = (H.active && H.active.menuItems && H.active.menuItems()) || [];
     zeng.setMenus([
-      { label: 'File', items: [...extra, ...(extra.length ? [{ separator: true }] : []), { label: 'Copy Result', accel: 'CmdOrCtrl+Shift+C', run: () => H.active && H.active.copyText && H.copy(H.active.copyText()) }, ...(zeng.platform === 'mac' && zeng.isNative ? [] : [{ separator: true }, { label: 'Exit', accel: zeng.platform === 'win' ? 'Alt+F4' : 'Ctrl+Q', run: () => zeng.quit() }])] },
+      { label: 'File', items: [...extra, ...(extra.length ? [{ separator: true }] : []), { label: 'Show Work', accel: 'CmdOrCtrl+Shift+K', run: () => showWorkNow() }, { label: 'Copy Result', accel: 'CmdOrCtrl+Shift+C', run: () => H.active && H.active.copyText && H.copy(H.active.copyText()) }, ...(zeng.platform === 'mac' && zeng.isNative ? [] : [{ separator: true }, { label: 'Exit', accel: zeng.platform === 'win' ? 'Alt+F4' : 'Ctrl+Q', run: () => zeng.quit() }])] },
       { label: 'Edit', items: zeng.stdEdit({ undo: () => H.active && H.active.undo && H.active.undo(), redo: () => {}, extra: [{ label: 'Clear History', run: () => $('#hist-clear').click() }] }) },
       { label: 'View', items: [...modeItems(), { separator: true }, { label: 'Show History', checked: histOpen, accel: 'CmdOrCtrl+Shift+H', run: () => toggleHistory() }, ...settingItems(), { separator: true },
         { label: 'Bigger Text', accel: 'CmdOrCtrl+Plus', run: () => setScale(settings.textScale + 0.25) }, { label: 'Smaller Text', accel: 'CmdOrCtrl+-', run: () => setScale(settings.textScale - 0.25) }, { label: 'Actual Size', accel: 'CmdOrCtrl+0', run: () => setScale(1) }] },
@@ -129,14 +129,20 @@
     { label: 'Text Size: 100%', checked: settings.textScale === 1, run: () => setScale(1) }, { label: 'Text Size: 150%', checked: settings.textScale === 1.5, run: () => setScale(1.5) }, { label: 'Text Size: 200%', checked: settings.textScale === 2, run: () => setScale(2) }], { anchor: e.currentTarget, align: 'end' });
   MODES.forEach((m) => zeng.shortcut('CmdOrCtrl+' + m.key, () => setMode(m.id)));
   zeng.shortcut('CmdOrCtrl+Shift+H', () => toggleHistory());
+  const showWorkNow = () => { if (H.work.isOpen()) return H.work.close(); if (H.active && H.active.showWork) H.active.showWork(); else H.toast('Nothing to show yet'); };
+  zeng.shortcut('CmdOrCtrl+Shift+K', showWorkNow);
   zeng.shortcut('CmdOrCtrl+Plus', () => setScale(settings.textScale + 0.25)); zeng.shortcut('CmdOrCtrl+=', () => setScale(settings.textScale + 0.25));
   zeng.shortcut('CmdOrCtrl+-', () => setScale(settings.textScale - 0.25)); zeng.shortcut('CmdOrCtrl+0', () => setScale(1));
 
   // ---------------------------------------------------------------- keyboard / clipboard
   const typing = (t) => t && t.closest && t.closest('input,textarea,select,[contenteditable="true"]');
   document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && H.work.isOpen() && !(e.target.classList && e.target.classList.contains('zw-edit')) && !document.querySelector('.zk-pop,.zk-scrim')) { H.work.close(); e.preventDefault(); e.stopPropagation(); }
+  }, true);
+  document.addEventListener('keydown', (e) => {
     if (e.defaultPrevented || typing(e.target) || e.metaKey || e.ctrlKey || e.altKey) return;
     if (document.querySelector('.zk-scrim')) return;
+    if (e.key === 'Escape' && H.work.isOpen()) { H.work.close(); e.preventDefault(); return; }
     if (e.key === 'Escape' && histOpen) { toggleHistory(false); e.preventDefault(); return; }
     if (H.active && H.active.onKey && H.active.onKey(e)) e.preventDefault();
   });

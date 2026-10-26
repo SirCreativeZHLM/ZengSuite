@@ -1,4 +1,4 @@
-/* ZengNumbers formula language: tokenizer, parser, printer, reference rewriting, evaluator. No eval/new Function. */
+/* ZengGrid formula language: tokenizer, parser, printer, reference rewriting, evaluator. No eval/new Function. */
 (function (G) {
   'use strict';
   const ZN = G.ZN; const { ZErr, E, Range, MAXR, MAXC } = ZN; const F = ZN.F; const { isErr, toNum, toStr, scalar, cmp } = F;

@@ -1,4 +1,4 @@
-/* ZengNumbers workbook model: sparse sheets, styles, dependency graph, incremental recalc, undo journal, structural edits. */
+/* ZengGrid workbook model: sparse sheets, styles, dependency graph, incremental recalc, undo journal, structural edits. */
 (function (G) {
   'use strict';
   const ZN = G.ZN; const { E, ZErr, Range, MAXR, MAXC } = ZN; const FM = ZN.formula; const F = ZN.F;

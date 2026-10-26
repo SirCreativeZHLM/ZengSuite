@@ -1,9 +1,14 @@
 {
   "id": "numbers",
-  "name": "Numbers",
-  "tagline": "Spreadsheets with formulas, tables and charts. Opens and saves .xlsx.",
-  "msEquivalent": "Excel",
+  "name": "Grid",
+  "tagline": "Spreadsheets you can see through: formulas, tables, charts, and a Formula X-ray. Opens and saves .xlsx.",
+  "msEquivalent": "",
   "accent": "#30d158",
-  "extensions": ["znumbers", "xlsx", "csv", "tsv"],
+  "extensions": [
+    "znumbers",
+    "xlsx",
+    "csv",
+    "tsv"
+  ],
   "mime": "application/vnd.zengbot.numbers+zip"
 }

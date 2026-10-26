@@ -4,7 +4,7 @@ use zeng_shell::AppSpec;
 
 static UI: Dir = include_dir!("$CARGO_MANIFEST_DIR/ui");
 static SPEC: AppSpec = AppSpec {
-    name: "Keynote",
+    name: "Stage",
     id: "com.zengbot.suite.keynote",
     version: env!("CARGO_PKG_VERSION"),
     ui: &UI,

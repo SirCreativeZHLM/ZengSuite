@@ -29,7 +29,7 @@
     const bar = zk.el('.zc-bar'); const bitsEl = zk.el('.zc-bits-wrap', { style: 'display:flex;flex-direction:column;gap:2px' });
     const pkeys = zk.el('.zc-pkeys', { role: 'group', 'aria-label': 'Programmer keys' });
     root.append(display, basesEl, bar, bitsEl, pkeys);
-    const baseRows = {}, btns = {};
+    const baseRows = {}, btns = {}; let lastWork = null;
     let ready;
 
     for (const [b, name] of BASES) {
@@ -39,7 +39,9 @@
     const seg = zk.el('.zk-seg', { role: 'group', 'aria-label': 'Word size' });
     for (const [n, name] of WORDS) seg.append(zk.el('button', { type: 'button', 'data-bits': n, onclick: () => { st.setBits(n); persist(); refresh(); } }, name));
     const signBtn = zk.el('button.zc-chip', { type: 'button', 'aria-label': 'Signed or unsigned', onclick: () => { st.setSigned(!st.signed); persist(); refresh(); } });
-    bar.append(seg, signBtn, zk.el('span.zk-spacer'), zk.el('span.zc-note', { id: 'prog-hint' }, ''));
+    const workBtn = zk.el('button.zk-btn.zc-workbtn', { type: 'button', hidden: true, style: 'position:static', 'aria-label': 'Show work', title: 'Show how this result was computed', onclick: () => showWork() }, zk.icon('list-tree', 13), 'Show work');
+    bar.append(seg, signBtn, zk.el('span.zk-spacer'), workBtn);
+    function showWork() { if (lastWork) H.work.openModel(lastWork, { title: 'Show work' }); else H.toast('Enter a calculation first'); }
 
     const bitBtns = [];
     function buildBits() {
@@ -69,7 +71,7 @@
     function press(id) {
       const before = st.history.length;
       if (id === 'ff') { st.press('f'); st.press('f'); } else if (id === '00') { st.press('0'); st.press('0'); } else st.press(id);
-      if (st.history.length > before) { const e = st.history[0]; H.addHistory({ expr: e.expr, result: e.result, raw: st.cur.toString(), bits: st.bits, kind: 'prog', mode: 'programmer' }); }
+      if (st.history.length > before) { const e = st.history[0]; try { lastWork = C.progWork(e.src, { bits: e.bits, signed: e.signed, base: 10 }); } catch (x) { lastWork = null; } H.addHistory({ expr: e.expr, result: e.result, raw: st.cur.toString(), bits: st.bits, kind: 'prog', mode: 'programmer', work: lastWork }); }
       refresh();
     }
     function setBase(b) { st.setBase(b); persist(); refresh(); }
@@ -94,7 +96,7 @@
       for (let i = 0; i < st.bits; i++) { const one = C.bitAt(v, i); const b = bitBtns[i]; b.textContent = one ? '1' : '0'; b.classList.toggle('one', one); b.setAttribute('aria-pressed', one); }
       const digits = '0123456789abcdef';
       for (const d of digits) { const b = btns[d]; if (b) b.disabled = digits.indexOf(d) >= st.base; }
-      fit();
+      workBtn.hidden = !(lastWork && st.fresh && !st.entry); fit();
     }
     function fit() {
       const avail = display.clientWidth - 2 * parseFloat(getComputedStyle(display).paddingLeft); if (avail <= 0) return; const rem = parseFloat(getComputedStyle(document.documentElement).fontSize);
@@ -103,7 +105,7 @@
     ready = (async () => { const p = await H.load('prog', null); if (p) { st.base = p.base || 10; st.bits = p.bits || 64; st.signed = p.signed !== false; } buildBits(); refresh(); })();
     new ResizeObserver(fit).observe(display);
     return {
-      el: root, ready, refresh, resize: fit, show: refresh, onKey, undo: () => press('back'),
+      el: root, ready, refresh, resize: fit, show: refresh, onKey, showWork, undo: () => press('back'),
       copyText() { if (st.error) return null; return C.formatBase(st.value(), st.base, { bits: st.bits, signed: st.signed, group: false }); },
       paste(text) {
         try { const t = text.trim().replace(/[\s,_]/g, ''); const r = C.evalProg(/^[-+]?(0x|0b|0o)/i.test(t) || st.base !== 10 && /^[0-9a-f]+$/i.test(t) ? t : t.replace(/^\+/, ''), { bits: st.bits, signed: st.signed, base: /^[-+]?(0x|0b|0o)/i.test(t) ? 10 : st.base }); st.setValue(r.pattern); st.error = null; refresh(); }

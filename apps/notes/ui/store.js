@@ -59,7 +59,7 @@
       for (const rec of recs) {
         const meta = Db.idx.notes[rec.id]; if (!meta) continue;
         const slot = meta.sl === 'a' ? 'b' : 'a';
-        await kv.set(`n_${rec.id}_${slot}`, rec); meta.sl = slot;
+        await kv.set(`n_${rec.id}_${slot}`, rec); if (!meta.sl) await kv.set(`n_${rec.id}_b`, rec); meta.sl = slot;
       }
       for (const sh of fts) await kv.set('fts_' + sh, Db.fts[sh]);
       if (wasIdx || recs.length) {
@@ -74,8 +74,13 @@
     }
   };
 
+  // Rewrite a record into both slots and the index into all copies (used after locking so no plaintext copy survives).
+  Db.scrubNote = async (rec) => {
+    await Db.flush(); await kv.set(`n_${rec.id}_a`, rec); await kv.set(`n_${rec.id}_b`, rec);
+    const idx = Db.idx; idx.seq++; await kv.set('idx_a', idx); idx.seq++; await kv.set('idx_b', idx); await kv.set('idx_c', idx);
+  };
   Db.loadNote = async (id) => {
-    const meta = Db.idx.notes[id]; if (!meta) return null;
+    const meta = Db.idx.notes[id]; if (!meta) return null; if (pending.has(id)) return JSON.parse(JSON.stringify(pending.get(id)));
     const first = meta.sl === 'b' ? 'b' : 'a', second = first === 'a' ? 'b' : 'a';
     let r = await kv.get(`n_${id}_${first}`);
     if (r && r.id === id) return r;

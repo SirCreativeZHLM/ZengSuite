@@ -1,0 +1,14 @@
+{
+  "id": "calendar",
+  "name": "Calendar",
+  "product": "ZengCalendar",
+  "tagline": "Plan your days and protect your time. Free, offline, open.",
+  "msEquivalent": "",
+  "accent": "#ff453a",
+  "extensions": [
+    "ics"
+  ],
+  "mime": "text/calendar",
+  "bundleId": "com.zengbot.suite.calendar",
+  "binary": "zengcalendar"
+}

@@ -1,6 +1,6 @@
 [package]
 name = "zeng-freeform"
-description = "ZengFreeform — infinite whiteboard"
+description = "ZengCanvas — infinite canvas for ideas"
 version.workspace = true
 edition.workspace = true
 license.workspace = true

@@ -27,6 +27,7 @@
   };
   /** apply a field set to an occurrence (asks about scope), then re-render. Returns true when applied. */
   CAL.applyEdit = async (o, f, { copy = false, verb = 'Change', label = 'Edit Event' } = {}) => {
+    if (!CAL.isFocusOcc(o) && !f.allDay) { const s = T.wallToEpoch(f.start, f.tz || 'floating'), e2 = T.wallToEpoch(f.end, f.endTz || f.tz || 'floating'); if (!(o.s < e2 && o.e > s) || true) { const had = CAL.focusConflicts(o.s, o.e, o.ev.id).length; if (!had && !(await CAL.checkFocus(s, e2, o.ev.id))) { CAL.render({ anim: null }); return false; } } }
     let changes;
     if (copy) { const e = CAL.createFrom(f, o.ev.cal); changes = [CAL.put(e)]; label = 'Duplicate Event'; }
     else { const scope = await CAL.askScope(o, verb); if (!scope) { CAL.render({ anim: null }); return false; } changes = CAL.editOccurrence(o, f, scope); }
@@ -54,9 +55,9 @@
 
   // generic pointer tracker
   function track(e, h) {
-    const v = view(); const sx = e.clientX, sy = e.clientY; let moved = false, done = false; const id = e.pointerId; try { v.setPointerCapture(id); } catch { /* ignore */ }
+    const v = view(); const sx = e.clientX, sy = e.clientY; let moved = false, done = false; const id = e.pointerId;
     const fin = (ev, cancelled) => { if (done) return; done = true; v.removeEventListener('pointermove', mv); v.removeEventListener('pointerup', up); v.removeEventListener('pointercancel', cn); removeEventListener('keydown', kd, true); document.body.classList.remove('dragging', 'copying'); try { v.releasePointerCapture(id); } catch { /* ignore */ } h.end && h.end(ev, moved, cancelled); };
-    const mv = (ev) => { if (!moved && Math.hypot(ev.clientX - sx, ev.clientY - sy) < 4) return; if (!moved) { moved = true; document.body.classList.add('dragging'); h.start && h.start(ev); } document.body.classList.toggle('copying', ev.altKey && h.copy); h.move(ev); };
+    const mv = (ev) => { if (!moved && Math.hypot(ev.clientX - sx, ev.clientY - sy) < 4) return; if (!moved) { moved = true; try { v.setPointerCapture(id); } catch { /* ignore */ } document.body.classList.add('dragging'); h.start && h.start(ev); } document.body.classList.toggle('copying', ev.altKey && h.copy); h.move(ev); };
     const up = (ev) => fin(ev, false), cn = (ev) => fin(ev, true); const kd = (ev) => { if (ev.key === 'Escape') { ev.preventDefault(); ev.stopPropagation(); fin(ev, true); } };
     v.addEventListener('pointermove', mv); v.addEventListener('pointerup', up); v.addEventListener('pointercancel', cn); addEventListener('keydown', kd, true);
   }
@@ -65,7 +66,7 @@
   // ------------------------------------------------------------------ pointer down router
   function onDown(e) {
     if (e.button !== 0 || e.target.closest('.mv-more, .mv-dn, .tg-dh, .tg-gut, .ag-more')) return;
-    zk.closePop && void 0;
+    if (e.target.closest('.fr-w')) { e.preventDefault(); return CAL.focusDrag(e); }
     const evEl = e.target.closest('.ev'); const rz = e.target.closest('.rz');
     if (evEl && evEl.classList.contains('ghost')) return;
     if (evEl) { const o = occOf(evEl); if (!o) return; CAL.select(o.id); if (o.ro) return; if (CAL.cur.view === 'agenda') return; if (rz) return startResize(e, evEl, o, rz); return startMove(e, evEl, o); }
@@ -181,7 +182,7 @@
   const eventMenu = (o) => {
     const cals = CAL.writableCals();
     if (o.ro) return [{ label: 'Show Info', run: () => CAL.showInfo(o) }, { label: 'Copy', accel: 'CmdOrCtrl+C', run: () => CAL.copyOcc(o) }];
-    return [{ label: 'Edit…', accel: 'Enter', run: () => CAL.openEditor(o) }, { separator: true }, { label: 'Duplicate', accel: 'CmdOrCtrl+D', run: () => CAL.duplicateOcc(o) }, { label: 'Copy', accel: 'CmdOrCtrl+C', run: () => CAL.copyOcc(o) }, { label: 'Delete', run: () => CAL.deleteOcc(o) }, { separator: true },
+    return [{ label: 'Edit…', accel: 'Enter', run: () => CAL.openEditor(o) }, { label: CAL.isFocusOcc(o) ? 'Remove Focus Protection' : 'Protect as Focus Block', run: () => CAL.toggleFocus(o) }, { separator: true }, { label: 'Duplicate', accel: 'CmdOrCtrl+D', run: () => CAL.duplicateOcc(o) }, { label: 'Copy', accel: 'CmdOrCtrl+C', run: () => CAL.copyOcc(o) }, { label: 'Delete', run: () => CAL.deleteOcc(o) }, { separator: true },
       { label: 'Calendar', submenu: cals.map((c) => ({ label: c.name, checked: c.id === o.ev.cal, run: () => { const ev = o.ev; const b = CAL.clone(ev); ev.cal = c.id; CAL.commit('Move to Calendar', [{ ...CAL.put(ev), before: b }]); CAL.render({ anim: null }); } })) },
       { label: 'Availability', submenu: [['busy', 'Busy'], ['free', 'Free'], ['tentative', 'Tentative'], ['oof', 'Out of Office']].map(([v, l]) => ({ label: l, checked: (I.F(o, 'avail') || 'busy') === v, run: async () => { const f = CAL.fieldsOfOcc(o); f.avail = v; await CAL.applyEdit(o, f, { label: 'Change Availability' }); } })) },
       { label: 'Colour', submenu: [{ label: 'Calendar Colour', checked: !I.F(o, 'color'), run: async () => { const f = CAL.fieldsOfOcc(o); f.color = ''; await CAL.applyEdit(o, f, { label: 'Change Colour' }); } }, ...CAL.PALETTE.map((c, i) => ({ label: ['Red', 'Orange', 'Yellow', 'Green', 'Teal', 'Blue', 'Purple', 'Pink', 'Brown', 'Gray'][i], checked: I.F(o, 'color') === c, run: async () => { const f = CAL.fieldsOfOcc(o); f.color = c; await CAL.applyEdit(o, f, { label: 'Change Colour' }); } }))] }];

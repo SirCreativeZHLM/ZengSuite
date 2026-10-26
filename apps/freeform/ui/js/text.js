@@ -7,6 +7,7 @@
   const f = (n) => Math.round(n * 100) / 100;
   const measure = (font, s) => { const k = font + '|' + s; let w = cache.get(k); if (w == null) { if (cache.size > 60000) cache.clear(); mc.font = font; w = mc.measureText(s).width; cache.set(k, w); } return w; };
   FF.measure = measure;
+  FF.clearMeasure = () => cache.clear();
   const CJK = /[⺀-鿿豈-﫿＀-￯]/;
   const tokenize = (t) => { const out = []; const re = /(\s+|[^\s⺀-鿿豈-﫿＀-￯]+|[⺀-鿿豈-﫿＀-￯])/g; let m; while ((m = re.exec(t))) out.push(m[0]); return out; };
 

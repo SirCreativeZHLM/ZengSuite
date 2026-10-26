@@ -47,7 +47,7 @@
 
   // mount(el, {commit()}) – builds UI inside a .sketch element. Safe to call again after re-hydration.
   SK.mount = (el, api) => {
-    el.setAttribute('contenteditable', 'false'); el.textContent = '';
+    el.setAttribute('contenteditable', 'false'); const wasActive = el.classList.contains('active'); el.textContent = '';
     let strokes = parse(el.dataset.strokes); let H = Math.max(120, Math.min(2400, +el.dataset.h || 320));
     const ui = U && document.createElement('div'); ui.className = 'sk-ui'; ui.setAttribute('contenteditable', 'false');
     const cv = document.createElement('canvas'); cv.tabIndex = 0; cv.setAttribute('aria-label', 'Sketch'); cv.className = 'sk-cv';

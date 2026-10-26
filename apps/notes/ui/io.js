@@ -28,7 +28,7 @@
     const rec = A.blankRec({ title: d.title || '', html, c: d.created || d.modified || now, m: d.modified || d.created || now });
     for (const f of d.files || []) { await Db.putAtt(f.id, f.bytes, { name: f.name, type: f.type }); rec.atts.push(f.id); }
     const dv = A.deriveFromHtml(html, rec.title); const meta = A.newMeta(rec, { f: folderId || null, p: d.pinned ? 1 : 0, d: d.trashed ? now : 0 });
-    Object.assign(meta, { t: dv.t, s: dv.s, tg: dv.tags, ck: dv.ck, na: rec.atts.length, ln: dv.ln, th: 0 });
+    Object.assign(meta, { t: dv.t, s: dv.s, tg: dv.tags, ck: dv.ck, na: rec.atts.length, ln: dv.ln, th: 0 }); if (d.dn) { meta.dn = d.dn; rec.dn = d.dn; }
     if (await thumbFor(rec.id, d.files)) { meta.th = 1; rec.tid = (d.files.find((x) => U.isImage(x.type)) || {}).id; }
     const ft = (rec.title + '\n' + dv.text + '\n' + dv.tags.map((t) => '#' + t).join(' ')).slice(0, 40000); Db.put(rec, meta, ft); A.setLow(rec.id, ft); return rec.id;
   };
@@ -75,7 +75,7 @@
           for (const d of drafts) { if (d.archived) d.pinned = false; const id = await io.saveDraft(d, fid); firstId = firstId || id; n++; lastFolder = fid; if (n % 20 === 0) { await Db.flush(); A.refresh(); } }
         } catch (e) { console.error(e); failed.push(s.name + ': ' + (e.message || e)); }
       }
-      await Db.flush(); A.refresh(); if (firstId) { const m = M()[firstId]; if (m && (m.d || S.view.kind === 'tag')) await A.setView({ kind: 'smart', id: 'all' }); await A.selectIds([firstId]); A.scrollToId(firstId); }
+      await Db.flush(); N.rel.rebuild(() => A.updateRelated()); A.refresh(); if (firstId) { const m = M()[firstId]; if (m && (m.d || S.view.kind === 'tag')) await A.setView({ kind: 'smart', id: 'all' }); await A.selectIds([firstId]); A.scrollToId(firstId); }
       prog.done(n ? `Imported ${n} note${n === 1 ? '' : 's'}` : 'Nothing to import');
       if (failed.length) zk.alert(`${failed.length} file${failed.length === 1 ? '' : 's'} couldn’t be imported`, failed.slice(0, 8).join('\n') + (failed.length > 8 ? '\n…' : ''));
       if (!n && !failed.length) zk.alert('Nothing to import', 'No Markdown, text, HTML, Word, ENEX or Takeout JSON files were found.');
@@ -125,7 +125,7 @@
     const g = await gather(note, attDir, used); const body = g.doc.body;
     if (fmt === 'md') { const md = CV.toMd(body, { att: (el) => { const p = g.map.get(el); return p ? p : null; } }); return { text: `# ${note.title}\n\n` + md, files: g.files }; }
     if (fmt === 'txt') return { text: note.title + '\n' + '='.repeat(Math.min(60, note.title.length)) + '\n\n' + CV.toText(body), files: [] };
-    const byPath = new Map(g.files.map((f) => [f.path, f])); return { text: CV.toHtmlDoc(note.title, body.innerHTML.replace(/​/g, ''), { dataUrl: (el) => { const p = g.map.get(el); const f = p && byPath.get(p); return f ? toDataUrl(f.bytes, f.type) : ''; }, linkFiles: true }), files: [] };
+    const byPath = new Map(g.files.map((f) => [f.path, f])); return { text: CV.toHtmlDoc(note.title, body, { dataUrl: (el) => { const p = g.map.get(el); const f = p && byPath.get(p); return f ? toDataUrl(f.bytes, f.type) : ''; }, linkFiles: true }), files: [] };
   }
   const EXT = { md: 'md', html: 'html', txt: 'txt' };
   async function saveBlobOrZip(name, data, filterName, exts) { const h = await zeng.files.saveAs(data, { name, filters: [{ name: filterName, exts }] }); if (h) zk.toast('Exported ' + h.name); return h; }
@@ -161,7 +161,7 @@
   // ------------------------------------------------------------ print / PDF
   io.printNote = async () => {
     const id = S.cur || [...S.sel][0]; if (!id) return; const note = await fullNote(id); if (!note) return; const used = new Set(); const g = await gather(note, 'a/', used); const byPath = new Map(g.files.map((f) => [f.path, f]));
-    const html = CV.toHtmlDoc(note.title, g.doc.body.innerHTML, { dataUrl: (el) => { const p = g.map.get(el); const f = p && byPath.get(p); return f ? toDataUrl(f.bytes, f.type) : ''; } });
+    const html = CV.toHtmlDoc(note.title, g.doc.body, { dataUrl: (el) => { const p = g.map.get(el); const f = p && byPath.get(p); return f ? toDataUrl(f.bytes, f.type) : ''; } });
     const d = new DOMParser().parseFromString(html, 'text/html'); const css = CV.CSS.replace(/body\{[^}]*\}/, '').replace(/(^|\})([^{}]+)\{/g, (m, a, sel) => a + sel.split(',').map((x) => '#printRoot ' + x.trim()).join(',') + '{');
     const root = document.getElementById('printRoot'); root.innerHTML = `<style>${css}#printRoot{font:14px/1.5 -apple-system,Segoe UI,Inter,sans-serif;color:#111;background:#fff}</style>` + d.body.innerHTML;
     await Promise.all([...root.querySelectorAll('img')].map((i) => i.decode().catch(() => {}))); zeng.print();
@@ -197,14 +197,14 @@
       for (const r of lib.notes) {
         if (!r || !r.id) continue; const ex = M()[r.id]; if (ex && ex.m >= (r.m || 0)) continue; prog.set(`Restoring ${++n} of ${lib.notes.length}…`); if (n % 20 === 0) await tick();
         for (const a of r.atts || []) { const f = z['attachments/' + a]; const am = lib.atts && lib.atts[a]; if (f && am) await Db.putAttRaw(a, f, am); }
-        const rec = { v: 1, id: r.id, title: r.title || '', c: r.c, m: r.m, atts: r.atts || [], f: r.f || null, p: r.p || 0, d: r.d || 0 }; const meta = A.newMeta(rec, { f: r.f || null, p: r.p || 0 }); meta.d = r.d || 0; meta.c = r.c || Date.now(); meta.m = r.m || meta.c;
+        const rec = { v: 1, id: r.id, dn: r.dn, title: r.title || '', c: r.c, m: r.m, atts: r.atts || [], f: r.f || null, p: r.p || 0, d: r.d || 0 }; const meta = A.newMeta(rec, { f: r.f || null, p: r.p || 0 }); meta.d = r.d || 0; if (r.dn) meta.dn = r.dn; meta.c = r.c || Date.now(); meta.m = r.m || meta.c;
         if (r.lock) { rec.lock = r.lock; meta.l = 1; meta.t = rec.title || 'Locked Note'; meta.na = rec.atts.length; Db.put(rec, meta, meta.t); A.setLow(rec.id, meta.t); continue; }
         rec.html = CV.clean(r.html || '<p><br></p>', { raw: true }); const dv = A.deriveFromHtml(rec.html, rec.title); Object.assign(meta, { t: dv.t, s: dv.s, tg: dv.tags, ck: dv.ck, na: dv.na, ln: dv.ln });
         const ft = (rec.title + '\n' + dv.text + '\n' + dv.tags.map((t) => '#' + t).join(' ')).slice(0, 40000); Db.put(rec, meta, ft); A.setLow(rec.id, ft);
         const imgId = (rec.html.match(/class="att img"[^>]*data-att="([a-z0-9]+)"/i) || rec.html.match(/data-att="([a-z0-9]+)"[^>]*class="att img"/i) || [])[1];
         if (imgId) { const f = z['attachments/' + imgId]; const am = lib.atts && lib.atts[imgId]; if (f && am && !am.iv && U.isImage(am.type)) { if (await thumbFor(rec.id, [{ id: imgId, type: am.type, bytes: f }])) { meta.th = 1; rec.tid = imgId; } } }
       }
-      await Db.flush(); A.refresh(false); prog.done(`Restored ${n} note${n === 1 ? '' : 's'}`); const first = A.S.filtered[0]; if (first) A.selectIds([first.id]); else A.showPlaceholder('none');
+      N.rel.rebuild(() => A.updateRelated()); await Db.flush(); A.refresh(false); prog.done(`Restored ${n} note${n === 1 ? '' : 's'}`); const first = A.S.filtered[0]; if (first) A.selectIds([first.id]); else A.showPlaceholder('none');
     } catch (e) { prog.done(); console.error(e); zk.alert('Restore failed', e.message || String(e)); }
   };
   io.corruptionNotice = async () => {
@@ -218,7 +218,7 @@
     const prog = progress('Importing samples…'); try {
       const defs = await N.sample(); const root = io.ensureFolder(['Sample Library'], null); let first = null, n = 0;
       for (const d of defs) { const fid = io.ensureFolder(d.folder || [], root); const id = await io.saveDraft(d, fid); if (d.pinned && M()[id]) M()[id].p = 1; first = first || id; n++; }
-      await Db.flush(); await A.setView({ kind: 'folder', id: root }); prog.done(`Imported ${n} sample notes`);
+      await Db.flush(); N.rel.rebuild(() => A.updateRelated()); await A.setView({ kind: 'folder', id: root }); prog.done(`Imported ${n} sample notes`);
     } catch (e) { prog.done(); console.error(e); zk.alert('Couldn’t import the samples', e.message || String(e)); }
   };
 })();

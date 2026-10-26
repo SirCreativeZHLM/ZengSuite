@@ -5,17 +5,28 @@
   K.zkeySave = (deck) => {
     const files = {}; const media = {};
     for (const id in deck.media) { const m = deck.media[id]; const path = `media/${id}.${extFor(m.type, m.name)}`; files[path] = [m.data, { level: 0 }]; media[id] = { name: m.name, type: m.type, w: m.w, h: m.h, file: path }; }
-    const j = { format: 'zengkeynote', version: 1, size: deck.size, theme: deck.theme, layouts: deck.layouts, slides: deck.slides, opts: deck.opts, media };
+    const j = { format: 'zengstage', version: 1, size: deck.size, theme: deck.theme, layouts: deck.layouts, slides: deck.slides, opts: deck.opts, media };
     const out = { 'deck.json': [fflate.strToU8(JSON.stringify(j)), { level: 6 }], ...files };
     return fflate.zipSync(out, { level: 6 });
   };
   K.zkeyLoad = (bytes) => {
     let z; try { z = fflate.unzipSync(bytes); } catch { throw new Error('This file is not a valid .zkey archive.'); }
     if (!z['deck.json']) throw new Error('The archive has no deck.json.'); const j = JSON.parse(fflate.strFromU8(z['deck.json']));
-    if (j.format !== 'zengkeynote') throw new Error('This is not a ZengKeynote presentation.');
+    if (j.format !== 'zengstage' && j.format !== 'zengkeynote') throw new Error('This is not a Stage presentation.');
     const deck = { v: j.version, size: j.size, theme: j.theme, layouts: j.layouts, slides: j.slides, opts: j.opts || {}, media: {} };
     for (const id in j.media || {}) { const m = j.media[id]; const data = z[m.file]; if (data) deck.media[id] = { id, name: m.name, type: m.type, w: m.w, h: m.h, data, url: null }; }
     return deck;
+  };
+  // --- self-contained HTML viewer ---
+  const b64 = (u8) => { let s = ''; for (let i = 0; i < u8.length; i += 0x8000) s += String.fromCharCode.apply(null, u8.subarray(i, i + 0x8000)); return btoa(s); };
+  K.htmlExport = async (deck) => {
+    const get = async (p) => (await fetch(p)).text();
+    const [shapes, themes, model, chart, render, present, rcss, pcss] = await Promise.all(['shapes.js', 'themes.js', 'model.js', 'chart.js', 'render.js', 'present.js', 'render.css', 'present.css'].map(get));
+    const media = {}; for (const id in deck.media) { const m = deck.media[id]; media[id] = { name: m.name, type: m.type, w: m.w, h: m.h, url: `data:${m.type};base64,${b64(m.data)}` }; }
+    const j = JSON.stringify({ size: deck.size, theme: deck.theme, layouts: deck.layouts, slides: deck.slides, opts: deck.opts, media }).replace(/</g, '\\u003c');
+    const viewer = `const D = JSON.parse(document.getElementById('deck').textContent); D.slides.forEach((s) => { s.builds = s.builds || []; }); for (const k in D.media) D.media[k].url = D.media[k].url; window.zeng = { fullscreen() {} }; let h; const start = () => { h = K.present(D, { start: 0, embedded: true, onExit: start }); }; start(); addEventListener('keydown', (e) => { if (e.key === 'f' || e.key === 'F') { if (document.fullscreenElement) document.exitFullscreen(); else document.documentElement.requestFullscreen && document.documentElement.requestFullscreen(); } });`;
+    const title = (K.plain((deck.slides[0].objs.find((o) => o.ph === 'title') || { paras: [] }).paras) || 'Presentation').replace(/[<>&]/g, '');
+    return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${title}</title><style>html,body{margin:0;height:100%;background:#000;overflow:hidden}${rcss}${pcss}</style></head><body><script type="application/json" id="deck">${j}</script><script>window.K={};</script><script>${shapes}</script><script>${themes}</script><script>${model}</script><script>${chart}</script><script>${render}</script><script>${present}</script><script>${viewer}</script></body></html>`;
   };
   // --- PDF: one slide per page via print CSS ---
   K.exportPDF = async (deck) => {

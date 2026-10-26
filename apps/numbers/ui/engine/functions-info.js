@@ -1,4 +1,4 @@
-/* ZengNumbers information functions. */
+/* ZengGrid information functions. */
 (function (G) {
   'use strict';
   const ZN = G.ZN; const { E, ZErr, Range } = ZN; const F = ZN.F; const { isErr, toNum, scalar } = F;

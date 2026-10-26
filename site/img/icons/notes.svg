@@ -1,1 +1,16 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024"><defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffe45c"/><stop offset="1" stop-color="#ffe45c" stop-opacity=".62"/></linearGradient></defs><rect width="1024" height="1024" rx="224" fill="url(#g)"/><text x="512" y="690" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-weight="800" font-size="560" fill="#0b0b0a">N</text></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#2f3f9e"/><stop offset=".55" stop-color="#1b2a6b"/><stop offset="1" stop-color="#0d6b72"/></linearGradient>
+    <radialGradient id="gl" cx=".25" cy=".15" r=".9"><stop offset="0" stop-color="#ffffff" stop-opacity=".28"/><stop offset=".6" stop-color="#ffffff" stop-opacity="0"/></radialGradient>
+    <linearGradient id="ln" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffe45c"/><stop offset="1" stop-color="#ffd60a"/></linearGradient>
+  </defs>
+  <rect width="1024" height="1024" rx="224" fill="url(#bg)"/>
+  <rect width="1024" height="1024" rx="224" fill="url(#gl)"/>
+  <g fill="none" stroke="url(#ln)" stroke-width="46" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M292 742V282L732 742V282"/>
+  </g>
+  <g fill="#fff">
+    <circle cx="292" cy="742" r="64"/><circle cx="292" cy="282" r="64"/><circle cx="732" cy="742" r="64"/><circle cx="732" cy="282" r="64"/>
+  </g>
+  <g fill="#ffd60a"><circle cx="512" cy="512" r="40"/></g>
+</svg>

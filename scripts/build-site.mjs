@@ -3,7 +3,7 @@
 //   node scripts/build-site.mjs
 // Hand-written (not generated): site/css, site/js, site/fonts, site/img/<app>-{light,dark}.webp (screenshots, dropped in by the lead).
 // Generated: every .html, sitemap.xml, robots.txt, site/img/icons/<id>.svg (copied from apps/<id>/icon.svg when present).
-import { readFileSync, writeFileSync, mkdirSync, existsSync, copyFileSync } from 'node:fs';
+import { readFileSync, writeFileSync, mkdirSync, existsSync, copyFileSync, renameSync, rmSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -12,6 +12,10 @@ const site = join(root, 'site');
 const data = JSON.parse(readFileSync(join(site, 'data/apps.json'), 'utf8'));
 const { version, repo, origin, base, platforms } = data;
 const apps = data.apps;
+// stale output from earlier slugs
+for (const old of ['pages', 'numbers', 'keynote', 'preview', 'freeform', 'reminders', 'contacts', 'calculator']) {
+  if (!apps.some((a) => a.id === old)) { rmSync(join(site, old), { recursive: true, force: true }); rmSync(join(site, `img/icons/${old}.svg`), { force: true }); rmSync(join(site, `og/${old}.jpg`), { force: true }); }
+}
 
 const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 const write = (rel, text) => { const p = join(site, rel); mkdirSync(dirname(p), { recursive: true }); writeFileSync(p, text); };
@@ -19,19 +23,28 @@ const write = (rel, text) => { const p = join(site, rel); mkdirSync(dirname(p), 
 /* ---------- per-app prep: app.json overrides, icons, screenshots ---------- */
 const lum = (hex) => { const n = parseInt(hex.slice(1), 16); const c = [n >> 16, (n >> 8) & 255, n & 255].map((v) => { v /= 255; return v <= .03928 ? v / 12.92 : ((v + .055) / 1.055) ** 2.4; }); return .2126 * c[0] + .7152 * c[1] + .0722 * c[2]; };
 for (const a of apps) {
-  const dir = join(root, 'apps', a.id);
+  const dir = join(root, 'apps', a.dir);
   a.fromApp = false;
   try {
     const j = JSON.parse(readFileSync(join(dir, 'app.json'), 'utf8'));
     a.fromApp = true;
     if (/^#[0-9a-f]{6}$/i.test(j.accent || '')) a.accent = j.accent;
-    if (Array.isArray(j.extensions) && j.extensions.length) a.formats = j.extensions.slice(0, 8); // real formats win over the placeholder list
   } catch {}
   a.ink = lum(a.accent) > .28 ? '#0b0b0a' : '#ffffff';
+  if (a.ink === '#ffffff') { // darken until white text on the accent reaches 4.5:1
+    let n = parseInt(a.accent.slice(1), 16), c = [n >> 16, (n >> 8) & 255, n & 255];
+    const hex = (c) => '#' + c.map((v) => Math.round(v).toString(16).padStart(2, '0')).join('');
+    while (1.05 / (lum(hex(c)) + .05) < 4.7) c = c.map((v) => v * .96);
+    a.accent = hex(c);
+  }
   const icon = join(dir, 'icon.svg');
   a.realIcon = existsSync(icon);
   if (a.realIcon) copyFileSync(icon, join(site, `img/icons/${a.id}.svg`));
   else write(`img/icons/${a.id}.svg`, `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024"><defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${a.accent}"/><stop offset="1" stop-color="${a.accent}" stop-opacity=".62"/></linearGradient></defs><rect width="1024" height="1024" rx="224" fill="url(#g)"/><text x="512" y="690" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-weight="800" font-size="560" fill="${a.ink}">${esc(a.name[0])}</text></svg>\n`);
+  for (const t of ['light', 'dark']) { // screenshots may still carry the repo-dir name; move them to the slug name
+    const old = join(site, `img/${a.dir}-${t}.webp`), neu = join(site, `img/${a.id}-${t}.webp`);
+    if (a.dir !== a.id && existsSync(old) && !existsSync(neu)) renameSync(old, neu);
+  }
   const has = (t) => existsSync(join(site, `img/${a.id}-${t}.webp`));
   a.dark = has('dark') ? 'dark' : has('light') ? 'light' : null;
   a.light = has('light') ? 'light' : has('dark') ? 'dark' : null;
@@ -45,7 +58,7 @@ const bundleFile = (p) => `ZengSuite-${version}-${p.key}.${p.ext}`;
 const P = (path) => `${base}${path}`;
 
 /* ---------- partials ---------- */
-const sizeSpan = (kind, a) => `<span data-size="${kind}">${(kind === 'all' ? data.sizes.all : a?.sizeMB) ?? 'X'}</span>`;
+const sizeSpan = (kind, a) => `<span data-size="${kind}">${(a ? a.sizeMB : data.sizes[kind]) ?? 'X'}</span>`;
 
 function shot(a, { eager = false, hidden = false, dim = '' } = {}) {
   const alt = `${a.product} on macOS: ${a.line}`;
@@ -106,7 +119,7 @@ ${robots ? `<meta name="robots" content="${robots}">\n` : ''}<link rel="canonica
 ${body}
 </main>
 ${nav}
-<div data-zb-foot data-zb-note="ZengSuite is free software under the MIT license. Not affiliated with Microsoft or Apple."></div>
+<div data-zb-foot data-zb-note="${esc(data.disclaimer)}"></div>
 ${fab ? `<a class="btn primary fab" href="#download">Download</a>\n` : ''}</body>
 </html>
 `;
@@ -114,9 +127,9 @@ ${fab ? `<a class="btn primary fab" href="#download">Download</a>\n` : ''}</body
 
 /* ---------- landing ---------- */
 function landing() {
-  const hero = apps[0];
-  const rows = apps.map((a, i) => `<li><a class="row${i === 0 ? ' on' : ''}" href="${P(`/${a.id}/`)}" data-app="${a.id}" data-cap="${esc(a.product + ': ' + a.line)}" style="--ac:${a.accent}"><img src="${P(`/img/icons/${a.id}.svg`)}" width="52" height="52" alt="" loading="lazy"><span><b>${esc(a.name)}</b><small>${esc(a.replaces)}</small></span><span class="go" aria-hidden="true">&rarr;</span></a></li>`).join('\n');
-  const stage = apps.map((a, i) => shot(a, { hidden: i !== 0 })).join('\n');
+  const hero = apps.find((a) => a.id === 'write' && a.dark) || apps.find((a) => a.dark) || apps[0]; // lead with an app whose real screenshot exists
+  const rows = apps.map((a, i) => `<li><a class="row${a === hero ? ' on' : ''}" href="${P(`/${a.id}/`)}" data-app="${a.id}" data-cap="${esc(a.product + ': ' + a.line)}" style="--ac:${a.accent}"><img src="${P(`/img/icons/${a.id}.svg`)}" width="52" height="52" alt="" loading="lazy"><span><b>${esc(a.name)}</b><small>${esc(a.replaces)}</small></span><span class="go" aria-hidden="true">&rarr;</span></a></li>`).join('\n');
+  const stage = apps.map((a, i) => shot(a, { hidden: a !== hero })).join('\n');
   const body = `
 <div class="wrap hero">
   <h1><span class="w"><span>F<span class="star">*</span>ck</span></span> <span class="w"><span>Microslop</span></span></h1>
@@ -158,9 +171,9 @@ ${stage}
 <section id="download" class="band" data-scope>
 <div class="wrap">
 <h2>Download everything.</h2>
-<p class="lead" style="margin-top:18px">One bundle per platform with all ${apps.length} apps, about ${sizeSpan('app')} MB each. Or <a href="${P('/download/')}">pick apps one at a time</a>.</p>
+<p class="lead" style="margin-top:18px">One bundle per platform with all ${apps.length} apps, each app about ${sizeSpan('each')} MB (Look, with its PDF engine and OCR, about ${sizeSpan('look')}), about ${sizeSpan('total')} MB for the lot. Or <a href="${P('/download/')}">pick apps one at a time</a>.</p>
 ${dlBlock((p) => [bundleUrl(p), bundleFile(p)], 'ZengSuite')}
-<p class="fine" style="margin-top:22px">Version ${version}. The builds are not code-signed yet, so macOS and Windows may ask you to confirm the first launch.</p>
+<p class="fine" style="margin-top:22px">Version ${version}. The builds are not code-signed yet. On macOS, right-click the app and choose Open. On Windows, choose More info, then Run anyway.</p>
 </div>
 </section>
 
@@ -168,7 +181,7 @@ ${dlBlock((p) => [bundleUrl(p), bundleFile(p)], 'ZengSuite')}
 <div class="wrap two">
 <h2>Not Electron. Not a browser in a trench coat.</h2>
 <div>
-<p>Each app is a small <strong>Rust</strong> program that opens a native window and uses the web view your operating system already has: WKWebView on macOS, WebView2 on Windows, WebKitGTK on Linux. No bundled copy of Chrome, so an app is about ${sizeSpan('app')} MB and starts when you click it.</p>
+<p>Each app is a small <strong>Rust</strong> program that opens a native window and uses the web view your operating system already has: WKWebView on macOS, WebView2 on Windows, WebKitGTK on Linux. No bundled browser, so an app binary is about ${sizeSpan('each')} MB and starts when you click it.</p>
 <p>Everything works offline. The apps make no network calls and send nothing anywhere.</p>
 </div>
 </div>
@@ -178,7 +191,7 @@ ${dlBlock((p) => [bundleUrl(p), bundleFile(p)], 'ZengSuite')}
 <div class="wrap two">
 <h2>What is not here yet.</h2>
 <div>
-<p><strong>No email client.</strong> There is no replacement for Mail or Outlook yet.</p>
+<p><strong>No email client.</strong> There is no email app in the suite yet.</p>
 <p><strong>No real-time cloud collaboration.</strong> Two people cannot type in the same document at once. Files are files: send them, or keep them in a folder you sync yourself.</p>
 <p>This is version ${version}. Expect rough edges, and <a href="https://github.com/${repo}/issues" rel="noopener">tell us about them</a>. <a href="${P('/about/')}">The honest list</a> is on the About page.</p>
 </div>
@@ -192,7 +205,7 @@ ${dlBlock((p) => [bundleUrl(p), bundleFile(p)], 'ZengSuite')}
 </div>
 </section>`;
   return layout({
-    path: '/', title: 'ZengSuite: F*ck Microslop. Free office apps for Mac, Windows and Linux',
+    path: '/', title: 'ZengSuite: F*ck Microslop. Free office apps for macOS, Windows and Linux',
     desc: `ZengSuite is a free, open source set of ${apps.length} apps for documents, spreadsheets, slides, PDFs, notes and more. Native on macOS, Windows and Linux. No account, no subscription.`,
     body,
   });
@@ -214,7 +227,15 @@ function appPage(a, i) {
 </div>
 <figure class="big-shot reveal">${shot(a, { eager: true })}<figcaption>${esc(a.product)} on macOS.</figcaption></figure>
 
-<section>
+<section class="sigsec">
+<div class="wrap">
+<h2>Signature feature</h2>
+<p class="signame"><span>${esc(a.signature[0])}</span></p>
+<p class="lead">${esc(a.signature[1])}</p>
+</div>
+</section>
+
+<section class="hr">
 <div class="wrap">
 <h2>What it does</h2>
 <ul class="caps" style="margin-top:36px">
@@ -225,8 +246,17 @@ ${a.caps.map(([t, d]) => `<li><h3>${esc(t)}</h3><p>${esc(d)}</p></li>`).join('\n
 
 <section class="hr">
 <div class="wrap facts">
-${a.formats.length ? `<div><h2>Formats</h2><ul class="fmts">${a.formats.map((f) => `<li>.${esc(f)}</li>`).join('')}</ul><p class="fine" style="margin-top:14px">The first one is what it reads and writes best.</p></div>` : `<div><h2>Formats</h2><p class="lead">Nothing to open or save. It is a calculator.</p></div>`}
+${a.formats.length ? `<div><h2>Formats</h2><ul class="fmts">${a.formats.map((f) => { const m = /^(\S+) \((.+)\)$/.exec(f); return m ? `<li>.${esc(m[1])} <small>${esc(m[2])}</small></li>` : `<li>.${esc(f)}</li>`; }).join('')}</ul><p class="fine" style="margin-top:14px">The first one is the native, open format. Others are read and written as listed.</p></div>` : `<div><h2>Formats</h2><p class="lead">Nothing to open or save. It is a calculator.</p></div>`}
 <div><h2>Keyboard</h2><ul class="keys">${a.keys.map(([l, k]) => `<li><span>${esc(l)}</span><span>${kbds(k)}</span></li>`).join('')}</ul></div>
+</div>
+</section>
+
+<section class="hr">
+<div class="wrap prose">
+<h2 style="margin-top:0">Good to know</h2>
+<ul>
+${a.good.map((g) => `<li>${esc(g)}</li>`).join('\n')}
+</ul>
 </div>
 </section>
 
@@ -264,7 +294,7 @@ function downloadPage() {
 <div class="wrap">
 <h2>All ${apps.length} apps in one go.</h2>
 ${dlBlock((p) => [bundleUrl(p), bundleFile(p)], 'ZengSuite')}
-<p class="fine" style="margin-top:22px">The builds are not code-signed yet, so macOS and Windows may ask you to confirm the first launch.</p>
+<p class="fine" style="margin-top:22px">The builds are not code-signed yet. On macOS, right-click the app and choose Open. On Windows, choose More info, then Run anyway.</p>
 </div>
 </section>
 <section>
@@ -289,6 +319,8 @@ function aboutPage() {
 <p>Everyone needs a word processor, a spreadsheet and a way to show slides. Those are solved problems, and charging rent for them forever is a choice, not a necessity. We would rather make them and give them away.</p>
 <h2>MIT licensed</h2>
 <p>All of the code is under the <a href="https://github.com/${repo}/blob/main/LICENSE" rel="noopener">MIT license</a>. Use it, change it, sell it, fork it. There is no paid edition and no feature that is held back for one.</p>
+<h2>Native, not Electron</h2>
+<p>Each app is a small Rust program that opens a native window and uses the web view already on your system: WKWebView on macOS, WebView2 on Windows, WebKitGTK on Linux. Nothing bundles a browser, so an app is about ${data.sizes.each} MB (Look, with its PDF engine and OCR, is about ${data.sizes.look}).</p>
 <h2>No telemetry, no accounts</h2>
 <p>The apps do not phone home. No analytics, no crash reporter, no sign-in, no ads, no upsell screens. They work offline and they never need a network. All the marketing is on this website, and none of it is in the software.</p>
 <h2>How to contribute</h2>
@@ -301,14 +333,15 @@ function aboutPage() {
 <h2>Honest known limits</h2>
 <ul>
 <li>This is version ${version}. It is young software and it has rough edges.</li>
-<li>Word, Excel and PowerPoint files open and save, but very complex documents may lose features. Keep an original around for anything important.</li>
-<li>Most development happens on a Mac, so the Windows and Linux builds may be rougher.</li>
-<li>The builds are not code-signed or notarised yet. Your system will ask you to confirm the first launch.</li>
+<li>.docx, .xlsx and .pptx files open and save, but very complex documents may lose features. Keep an original around for anything important.</li>
+<li>Only macOS has been run natively by hand. The Windows and Linux builds come from the same code but are untested so far, so expect them to be rougher.</li>
+<li>Linux needs WebKitGTK 4.1 installed (the <code>webkit2gtk-4.1</code> package on most distributions). Windows uses the WebView2 runtime that ships with current Windows.</li>
+<li>The builds are not code-signed yet. On macOS, right-click the app and choose Open the first time. On Windows, choose More info, then Run anyway.</li>
 <li>There is no email client and no real-time collaboration in the cloud.</li>
 <li>There is no automatic updater. Download the new version when you want it.</li>
 </ul>
 <h2>Names</h2>
-<p>ZengSuite is an independent project. It is not made by, or affiliated with, Microsoft or Apple. Product names are used only to say what each app is a replacement for.</p>
+<p>${esc(data.disclaimer)}</p>
 </div>`;
   return layout({ path: '/about/', title: 'About ZengSuite: why it is free, MIT, no telemetry', desc: 'Why ZengSuite is free forever: MIT licensed, no telemetry, no accounts, how to contribute, and an honest list of what does not work yet.', body, fab: false, crumbName: 'About' });
 }

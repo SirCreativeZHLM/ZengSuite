@@ -1,4 +1,4 @@
-/* ZengPages editor: sanitising, normalising, numbering, formatting commands, keyboard, paste. */
+/* ZengWrite editor: sanitising, normalising, numbering, formatting commands, keyboard, paste. */
 (() => {
   'use strict';
   const P = window.P, flow = P.flow;
@@ -6,7 +6,7 @@
 
   /* ---------------- sanitisers ---------------- */
   const OWN_TAGS = new Set('p h1 h2 h3 h4 table colgroup col tbody thead tr td th span b i u s strike sub sup a br img div hr ins del svg g rect ellipse line path polygon polyline circle defs marker'.split(' '));
-  const OWN_CLASSES = new Set(['pgbreak', 'shp', 'eq', 'fnr', 'cmt', 'resolved', 'fld', 'bm', 'fnsep', 'tab', 'tocl']);
+  const OWN_CLASSES = new Set(['pgbreak', 'shp', 'eq', 'fnr', 'cmt', 'resolved', 'fld', 'bm', 'fnsep', 'tab', 'tocl', 'tocpn']);
   const okHref = (h) => /^(https?:|mailto:|tel:|#)/i.test(h || '');
   const okSrc = (s) => /^(data:image\/|blob:|media\/|https?:)/i.test(s || '');
   /** filter our own saved markup (zpages, undo, templates): in-place allow-list */
@@ -145,6 +145,7 @@
         if (t === 'UL' || t === 'OL') { flush(); listOf(n, 0, t === 'OL'); continue; }
         if (t === 'TABLE') { flush(); const tb = tableOf(n); if (tb) out.push(tb); continue; }
         if (t === 'HR') { flush(); continue; }
+        if (t === 'DIV' && /page-break-(after|before)\s*:\s*always|break-(after|before)\s*:\s*page/.test(n.getAttribute('style') || '') && !n.textContent.trim()) { flush(); const pb = document.createElement('div'); pb.className = 'pgbreak'; pb.setAttribute('contenteditable', 'false'); pb.setAttribute('data-label', 'Page Break'); out.push(pb); continue; }
         if (t === 'DIV' || t === 'SECTION' || t === 'ARTICLE' || t === 'MAIN' || t === 'BODY' || t === 'HEADER' || t === 'FOOTER' || t === 'FIGURE' || t === 'BLOCKQUOTE' || t === 'ASIDE' || t === 'NAV' || t === 'DETAILS' || t === 'CENTER') {
           if (hasBlock(n) || t === 'BLOCKQUOTE') { flush(); const st = out.length; walk(n, inCell); flush(); if (t === 'BLOCKQUOTE') out.slice(st).forEach((b) => b.tagName === 'P' && !b.dataset.st && (b.dataset.st = 'Quote')); if (t === 'CENTER') out.slice(st).forEach((b) => (b.style.textAlign = 'center')); continue; }
           flush(); cur = newP(n); if (t === 'CENTER') cur.style.textAlign = 'center'; for (const c of n.childNodes) inlineOf(c, cur); flush(); continue;
@@ -237,6 +238,7 @@
   /* ---------------- selection helpers ---------------- */
   P.selBlocks = () => {
     const r = P.range(); if (!r) return [];
+    if (P.hfEl && P.hfEl.contains(r.startContainer)) return [...P.hfEl.querySelectorAll(P.BLOCK_SEL)].filter((b) => r.intersectsNode(b));
     const a = P.paraOf(r.startContainer) || (r.startContainer === flow ? flow.children[r.startOffset] : null);
     const b = P.paraOf(r.endContainer) || (r.endContainer === flow ? flow.children[Math.max(0, r.endOffset - 1)] : null);
     const all = [...flow.querySelectorAll(P.BLOCK_SEL)].filter((x) => !x.closest('[contenteditable=false]'));
@@ -254,7 +256,12 @@
     for (const a of [...el.attributes]) n.setAttribute(a.name, a.value);
     while (el.firstChild) n.append(el.firstChild); el.replaceWith(n); return n;
   };
-  P.focus = () => { if (document.activeElement !== flow && !flow.contains(document.activeElement)) flow.focus({ preventScroll: true }); };
+  P._last = null;
+  document.addEventListener('selectionchange', () => { const s = getSelection(); if (s.rangeCount && flow.contains(s.anchorNode)) P._last = s.getRangeAt(0).cloneRange(); });
+  P.focus = () => {
+    if (P.hfActive && P.hfActive.el.contains(document.activeElement)) return;
+    if (document.activeElement !== flow && !flow.contains(document.activeElement)) { flow.focus({ preventScroll: true }); const s = getSelection(); if (P._last && (!s.rangeCount || !flow.contains(s.anchorNode))) { s.removeAllRanges(); s.addRange(P._last); } }
+  };
 
   /* ---------------- formatting commands ---------------- */
   const exec = (c, v) => document.execCommand(c, false, v);

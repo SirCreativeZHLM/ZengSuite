@@ -12,7 +12,7 @@
   const PLACE = { phones: 'Phone', emails: 'Email', urls: 'Website', dates: '', related: 'Name', social: 'Username or URL', ims: 'Handle' };
   const lbl = M.labelText;
   const webUrl = (v) => (/^[a-z][a-z0-9+.-]*:/i.test(v) ? v : 'https://' + v);
-  const mapUrl = (a) => { const q = encodeURIComponent(M.addrText(a).replace(/\s+/g, ' ')); return zeng.platform === 'mac' ? 'https://maps.apple.com/?q=' + q : 'https://www.google.com/maps/search/?api=1&query=' + q; };
+  const mapUrl = (a) => { const q = encodeURIComponent(M.addrText(a).replace(/\s+/g, ' ')); return 'https://www.openstreetmap.org/search?query=' + q; };
   const SOC = { twitter: 'https://twitter.com/', facebook: 'https://facebook.com/', instagram: 'https://instagram.com/', linkedin: 'https://linkedin.com/in/', github: 'https://github.com/', youtube: 'https://youtube.com/@' };
   const socialUrl = (s) => (/^https?:\/\//i.test(s.v) ? s.v : SOC[s.l] ? SOC[s.l] + s.v.replace(/^@/, '') : '');
   ZC.mapUrl = mapUrl;
@@ -25,10 +25,13 @@
   };
   function readCard(c) {
     const frag = el('.card');
-    const head = el('.head', ZC.avatar(c, 104), el('h1', ZC.name(c) || 'No Name'));
-    if (c.isOrg ? (c.title || c.dept) : (c.title || c.org || c.dept)) head.append(el('.sub', c.isOrg ? [c.title, c.dept].filter(Boolean).join(' · ') : [c.title, c.dept, c.org].filter(Boolean).join(' · ')));
-    if (c.nick || c.pFirst || c.pLast) head.append(el('.ph', [c.nick && `“${c.nick}”`, [c.pFirst, c.pLast].filter(Boolean).join(' ')].filter(Boolean).join('  ')));
-    const bn = c.bday ? M.daysUntil(c.bday) : null; if (bn !== null && bn <= 14) head.append(el('.pill', zk.icon('calendar-days', 12), bn === 0 ? 'Birthday today' : bn === 1 ? 'Birthday tomorrow' : `Birthday in ${bn} days`));
+    const txt = el('.txt', el('h1', ZC.name(c) || 'No Name')); const head = el('.head', ZC.avatar(c, 88), txt);
+    if (c.isOrg ? (c.title || c.dept) : (c.title || c.org || c.dept)) txt.append(el('.sub', c.isOrg ? [c.title, c.dept].filter(Boolean).join(' · ') : [c.title, c.dept, c.org].filter(Boolean).join(' · ')));
+    if (c.nick || c.pFirst || c.pLast) txt.append(el('.ph', [c.nick && `“${c.nick}”`, [c.pFirst, c.pLast].filter(Boolean).join(' ')].filter(Boolean).join('  ')));
+    const pills = el('.pills'); const bn = c.bday ? M.daysUntil(c.bday) : null; if (bn !== null && bn <= 14) pills.append(el('.pill', zk.icon('calendar-days', 12), bn === 0 ? 'Birthday today' : bn === 1 ? 'Birthday tomorrow' : `Birthday in ${bn} days`));
+    for (const n of M.nudges([c], 14).filter((x) => x.kind === 'anniversary')) pills.append(el('.pill', zk.icon('heart', 12), n.in === 0 ? 'Anniversary today' : `Anniversary in ${n.in} days`));
+    const di = M.dueInfo(c); if (di && di.over >= -3) pills.append(el('.pill.warn', zk.icon('bell', 12), M.dueText(di)));
+    if (pills.children.length) txt.append(pills);
     frag.append(head);
     // action buttons
     const act = (icon, label, fn, disabled, cls = '') => { const b = el('button.act' + cls, { type: 'button', disabled, title: label, 'aria-label': label }, zk.icon(icon), label); b.onclick = () => fn(b); return b; };
@@ -49,7 +52,7 @@
       r.onkeydown = (e) => { if (e.key === 'Enter') r.onclick(e); };
       return r;
     };
-    const block = (title, rows) => rows.length && fields.push(title ? el('.sectitle', title) : null, el('.fields', rows));
+    let cur = null; const block = (title, rows) => { if (!rows.length) return; if (title) { cur = null; fields.push(el('.sectitle', title)); } if (!cur) { cur = el('.fields'); fields.push(cur); } rows.forEach((r) => cur.append(r)); };
     block('', c.phones.map((p) => row(lbl(p.l), p.v, { link: true, open: () => ZC.openUrl('tel:' + p.v.replace(/[^\d+#*,;]/g, '')), icon: 'phone', openTitle: 'Call' })));
     block('', c.emails.map((p) => row(lbl(p.l), p.v, { link: true, open: () => ZC.openUrl('mailto:' + p.v), icon: 'mail', openTitle: 'Send email' })));
     block('', c.urls.map((p) => row(lbl(p.l), p.v, { link: true, open: () => ZC.openUrl(webUrl(p.v)), icon: 'globe', openTitle: 'Open in browser' })));
@@ -59,11 +62,26 @@
     block('', c.social.map((s) => row(lbl(s.l), s.v, socialUrl(s) ? { link: true, open: () => ZC.openUrl(socialUrl(s)), icon: 'external-link' } : {})));
     block('', c.ims.map((s) => row(lbl(s.l), s.v)));
     if (c.notes) block('', [row('Notes', c.notes)]);
+    fields.push(rhythmBlock(c));
     const gs = c.groups.map(ZC.group).filter(Boolean); if (gs.length) fields.push(el('.sectitle', 'Groups'), el('.chips', gs.map((g) => el('span.chip', g.name))));
     frag.append(...fields.filter(Boolean));
     frag.append(el('.botbar', el('button.zk-btn.bordered', { type: 'button', onclick: () => ZC.beginEdit() }, zk.icon('pencil'), 'Edit'), el('button.zk-btn.bordered', { type: 'button', onclick: () => ZC.copyVcf([c]) }, zk.icon('copy'), 'Copy vCard')));
     frag.append(el('.meta-foot', 'Added ' + new Date(c.created).toLocaleDateString(undefined, { dateStyle: 'medium' }) + (c.modified - c.created > 60000 ? ' · Edited ' + new Date(c.modified).toLocaleDateString(undefined, { dateStyle: 'medium' }) : '')));
     return frag;
+  }
+
+  // ---------- relationship rhythm ----------
+  function rhythmBlock(c) {
+    const di = M.dueInfo(c); const ds = M.daysSince(c); const box = el('.rhythm');
+    const status = di ? el('span.rstat.' + di.state, M.dueText(di)) : null;
+    box.append(el('.rh', el('span.sectitle', { style: { margin: 0 } }, 'Rhythm'), status, el('span', { style: { flex: 1 } }), el('button.zk-btn.bordered', { type: 'button', onclick: () => ZC.rhythmDialog(c) }, zk.icon('repeat'), c.cad ? 'Change' : 'Set rhythm')));
+    box.append(el('.rgrid', el('div', el('.lbl', 'Cadence'), el('.val', M.cadenceLabel(c.cad))), el('div', el('.lbl', 'Last caught up'), el('.val', c.lc ? `${M.fmtDate(c.lc)} · ${M.agoText(ds)}` : 'Not yet'))));
+    box.append(el('.rbtns', el('button.zk-btn.primary', { type: 'button', onclick: () => ZC.catchupDialog(c, 'catchup') }, zk.icon('check'), 'Log catch-up…'), el('button.zk-btn.bordered', { type: 'button', onclick: () => ZC.catchupDialog(c, 'note') }, zk.icon('pencil'), 'Add note…')));
+    if (c.log.length) box.append(el('.tl', c.log.slice().reverse().map((g) => {
+      const d = new Date(g.t); const row = el('.tle' + (g.k === 'note' ? '.note' : ''), el('.tld'), el('.tlb', el('.tlh', el('b', g.k === 'note' ? 'Note' : 'Caught up'), el('span', d.toLocaleDateString(undefined, { dateStyle: 'medium' }))), g.note ? el('.tln', g.note) : null),
+        el('button.zk-btn.icon.tlx', { type: 'button', title: 'Remove entry', 'aria-label': 'Remove entry', onclick: () => ZC.update([c.id], 'Remove Timeline Entry', (x) => ({ ...x, log: x.log.filter((y) => y.id !== g.id) })) }, zk.icon('x', 12)));
+      return row; })));
+    return box;
   }
 
   function emptyCard() {
@@ -82,6 +100,7 @@
 
   ZC.renderCard = () => {
     const host = $('#card'); const top = host.scrollTop; let node;
+    if (S.view === 'map' && !S.editing) { host._editing = false; ZC.renderMap(host); $('#title').textContent = 'People'; return; }
     if (S.editing && S.draft) { host._editing = true; node = editCard(); }
     else {
       host._editing = false; const cs = ZC.selected();
@@ -179,7 +198,7 @@
     const d = S.draft; const sh = S.show || (S.show = new Set()); const has = (k) => d[k] || sh.has(k);
     const nIdx = S._newIdx; S._newIdx = null; const ni = (k) => (nIdx && nIdx[0] === k ? nIdx[1] : -1);
     const wrap = el('.card.edit');
-    const av = ZC.avatar(d, 104); av.append(el('.edit-tag', d.photo ? 'edit' : 'add photo')); av.tabIndex = 0; av.setAttribute('role', 'button'); av.setAttribute('aria-label', 'Change photo');
+    const av = ZC.avatar(d, 88); av.append(el('.edit-tag', d.photo ? 'edit' : 'add photo')); av.tabIndex = 0; av.setAttribute('role', 'button'); av.setAttribute('aria-label', 'Change photo');
     av.onclick = () => ZC.photoMenu(d, av, () => rerender()); av.onkeydown = (e) => { if (e.key === ' ') { e.preventDefault(); av.onclick(); } };
     wrap.append(el('.head', av));
     const tag = (i, k) => { i.dataset.k = k; return i; };

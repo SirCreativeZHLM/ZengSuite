@@ -1,4 +1,4 @@
-/* ZengNumbers conditional formatting: rule evaluator (ZN.cf.evaluate), icon-set SVGs, rule validation / description. */
+/* ZengGrid conditional formatting: rule evaluator (ZN.cf.evaluate), icon-set SVGs, rule validation / description. */
 (function (G) {
   'use strict';
   const ZN = G.ZN; const F = ZN.F; const FM = ZN.formula; const { ZErr } = ZN; const CF = ZN.cf = {};

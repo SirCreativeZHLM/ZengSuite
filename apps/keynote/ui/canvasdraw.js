@@ -45,7 +45,7 @@
     }
     return { lines, h: y };
   };
-  const drawText = (g, deck, o, paras, ts, w, h, ctx, pad) => {
+  const drawText = (g, deck, paras, ts, w, h, ctx, pad) => {
     const innerW = w - pad * 2, innerH = h - pad * 2; const cols = ts.cols > 1 ? ts.cols : 1; const gap = (ts.gap ?? 24); const cw = (innerW - gap * (cols - 1)) / cols;
     let fit = 1; let L = layoutText(g, deck, paras, ts, cw, ctx, 1);
     if (ts.fit === 'shrink' && L.h > innerH * cols) { let lo = 0.25, hi = 1; for (let i = 0; i < 8; i++) { const m = (lo + hi) / 2; const t = layoutText(g, deck, paras, ts, cw, ctx, m); if (t.h <= innerH * cols) lo = m; else hi = m; } fit = lo; L = layoutText(g, deck, paras, ts, cw, ctx, fit); }

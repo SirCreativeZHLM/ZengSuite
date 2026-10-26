@@ -22,14 +22,14 @@ const polyArea = (p) => { let a = 0; for (let i = 0; i < p.length; i++) { const 
 const orderCorners = (pts) => { const s = pts.map((p) => p[0] + p[1]), d = pts.map((p) => p[0] - p[1]); return [pts[s.indexOf(Math.min(...s))], pts[d.indexOf(Math.max(...d))], pts[s.indexOf(Math.max(...s))], pts[d.indexOf(Math.min(...d))]]; }; // TL TR BR BL
 Scan.defaultCorners = (w, h, inset = 0.03) => [[w * inset, h * inset], [w * (1 - inset), h * inset], [w * (1 - inset), h * (1 - inset)], [w * inset, h * (1 - inset)]];
 Scan.detect = (src) => {
-  const { g: g0, w, h, k } = smallGray(src, 320); const g = boxBlur(g0, w, h, 3, 2); const fallback = { corners: Scan.defaultCorners(src.width, src.height), found: false };
-  const th = otsu(g); let best = null;
+  const { g: g0, w, h, k } = smallGray(src, 320); const g = boxBlur(g0, w, h, 2, 2); const fallback = { corners: Scan.defaultCorners(src.width, src.height), found: false };
+  const th0 = otsu(g); let lo = 0, nlo = 0, hi = 0, nhi = 0; for (let i = 0; i < g.length; i++) { if (g[i] <= th0) { lo += g[i]; nlo++; } else { hi += g[i]; nhi++; } } const mu0 = nlo ? lo / nlo : 0, mu1 = nhi ? hi / nhi : 255; let best = null;
   for (const pol of [1, -1]) {
-    const mask = new Uint8Array(w * h); for (let i = 0; i < mask.length; i++) mask[i] = (pol > 0 ? g[i] > th : g[i] <= th) ? 1 : 0;
+    const mask = new Uint8Array(w * h); for (let i = 0; i < mask.length; i++) mask[i] = (pol > 0 ? g[i] > mu0 + 0.38 * (mu1 - mu0) : g[i] <= mu1 - 0.38 * (mu1 - mu0)) ? 1 : 0;
     const label = new Int32Array(w * h); const stack = []; let n = 0;
     for (let s = 0; s < mask.length; s++) { if (!mask[s] || label[s]) continue; n++; let area = 0, border = 0, minx = w, maxx = 0, miny = h, maxy = 0; stack.push(s); label[s] = n; const pix = [];
       while (stack.length) { const p = stack.pop(); area++; const x = p % w, y = (p / w) | 0; if (x === 0 || y === 0 || x === w - 1 || y === h - 1) border++; if (area <= 200000) pix.push(p); if (x > 0 && mask[p - 1] && !label[p - 1]) { label[p - 1] = n; stack.push(p - 1); } if (x < w - 1 && mask[p + 1] && !label[p + 1]) { label[p + 1] = n; stack.push(p + 1); } if (y > 0 && mask[p - w] && !label[p - w]) { label[p - w] = n; stack.push(p - w); } if (y < h - 1 && mask[p + w] && !label[p + w]) { label[p + w] = n; stack.push(p + w); } }
-      const frac = area / (w * h); if (frac < 0.12 || frac > 0.97) continue;
+      const frac = area / (w * h); if (frac < 0.08 || frac > 0.97) continue;
       // boundary points only (pixels with a background neighbour) for the hull
       const bpts = []; for (const p of pix) { const x = p % w, y = (p / w) | 0; if (x === 0 || y === 0 || x === w - 1 || y === h - 1 || !mask[p - 1] || !mask[p + 1] || !mask[p - w] || !mask[p + w]) bpts.push([x, y]); }
       if (bpts.length < 8) continue; const hull = convexHull(bpts); const solidity = area / Math.max(1, polyArea(hull)); const touching = border / (2 * (w + h)); let score = frac * solidity * solidity * (1 - Math.min(0.7, touching * 6));
@@ -37,18 +37,31 @@ Scan.detect = (src) => {
   }
   if (!best || best.solidity < 0.7) return fallback;
   let c = orderCorners(best.hull).map(([x, y]) => [x / k, y / k]); // back to source pixels
-  const a = polyArea(c) / (src.width * src.height); if (a < 0.12) return fallback;
-  // pull corners a hair outward (blur eats the edge)
-  const cx = c.reduce((s, p) => s + p[0], 0) / 4, cy = c.reduce((s, p) => s + p[1], 0) / 4; c = c.map(([x, y]) => [clamp(x + (x - cx) * 0.008, 0, src.width - 1), clamp(y + (y - cy) * 0.008, 0, src.height - 1)]);
+  const a = polyArea(c) / (src.width * src.height); if (a < 0.08) return fallback;
+  // pull corners a hair inward so the desk never shows at the border
+  const cx = c.reduce((s, p) => s + p[0], 0) / 4, cy = c.reduce((s, p) => s + p[1], 0) / 4; c = c.map(([x, y]) => [clamp(x - (x - cx) * 0.006, 0, src.width - 1), clamp(y - (y - cy) * 0.006, 0, src.height - 1)]);
   return { corners: c, found: true, confidence: best.solidity };
 };
 
 // ---------- perspective warp ----------
+// Page aspect ratio (w/h) from a perspective view of a rectangle, assuming square pixels and the principal point at the
+// image centre (Zhang & He, "Whiteboard scanning"). Returns 0 when the geometry is degenerate; snaps to A4 / Letter.
+Scan.aspect = (c, iw, ih) => {
+  const u0 = iw / 2, v0 = ih / 2; const m = [c[0], c[1], c[3], c[2]].map(([x, y]) => [x - u0, y - v0, 1]); const [m1, m2, m3, m4] = m;
+  const cross = (a, b) => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]]; const dot = (a, b) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+  const k2d = dot(cross(m2, m4), m3), k3d = dot(cross(m3, m4), m2); if (Math.abs(k2d) < 1e-9 || Math.abs(k3d) < 1e-9) return 0; const k2 = dot(cross(m1, m4), m3) / k2d, k3 = dot(cross(m1, m4), m2) / k3d;
+  const n2 = m2.map((v, i) => k2 * v - m1[i]), n3 = m3.map((v, i) => k3 * v - m1[i]); const den = n2[2] * n3[2]; if (Math.abs(den) < 1e-6) return 0;
+  const f2 = -((n2[0] * n3[0]) + (n2[1] * n3[1])) / den; if (!(f2 > 0)) return 0; const f = Math.sqrt(f2);
+  const q = (n) => (n[0] / f) ** 2 + (n[1] / f) ** 2 + n[2] ** 2; const r = Math.sqrt(q(n2) / q(n3)); if (!isFinite(r) || r < 0.3 || r > 3.3) return 0;
+  const A4 = 595 / 842, LT = 612 / 792; for (const s of [A4, LT, 1 / A4, 1 / LT]) if (Math.abs(r - s) / s < 0.05) return s; return r;
+};
+
 const solve = (A, b) => { const n = b.length; for (let i = 0; i < n; i++) { let m = i; for (let r = i + 1; r < n; r++) if (Math.abs(A[r][i]) > Math.abs(A[m][i])) m = r; [A[i], A[m]] = [A[m], A[i]]; [b[i], b[m]] = [b[m], b[i]]; for (let r = i + 1; r < n; r++) { const f = A[r][i] / A[i][i]; for (let c = i; c < n; c++) A[r][c] -= f * A[i][c]; b[r] -= f * b[i]; } } const x = new Array(n); for (let i = n - 1; i >= 0; i--) { let s = b[i]; for (let c = i + 1; c < n; c++) s -= A[i][c] * x[c]; x[i] = s / A[i][i]; } return x; };
 const homography = (dst, src) => { // maps dst (u,v) -> src (x,y)
   const A = [], b = []; for (let i = 0; i < 4; i++) { const [u, v] = dst[i], [x, y] = src[i]; A.push([u, v, 1, 0, 0, 0, -u * x, -v * x]); b.push(x); A.push([0, 0, 0, u, v, 1, -u * y, -v * y]); b.push(y); } return solve(A, b); };
 Scan.warp = (src, corners, maxSide = 2400) => {
-  const d = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1]); const [tl, tr, br, bl] = corners; let W = (d(tl, tr) + d(bl, br)) / 2, H = (d(tl, bl) + d(tr, br)) / 2; const k = Math.min(1, maxSide / Math.max(W, H)); W = Math.max(16, Math.round(W * k)); H = Math.max(16, Math.round(H * k));
+  const d = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1]); const [tl, tr, br, bl] = corners; let W = (d(tl, tr) + d(bl, br)) / 2, H = (d(tl, bl) + d(tr, br)) / 2;
+  const ratio = Scan.aspect(corners, src.width, src.height); if (ratio) { const area = W * H; W = Math.sqrt(area * ratio); H = W / ratio; } const k = Math.min(1, maxSide / Math.max(W, H)); W = Math.max(16, Math.round(W * k)); H = Math.max(16, Math.round(H * k));
   const hm = homography([[0, 0], [W, 0], [W, H], [0, H]], corners); const sx = src.getContext('2d', { willReadFrequently: true }).getImageData(0, 0, src.width, src.height); const sd = sx.data, sw = src.width, sh = src.height;
   const out = mkCanvas(W, H); const ox = out.getContext('2d'); const od = ox.createImageData(W, H); const o = od.data; const [a, b, c, dd, e, f, g, hh] = hm;
   for (let v = 0; v < H; v++) for (let u = 0; u < W; u++) { const z = g * u + hh * v + 1; const x = (a * u + b * v + c) / z, y = (dd * u + e * v + f) / z; const i = (v * W + u) * 4; if (x < 0 || y < 0 || x >= sw - 1 || y >= sh - 1) { o[i] = o[i + 1] = o[i + 2] = 255; o[i + 3] = 255; continue; } const x0 = x | 0, y0 = y | 0, fx = x - x0, fy = y - y0; const p = (y0 * sw + x0) * 4, q = p + sw * 4; for (let ch = 0; ch < 3; ch++) o[i + ch] = (sd[p + ch] * (1 - fx) + sd[p + 4 + ch] * fx) * (1 - fy) + (sd[q + ch] * (1 - fx) + sd[q + 4 + ch] * fx) * fy; o[i + 3] = 255; }

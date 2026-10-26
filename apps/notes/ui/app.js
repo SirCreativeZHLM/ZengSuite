@@ -95,11 +95,11 @@
   const dateLabel = (m) => U.shortDate(S.settings.sort === 'c' ? m.c : m.m);
   function buildRow(r) {
     const m = M()[r.id]; if (!m) return null; const toks = tokens(); const compact = S.settings.compact; const sel = S.sel.has(m.id);
-    const row = zk.el('.nr' + (sel ? '.sel' : ''), { 'data-id': m.id, role: 'option', 'aria-selected': sel, style: { top: r.top + 'px', height: r.h - 2 + 'px' } });
-    const nt = zk.el('.nt'); if (m.p && !(S.view.kind === 'smart' && S.view.id === 'pinned')) { /* in pinned section */ } if (m.l) nt.append(zk.icon('lock')); nt.append(zk.el('span', { html: hl(m.t || 'New Note', toks) })); if (!m.t) nt.lastChild.style.opacity = '.5';
-    const sn = zk.el('.ns'); sn.append(zk.el('span.nd', dateLabel(m))); if (S.settings.snippets && !compact) sn.append(zk.el('span', { html: m.l ? '<i>Locked</i>' : snippetOf(m, toks) || '<span style="opacity:.55">No additional text</span>' }));
-    const nb = zk.el('.nb', nt, compact ? null : sn);
-    if (compact) nb.append(zk.el('.ns', zk.el('span.nd', dateLabel(m))));
+    const row = zk.el('.nr' + (sel ? '.sel' : ''), { 'data-id': m.id, role: 'option', 'aria-selected': String(sel), style: { top: r.top + 'px', height: r.h - 2 + 'px' } });
+    const nt = zk.el('.nt'); if (m.p && !(S.view.kind === 'smart' && S.view.id === 'pinned')) { /* in pinned section */ } if (m.l) nt.append(zk.icon('lock')); nt.append(zk.el('span', { html: hl(m.t || 'New Note', toks), style: { overflow: 'hidden', textOverflow: 'ellipsis', flex: '1', minWidth: '0' } })); if (!m.t) nt.lastChild.style.opacity = '.5';
+    nt.append(zk.el('span.nd', dateLabel(m)));
+    const sn = zk.el('.ns'); if (S.settings.snippets && !compact) sn.append(zk.el('span', { html: m.l ? '<i>Locked</i>' : snippetOf(m, toks) || '<span style="opacity:.55">No additional text</span>' }));
+    const nb = zk.el('.nb', nt, compact || !S.settings.snippets ? null : sn);
     if (showFolder() && !compact) { const fn = m.f && folderById(m.f) ? folderPath(m.f) : 'Notes'; nb.append(zk.el('.nf', zk.icon('folder'), fn)); }
     row.append(nb);
     if (S.settings.thumbs && m.th && !m.l) { const u = wantThumb(m.id); const im = zk.el('img.th', { alt: '', draggable: false }); if (u) im.src = u; row.append(im); }
@@ -215,7 +215,7 @@
     box.firstChild.style.cssText = 'width:44px;height:44px;stroke-width:1.3;color:var(--fg-3)'; el.ph.append(box); syncToolbar();
   }
   const urlCache = new Map();
-  const revokeUrls = () => { for (const u of urlCache.values()) URL.revokeObjectURL(u); urlCache.clear(); };
+  const revokeUrls = () => { document.querySelectorAll('#ed img[src^="blob:"]').forEach((i) => i.removeAttribute('src')); for (const u of urlCache.values()) URL.revokeObjectURL(u); urlCache.clear(); };
 
   // ------------------------------------------------------------ note lifecycle
   async function openNote(id, { force = false } = {}) {
@@ -228,7 +228,7 @@
     if (rec.lock) { const key = S.keys.get(id); if (!key) { showLocked(meta); renderList(); return; } try { html = (await C.openWithKey(rec.lock, key)).html; } catch { S.keys.delete(id); showLocked(meta); return; } }
     if (tok !== S.tok) return;
     showEditor(); S.editing = true; el.title.value = rec.title || ''; el.title.readOnly = !!meta.d; Ed.load(CV.clean(html || '<p><br></p>', { raw: true }), { ro: !!meta.d });
-    S.lastSaved = { html: Ed.canon(), title: el.title.value.trim() }; S.dirty = false; setSaved('ok'); updateHeader(); updateBacklinks(); updateTags(); updateWords(); el.scroll.scrollTop = 0; Ed.setTerms(tokens());
+    S.lastSaved = { html: Ed.canon(), title: el.title.value.trim() }; S.dirty = false; setSaved('ok'); updateHeader(); updateBacklinks(); updateTags(); updateWords(); A.updateRelated(); el.scroll.scrollTop = 0; Ed.setTerms(tokens());
     S.settings.last = id; A.saveSettings(); syncToolbar(); zeng.refreshMenus(); renderList();
     if (!meta.d && !rec.html && !rec.lock) { /* empty */ }
   }
@@ -281,7 +281,7 @@
     S.lastSaved = { html, title }; rec.v = 1; setLow(id, ftsText);
     Db.put({ ...rec, _h: undefined }, meta, ftsText);
     const ok = await Db.flush(); setSaved(ok && !S.dirty ? 'ok' : ok ? 'busy' : 'err');
-    A.refresh(); updateBacklinks(); updateTags(); updateHeader(); S.words = d.text.split(/\s+/).filter(Boolean).length; updateWords(); zeng.call('dirty', { dirty: false }).catch(() => {});
+    N.rel.update(id, ftsText); A.refresh(); updateBacklinks(); updateTags(); updateHeader(); A.scheduleRelated(); S.words = d.text.split(/\s+/).filter(Boolean).length; updateWords(); zeng.call('dirty', { dirty: false }).catch(() => {});
   };
   A.kick = () => { Db.flush().then((ok) => { if (!ok) setSaved('err'); }); };
   function markDirty() { if (!S.editing) return; if (!S.dirty) { S.dirty = true; zeng.call('dirty', { dirty: true }).catch(() => {}); } setSaved('busy'); }
@@ -302,6 +302,27 @@
     for (const x of from.slice(0, 30)) el.backlinks.append(zk.el('button', { type: 'button', onclick: () => A.goToNote(x.id) }, zk.icon('file-text'), zk.el('span', x.t || 'New Note')));
   }
   A.goToNote = async (id) => { if (!M()[id]) return; const m = M()[id]; if (m.d) await A.setView({ kind: 'smart', id: 'trash' }); else if (!viewFilter()(m) || S.q) await A.setView({ kind: 'smart', id: 'all' }); await A.selectIds([id]); scrollToId(id); };
+
+  // ---- related notes strip
+  const relTimer = { t: 0 };
+  A.updateRelated = () => {
+    const box = el.related; box.textContent = ''; const m = M()[S.cur]; if (!m || m.d || m.l || !S.editing) return; const rs = N.rel.related(S.cur); if (!rs.length) return;
+    box.append(zk.el('h4', 'Related notes'), zk.el('.strip', ...rs.map((r) => { const x = M()[r.id]; return zk.el('button.rc', { type: 'button', title: x.t, onclick: () => A.goToNote(r.id) }, zk.el('b', x.t || 'New Note'), zk.el('span', x.s || 'No additional text'), zk.el('i', r.why.join(' · '))); })));
+  };
+  A.scheduleRelated = () => { clearTimeout(relTimer.t); relTimer.t = setTimeout(A.updateRelated, 600); };
+
+  // ---- daily note
+  A.dailyNote = async () => {
+    const d = new Date(); const p2 = (n) => String(n).padStart(2, '0'); const key = `${d.getFullYear()}-${p2(d.getMonth() + 1)}-${p2(d.getDate())}`;
+    let m = metas().find((x) => x.dn === key && !x.d);
+    if (!m) {
+      if (S.editing) await A.saveNow(); const prev = metas().filter((x) => x.dn && x.dn < key && !x.d).sort((a, b) => (a.dn < b.dn ? 1 : -1))[0];
+      const title = d.toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }); const fid = N.io.ensureFolder(['Daily'], null);
+      const html = '<h2>Today</h2><ul class="check"><li><br></li></ul><h2>Notes</h2><p><br></p>' + (prev ? `<p>Yesterday: <a href="#" data-nt="${esc(prev.t)}" data-note="${prev.id}">${esc(prev.t)}</a></p>` : '') + '<p>#daily</p>';
+      const id = await N.io.saveDraft({ title, html, dn: key }, fid); await Db.flush(); m = M()[id];
+    }
+    await A.goToNote(m.id); A.refresh(); const li = el.ed.querySelector('ul.check li'); if (li && !M()[m.id].d) { Ed.focus(); const r = document.createRange(); r.selectNodeContents(li); r.collapse(true); getSelection().removeAllRanges(); getSelection().addRange(r); } else el.title.focus();
+  };
 
   // ------------------------------------------------------------ note operations
   const blankRec = (o = {}) => { const now = Date.now(); return { v: 1, id: U.uid(), title: '', html: '<p><br></p>', c: now, m: now, atts: [], ...o }; };
@@ -384,7 +405,7 @@
       if (S.editing && id === S.cur) await A.saveNow(); const rec = await Db.loadNote(id); const { lock, key } = await C.seal({ html: rec.html }, pw);
       for (const a of rec.atts || []) { const r = await Db.getAtt(a); if (r && r.bytes && !r.meta.iv) await Db.putAtt(a, r.bytes, r.meta, key); }
       delete rec.html; rec.lock = lock; meta.l = 1; meta.s = ''; meta.tg = []; meta.ck = 0; meta.ln = []; meta.th = 0; rec.tid = null; await Db.setThumb(id, null); thumbCache.delete(id); S.keys.set(id, key); setLow(id, meta.t);
-      Db.put(rec, meta, meta.t); await Db.flush(); if (id === S.cur) { S.rec = rec; revokeUrls(); } A.refresh(); updateHeader(); syncToolbar(); zeng.refreshMenus(); touchIdle(); zk.toast('Note locked');
+      Db.put(rec, meta, meta.t); await Db.flush(); await Db.scrubNote(rec); if (id === S.cur) { S.rec = rec; } A.refresh(); updateHeader(); syncToolbar(); zeng.refreshMenus(); touchIdle(); zk.toast('Note locked');
     } catch (e) { zk.alert('Couldn’t lock the note', e.message || String(e)); }
   };
   A.removeLock = async (id) => {
@@ -411,7 +432,7 @@
     hasAtt: (id) => S.sessionAtts.has(id) || Ed.attIds().includes(id),
     cloneAtt: async (id) => { try { const r = await Db.getAtt(id); if (!r || !r.bytes) return null; const nid = U.uid(); await hooks.putFile({ id: nid, name: r.meta.name, type: r.meta.type, bytes: r.bytes }); return nid; } catch { return null; } },
     pickFiles: async () => { const hs = await zeng.files.open({ multiple: true }); if (hs.length) Ed.attachFiles(await Promise.all(hs.map(async (h) => ({ name: h.name, type: U.mimeOf(h.name), bytes: await U.readHandle(h) })))); },
-    searchTitles: (q) => { const l = q.trim().toLowerCase(); return metas().filter((m) => !m.d && m.id !== S.cur && !m.l && (!l || (m.t || '').toLowerCase().includes(l))).sort((a, b) => b.m - a.m).slice(0, 8); },
+    searchTitles: (q) => { const l = q.trim().toLowerCase(); return metas().filter((m) => !m.d && m.id !== S.cur && !m.l && (!l || (m.t || '').toLowerCase().includes(l))).sort((a, b) => b.m - a.m).slice(0, 8).map((m) => ({ id: m.id, title: m.t })); },
     findTitle: (t) => { const l = t.toLowerCase(); return metas().find((m) => !m.d && (m.t || '').toLowerCase() === l) || null; },
     linkNote: async (title, id) => { let m = id && M()[id] && !M()[id].d ? M()[id] : hooks.findTitle(title); if (m) return A.goToNote(m.id); const f = S.rec && M()[S.cur] ? M()[S.cur].f : null; await A.newNote({ title, folder: f, focus: 'body' }); },
     openUrl: (u) => { if (!u) return; if (zeng.isNative) zeng.call('open_url', { url: u }).catch(() => {}); else window.open(u, '_blank', 'noopener'); },
@@ -439,12 +460,12 @@
     const sbBtn = B('sidebar', { icon: 'panel-left', title: 'Show or hide folders (⌘⌥S)', onClick: () => A.toggleSidebar() });
     tb.append(sbBtn, zk.el('.zk-title.skeep', { 'data-doc-title': '' }, 'All Notes', zk.el('small', '')), zk.el('.zk-spacer', { style: { flex: '0 0 4px' } }),
       g(B('new', { icon: 'square-pen', title: 'New Note (⌘N)', onClick: () => A.newNote() }), B('del', { icon: 'trash-2', title: 'Delete Note (⌘⌫)', onClick: () => A.deleteSelected() })),
-      B('sort', { icon: 'arrow-up-down', title: 'Sort and view options', onClick: (e) => zk.menu(viewSortMenu(), { anchor: e.currentTarget }) }),
+      B('daily', { icon: 'calendar-days', title: 'Today’s Daily Note (⌘D)', onClick: () => A.dailyNote() }), B('graph', { icon: 'graph', title: 'Link Graph (⌘⌥G)', onClick: () => N.graph.toggle() }), B('sort', { icon: 'arrow-up-down', title: 'Sort and view options', onClick: (e) => zk.menu(viewSortMenu(), { anchor: e.currentTarget }) }),
       zk.el('.zk-sep'), g(B('aa', { icon: 'type', label: '', title: 'Format', onClick: (e) => fmtPopover(e.currentTarget) }), B('check', { icon: 'list-checks', title: 'Checklist (⌘⇧L)', onClick: () => Ed.cmd('check') }), B('table', { icon: 'table', title: 'Table (⌘⌥T)', onClick: () => Ed.cmd('table') }), B('attach', { icon: 'paperclip', title: 'Attach image or file (⌘⇧A)', onClick: () => hooks.pickFiles() }), B('sketch', { icon: 'pen-line', title: 'Sketch (⌘⇧D)', onClick: () => Ed.cmd('sketch') })),
       zk.el('.zk-spacer'), g(B('lock', { icon: 'lock', title: 'Lock note (⌘L)', onClick: () => A.lockNote() }), B('share', { icon: 'share', title: 'Share and export', onClick: (e) => zk.menu(shareMenu(), { anchor: e.currentTarget, align: 'end' }) })),
       B('exit', { icon: 'minimize-2', title: 'Leave focus mode (Esc)', onClick: () => A.setMode('') }));
     tbBtns.exit.classList.add('keep', 'zk-hidden'); const exit = tbBtns.exit; exit.style.marginLeft = 'auto';
-    const search = zk.el('.search.skeep', zk.icon('search'), el.q = zk.el('input.zk-input.selectable', { type: 'search', placeholder: 'Search', 'aria-label': 'Search notes', spellcheck: 'false', autocomplete: 'off' }), zk.el('button.zk-btn.icon', { type: 'button', 'aria-label': 'Clear search', onclick: () => A.clearSearch() }, zk.icon('x', 12)));
+    const search = zk.el('.search.skeep', zk.icon('search'), el.q = zk.el('input.zk-input.selectable', { id: 'q', type: 'search', placeholder: 'Search', 'aria-label': 'Search notes', spellcheck: 'false', autocomplete: 'off' }), zk.el('button.zk-btn.icon', { type: 'button', 'aria-label': 'Clear search', onclick: () => A.clearSearch() }, zk.icon('x', 12)));
     el.search = search; tb.insertBefore(search, tbBtns.exit);
     el.q.addEventListener('input', () => { S.q = el.q.value; search.classList.toggle('has', !!S.q); Ed.setTerms(tokens()); A.refresh(false); const first = S.filtered[0]; if (first) { if (!S.sel.has(first.id) || S.sel.size !== 1) A.selectIds([first.id], { open: !!S.q || true }); } else if (S.q) { showPlaceholder('none'); } });
     el.q.addEventListener('keydown', (e) => { if (e.key === 'Escape') { e.preventDefault(); A.clearSearch(); el.list.focus(); } else if (e.key === 'ArrowDown' || e.key === 'ArrowUp') { e.preventDefault(); const ids = S.filtered.map((m) => m.id); let i = ids.indexOf(S.cur); i = zk.clamp(i + (e.key === 'ArrowDown' ? 1 : -1), 0, ids.length - 1); if (ids[i]) { A.selectIds([ids[i]]); scrollToId(ids[i]); } } else if (e.key === 'Enter') { e.preventDefault(); if (S.editing) Ed.focus(); } });
@@ -478,7 +499,7 @@
 
   // settings sheet
   A.openSettings = () => {
-    const s = S.settings; const row = (label, ctl) => zk.el('.zk-field', zk.el('span', label), ctl); const seg = (opts, cur, fn) => { const d = zk.el('.zk-seg'); opts.forEach(([v, l]) => d.append(zk.el('button', { type: 'button', 'aria-pressed': v === cur, onclick: (e) => { fn(v); [...d.children].forEach((c) => c.setAttribute('aria-pressed', c === e.currentTarget)); } }, l))); return d; };
+    const s = S.settings; const row = (label, ctl) => zk.el('.zk-field', zk.el('span', label), ctl); const seg = (opts, cur, fn) => { const d = zk.el('.zk-seg'); opts.forEach(([v, l]) => d.append(zk.el('button', { type: 'button', 'aria-pressed': String(v === cur), onclick: (e) => { fn(v); [...d.children].forEach((c) => c.setAttribute('aria-pressed', c === e.currentTarget)); } }, l))); return d; };
     const sw = (k, relist) => zk.el('input.zk-switch', { type: 'checkbox', checked: !!s[k], onchange: (e) => setSetting(k, e.target.checked, relist) });
     const fs = zk.el('input.zk-range', { type: 'range', min: 12, max: 24, step: 1, value: s.font, 'aria-label': 'Font size', style: { width: '140px' }, oninput: (e) => { setSetting('font', +e.target.value); fv.textContent = e.target.value + ' pt'; } }); const fv = zk.el('span.zk-label', { style: { width: '38px', textAlign: 'right' } }, s.font + ' pt');
     const body = zk.el('.set',
@@ -497,7 +518,7 @@
     const undo = () => (document.activeElement === el.ed ? Ed.undo() : document.execCommand('undo')); const redo = () => (document.activeElement === el.ed ? Ed.redo() : document.execCommand('redo'));
     const importMenu = [{ label: 'Markdown, Text and HTML Files…', run: () => io.importFiles() }, { label: 'Folder of Files…', run: () => io.importFolder() }, { separator: true }, { label: 'ENEX Archive (.enex)…', run: () => io.importFiles(['enex']) }, { label: 'Takeout Notes (.zip or .json)…', run: () => io.importFiles(['zip', 'json']) }, { label: 'Word Document or HTML (.docx, .html)…', run: () => io.importFiles(['docx', 'html', 'htm']) }, { separator: true }, { label: 'Restore Library Backup (.znotes)…', run: () => io.restore() }];
     return [
-      { label: 'File', items: [{ label: 'New Note', accel: cm + 'N', run: () => A.newNote() }, { label: 'New Folder…', accel: cm + 'Shift+N', run: () => A.newFolder(S.view.kind === 'folder' && S.view.id !== '__notes' ? null : null) }, { label: 'New Subfolder…', enabled: () => S.view.kind === 'folder' && S.view.id !== '__notes', run: () => A.newFolder(S.view.id) }, { separator: true }, { label: 'Import', submenu: importMenu }, { label: 'Import Sample Library', run: () => io.importSample() }, { separator: true },
+      { label: 'File', items: [{ label: 'New Note', accel: cm + 'N', run: () => A.newNote() }, { label: 'Today’s Daily Note', accel: cm + 'D', run: () => A.dailyNote() }, { label: 'New Folder…', accel: cm + 'Shift+N', run: () => A.newFolder(S.view.kind === 'folder' && S.view.id !== '__notes' ? null : null) }, { label: 'New Subfolder…', enabled: () => S.view.kind === 'folder' && S.view.id !== '__notes', run: () => A.newFolder(S.view.id) }, { separator: true }, { label: 'Import', submenu: importMenu }, { label: 'Import Sample Library', run: () => io.importSample() }, { separator: true },
         { label: 'Export Note as', enabled: has, submenu: [{ label: 'Markdown (with attachments)…', run: () => io.exportNotes([...S.sel], 'md') }, { label: 'HTML…', run: () => io.exportNotes([...S.sel], 'html') }, { label: 'Plain Text…', run: () => io.exportNotes([...S.sel], 'txt') }, { label: 'PDF (Print)…', run: () => io.printNote() }] },
         { label: 'Export All Notes as Markdown…', run: () => io.exportAll() }, { label: 'Back Up Library…', run: () => io.backup() }, { separator: true }, { label: 'Print…', accel: cm + 'Alt+P', enabled: has, run: () => io.printNote() },
         ...(isMac() && zeng.isNative ? [] : [{ separator: true }, { label: 'Exit', accel: zeng.platform === 'win' ? 'Alt+F4' : 'Ctrl+Q', run: () => zeng.quit() }])] },
@@ -509,15 +530,15 @@
       { label: 'Note', items: [{ label: 'Pin Note', accel: cm + 'P', enabled: has, checked: !!(m() && m().p), run: () => A.togglePin([...S.sel]) }, { label: m() && m().l ? 'Remove Lock…' : 'Lock Note…', accel: cm + 'L', enabled: () => !!m() && !m().d, run: () => A.lockNote() }, { label: 'Lock All Notes Now', accel: cm + 'Alt+L', run: () => A.lockNow() }, { separator: true }, { label: 'Move To', enabled: has, submenu: moveTargets(null, (t) => A.moveNotes([...S.sel].length ? [...S.sel] : [S.cur], t)) }, { label: 'Duplicate Note', enabled: () => !!m(), run: () => A.duplicate() }, { label: 'Copy Note Link', enabled: () => !!m(), run: () => A.copyLink() }, { separator: true }, { label: 'Delete Note', accel: cm + 'Backspace', enabled: has, run: () => A.deleteSelected() }, { label: 'Restore Note', enabled: () => !!m() && !!m().d, run: () => A.restoreNotes([...S.sel]) }, { label: 'Empty Recently Deleted…', run: () => A.emptyTrash() }] },
       { label: 'View', items: [{ label: 'Sort By', submenu: viewSortMenu().slice(0, 5) }, { label: 'Group by Date', checked: s.group, run: () => setSetting('group', !s.group, true) }, { label: 'Show Snippets', checked: s.snippets, run: () => setSetting('snippets', !s.snippets, true) }, { label: 'Show Thumbnails', checked: s.thumbs, run: () => setSetting('thumbs', !s.thumbs, true) }, { label: 'Compact List', checked: s.compact, run: () => setSetting('compact', !s.compact, true) }, { separator: true },
         { label: 'Bigger Text', accel: cm + '+', run: () => setSetting('font', Math.min(24, s.font + 1)) }, { label: 'Smaller Text', accel: cm + '-', run: () => setSetting('font', Math.max(12, s.font - 1)) }, { label: 'Default Text Size', accel: cm + '0', run: () => setSetting('font', 15) }, { separator: true },
-        { label: 'Show Folders', accel: cm + 'Alt+S', checked: s.sidebar, run: () => A.toggleSidebar() }, { label: 'Distraction-Free Mode', accel: cm + 'Shift+Enter', checked: S.mode === 'focus', run: () => A.setMode('focus') }, { label: 'Sticky Style', accel: cm + 'Alt+Y', checked: S.mode === 'sticky', run: () => A.setMode('sticky') }, { separator: true }, { label: 'Focus Folders', accel: cm + '1', run: () => { A.toggleSidebar(); } }, { label: 'Focus Note List', accel: cm + '2', run: () => el.list.focus() }, { label: 'Focus Editor', accel: cm + '3', enabled: ed, run: () => Ed.focus() }, { separator: true }, { label: 'Settings…', accel: cm + ',', run: () => A.openSettings() }] },
+        { label: 'Link Graph', accel: cm + 'Alt+G', checked: !!(N.graph && N.graph.isOpen()), run: () => N.graph.toggle() }, { separator: true }, { label: 'Show Folders', accel: cm + 'Alt+S', checked: s.sidebar, run: () => A.toggleSidebar() }, { label: 'Distraction-Free Mode', accel: cm + 'Shift+Enter', checked: S.mode === 'focus', run: () => A.setMode('focus') }, { label: 'Sticky Style', accel: cm + 'Alt+Y', checked: S.mode === 'sticky', run: () => A.setMode('sticky') }, { separator: true }, { label: 'Focus Folders', accel: cm + '1', run: () => { A.toggleSidebar(); } }, { label: 'Focus Note List', accel: cm + '2', run: () => el.list.focus() }, { label: 'Focus Editor', accel: cm + '3', enabled: ed, run: () => Ed.focus() }, { separator: true }, { label: 'Settings…', accel: cm + ',', run: () => A.openSettings() }] },
     ];
   };
 
   // ------------------------------------------------------------ init
   A.init = async () => {
-    for (const id of ['tb', 'sidebar', 'list', 'list-in', 'list-empty', 'listpane', 'pane', 'scroll', 'doc', 'dateline', 'title', 'tagrow', 'ed', 'backlinks', 'ph', 'findbar', 'fq', 'fcount', 'app', 'main']) el[id.replace(/-(\w)/g, (_, c) => c.toUpperCase())] = document.getElementById(id);
+    for (const id of ['tb', 'sidebar', 'list', 'list-in', 'list-empty', 'listpane', 'pane', 'scroll', 'doc', 'dateline', 'title', 'tagrow', 'ed', 'backlinks', 'related', 'ph', 'findbar', 'fq', 'fcount', 'app', 'main']) el[id.replace(/-(\w)/g, (_, c) => c.toUpperCase())] = document.getElementById(id);
     el.stCount = $('#st-count'); el.stWords = $('#st-words'); el.stSaved = $('#st-saved');
-    el.sbScroll = zk.el('#sb-scroll'); const foot = zk.el('#sb-foot', pd(zk.btn({ icon: 'folder-plus', label: 'New Folder', onClick: () => A.newFolder(S.view.kind === 'folder' && S.view.id !== '__notes' ? null : null) }))); el.sidebar.append(el.sbScroll, foot);
+    el.sbScroll = zk.el('div', { id: 'sb-scroll' }); const foot = zk.el('div', { id: 'sb-foot' }, pd(zk.btn({ icon: 'folder-plus', label: 'New Folder', onClick: () => A.newFolder(S.view.kind === 'folder' && S.view.id !== '__notes' ? null : null) }))); el.sidebar.append(el.sbScroll, foot);
     await zeng.ready; const saved = await zeng.store.get('settings', null); if (saved) Object.assign(S.settings, saved);
     await Db.init(); for (const id in M()) setLow(id, Db.text(id));
     buildToolbar(); $('#fprev').append(zk.icon('chevron-up')); $('#fnext').append(zk.icon('chevron-down')); $('#fclose').append(zk.icon('x'));
@@ -542,7 +563,7 @@
     el.scroll.addEventListener('pointerdown', (e) => { if (e.target === el.scroll || e.target === el.doc) { if (S.editing && !(M()[S.cur] || {}).d) { e.preventDefault(); Ed.focus(); const r = document.createRange(); r.selectNodeContents(el.ed); r.collapse(false); getSelection().removeAllRanges(); getSelection().addRange(r); } } });
     zeng.setMenus(A.menus()); const orig = zeng.refreshMenus; zeng.refreshMenus = () => zeng.setMenus(A.menus());
     // initial view & first note
-    A.refresh(false); await A.purgeOld(); setInterval(() => A.purgeOld(), 3600e3);
+    A.refresh(false); N.rel.rebuild(() => A.updateRelated()); await A.purgeOld(); setInterval(() => A.purgeOld(), 3600e3);
     let first = null; if (S.settings.last && M()[S.settings.last] && !M()[S.settings.last].d && !M()[S.settings.last].l) first = S.settings.last; else first = (S.filtered[0] || {}).id;
     if (!metas().length) { await A.newNote({ focus: 'title' }); } else if (first) { await A.selectIds([first]); scrollToId(first); } else showPlaceholder('none');
     // autosave

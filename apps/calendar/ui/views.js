@@ -11,7 +11,7 @@
 
   // ------------------------------------------------------------------ helpers
   const isToday = (d) => T.sameDay(d, new Date());
-  const style = (o) => (o.ro ? ' ro' : '') + (I.F(o, 'avail') === 'free' ? ' free' : '') + (I.F(o, 'avail') === 'tentative' || I.F(o, 'status') === 'TENTATIVE' ? ' tent' : '') + (I.F(o, 'status') === 'CANCELLED' ? ' cancelled' : '') + (S.sel === o.id ? ' sel' : '');
+  const style = (o) => (o.ro ? ' ro' : '') + (I.F(o, 'avail') === 'free' ? ' free' : '') + (I.F(o, 'avail') === 'tentative' || I.F(o, 'status') === 'TENTATIVE' ? ' tent' : '') + (I.F(o, 'status') === 'CANCELLED' ? ' cancelled' : '') + (CAL.isFocusOcc && CAL.isFocusOcc(o) ? ' focus' : '') + (S.sel === o.id ? ' sel' : '');
   const title = (o) => I.F(o, 'title') || 'New Event';
   const dayIndex = (days, t) => { // index of local day containing epoch t, clamped (-1/ n)
     const d = new Date(t); const k = T.dayKey(d); for (let i = 0; i < days.length; i++) if (T.dayKey(days[i]) === k) return i; return d < days[0] ? -1 : days.length;
@@ -35,7 +35,7 @@
   // ------------------------------------------------------------------ toolbar
   CAL.buildToolbar = () => {
     const tb = $('#tb'); tb.replaceChildren();
-    const side = zk.btn({ icon: 'panel-left', title: 'Show/Hide Calendars', onClick: () => CAL.toggleSidebar() }); side.id = 'b-side';
+    const side = zk.btn({ icon: 'panel-right', title: 'Show/Hide Sidebar', onClick: () => CAL.toggleSidebar() }); side.id = 'b-side';
     const prev = zk.btn({ icon: 'chevron-left', title: 'Previous', onClick: () => CAL.nav(-1) }), next = zk.btn({ icon: 'chevron-right', title: 'Next', onClick: () => CAL.nav(1) });
     const today = el('button.zk-btn.bordered', { type: 'button', title: 'Go to Today (T)', onclick: () => CAL.today() }, 'Today');
     const titleEl = el('.cal-title', { id: 'title', 'aria-live': 'polite' }, el('b'), el('span'));
@@ -46,7 +46,7 @@
     const qwrap = el('.cal-search', zk.icon('search'), q);
     const free = zk.btn({ icon: 'clock', title: 'Find Free Time…', onClick: () => CAL.suggestTime() });
     const add = zk.btn({ icon: 'plus', title: 'Quick Add Event (N)', cls: 'accentbtn', onClick: (e) => CAL.quickAdd(e.currentTarget) }); add.id = 'b-add';
-    tb.append(side, el('.zk-group', prev, today, next), titleEl, el('.zk-spacer'), seg, more, qwrap, free, add);
+    tb.append(el('.zk-group', prev, today, next), titleEl, el('.zk-spacer'), seg, more, qwrap, free, add, side);
   };
   CAL.updateToolbar = () => {
     const t = CAL.viewTitle(); const te = $('#title'); te.firstChild.textContent = t.main; te.lastChild.textContent = t.sub ? ' ' + t.sub : '';
@@ -56,7 +56,7 @@
   };
 
   // ------------------------------------------------------------------ navigation
-  CAL.setView = (v) => { if (S.set.view === v) return; S.set.view = v; CAL.touchMeta(); CAL.render({ anim: 'zoom' }); zeng.refreshMenus && zeng.refreshMenus(); };
+  CAL.setView = (v) => { if (S.set.view === v) return; S.set.view = v; CAL.touchMeta(); CAL.render({ anim: 'zoom' }); };
   CAL.goto = (d, anim) => { const prev = S.date; S.date = CAL.day0(d); S.miniDate = new Date(S.date.getFullYear(), S.date.getMonth(), 1); CAL.render({ anim: anim === undefined ? (S.date > prev ? 'next' : S.date < prev ? 'prev' : null) : anim }); };
   CAL.nav = (dir) => { const n = CAL.shift(S.set.view, S.date, dir); S.date = n; S.miniDate = new Date(n.getFullYear(), n.getMonth(), 1); CAL.render({ anim: dir > 0 ? 'next' : 'prev' }); };
   CAL.today = () => { const t = new Date(); const dir = CAL.day0(t) > S.date ? 'next' : CAL.day0(t) < S.date ? 'prev' : null; S.date = CAL.day0(t); S.miniDate = new Date(t.getFullYear(), t.getMonth(), 1); CAL.render({ anim: dir, scrollNow: true }); };
@@ -84,7 +84,7 @@
   const daysOf = (f, t, v) => { const out = []; for (let d = f; d < t; d = CAL.addDays(d, 1)) { if (v === 'workweek' && !S.set.workDays.includes(d.getDay())) continue; out.push(d); } return out; };
 
   // ------------------------------------------------------------------ time grid (day / work week / week / N days)
-  const evBox = (o, cls) => el('.ev' + cls, { 'data-id': o.id, style: { '--c': o.color }, role: 'button', tabindex: -1, 'aria-label': title(o) + ', ' + CAL.fmtWhen(o) });
+  const evBox = (o, cls) => el('.ev' + cls, { 'data-id': o.id, style: { '--c': o.color, '--ct': o.ct }, role: 'button', tabindex: -1, 'aria-label': title(o) + ', ' + CAL.fmtWhen(o) });
   function renderTimeGrid(root, days, occs) {
     const n = days.length, hh = S.set.hourH, gut = 56; root.style.setProperty('--hh', hh + 'px'); root.style.setProperty('--n', n);
     const scroll = el('.tg-scroll'); const gcols = `${gut}px repeat(${n}, minmax(0,1fr))`;
@@ -99,12 +99,12 @@
     const bars = []; for (const o of allday) { const a = Math.max(0, dayIndex(days, o.s)), b = Math.min(n - 1, dayIndex(days, o.allDay ? o.e - 1 : o.e - 1)); if (dayIndex(days, o.s) > n - 1 || dayIndex(days, o.e - 1) < 0) continue; bars.push({ o, a, b: Math.max(a, b), cl: dayIndex(days, o.s) < 0, cr: dayIndex(days, o.e - 1) > n - 1 }); }
     L.lanes(bars); const lanes = bars.reduce((m, b) => Math.max(m, b.lane + 1), 0);
     const adc = el('.tg-adc', { style: { height: Math.max(26, lanes * 21 + 5) + 'px' } }, el('.tg-adcells', days.map(() => el('.tg-adcell'))));
-    for (const b of bars) { const e = el('.ev.bar' + style(b.o) + (b.cl ? '.cl' : '') + (b.cr ? '.cr' : ''), { 'data-id': b.o.id, style: { '--c': b.o.color, left: `calc(${(b.a / n) * 100}% + 2px)`, width: `calc(${((b.b - b.a + 1) / n) * 100}% - 4px)`, top: 3 + b.lane * 21 + 'px' }, role: 'button', tabindex: -1, 'aria-label': title(b.o) + ', ' + CAL.fmtWhen(b.o) }, el('span.t', title(b.o))); if (!b.o.ro) { if (!b.cl) e.append(el('.rz.rl')); if (!b.cr) e.append(el('.rz.rr')); } adc.append(e); }
-    const adRow = el('.tg-allday', { style: { gridTemplateColumns: gcols } }, el('.tg-gut.ad', 'all-day'), adc);
+    for (const b of bars) { const e = el('.ev.bar' + style(b.o) + (b.cl ? '.cl' : '') + (b.cr ? '.cr' : ''), { 'data-id': b.o.id, style: { '--c': b.o.color, '--ct': b.o.ct, left: `calc(${(b.a / n) * 100}% + 2px)`, width: `calc(${((b.b - b.a + 1) / n) * 100}% - 4px)`, top: 3 + b.lane * 21 + 'px' }, role: 'button', tabindex: -1, 'aria-label': title(b.o) + ', ' + CAL.fmtWhen(b.o) }, el('span.t', CAL.isFocusOcc(b.o) ? zk.icon('shield') : null, title(b.o))); if (!b.o.ro) { if (!b.cl) e.append(el('.rz.rl')); if (!b.cr) e.append(el('.rz.rr')); } adc.append(e); }
+    const adRow = el('.tg-allday', { style: { gridTemplateColumns: `${gut}px minmax(0,1fr)` } }, el('.tg-gut.ad', 'all-day'), adc);
     // body
     const cols = el('.tg-cols', { style: { gridTemplateColumns: `repeat(${n}, minmax(0,1fr))` } });
     const gutter = el('.tg-gut.hours'); for (let h = 1; h < 24; h++) gutter.append(el('span', { style: { top: h * hh + 'px' } }, CAL.fmtHour(h)));
-    const minLen = Math.ceil((20 / hh) * 60);
+    const minLen = Math.ceil((20 / hh) * 60); const fr = S.set.ribbon !== false && CAL.freeRows ? CAL.freeRows(days) : null;
     days.forEach((d, i) => {
       const col = el('.tg-col' + (isToday(d) ? '.today' : ''), { 'data-i': i, 'data-day': T.dayKey(d) });
       const work = S.set.workDays.includes(d.getDay()); if (!work) col.append(el('.tg-off', { style: { top: 0, height: 24 * hh + 'px' } })); else { if (S.set.workStart > 0) col.append(el('.tg-off', { style: { top: 0, height: (S.set.workStart / 60) * hh + 'px' } })); if (S.set.workEnd < 1440) col.append(el('.tg-off', { style: { top: (S.set.workEnd / 60) * hh + 'px', height: (24 - S.set.workEnd / 60) * hh + 'px' } })); }
@@ -115,15 +115,16 @@
         const o = sg.o; const top = (sg.s / 60) * hh, h = Math.max(((sg.e - sg.s) / 60) * hh, 20) - 1; const w = (sg.span / sg.cols) * 100, l = (sg.col / sg.cols) * 100;
         const e = evBox(o, style(o) + (sg.first ? '' : ' cu') + (sg.last ? '' : ' cd') + (h < 36 ? ' sm' : '') + (h > 56 ? ' lg' : ''));
         Object.assign(e.style, { top: top + 'px', height: h + 'px', left: `calc(${l}% + 1px)`, width: `calc(${w}% - ${sg.col + sg.span < sg.cols ? 3 : 2}px)`, zIndex: 2 + sg.col });
-        const tm = CAL.fmtTime(new Date(o.s)); e.append(el('.ev-t', title(o)), h < 36 ? el('.ev-s', tm) : el('.ev-s', CAL.fmtOccTime(o)), h >= 52 && locLine(o) ? el('.ev-l', locLine(o)) : null);
+        const tm = CAL.fmtTime(new Date(o.s)); e.append(...[el('.ev-t', CAL.isFocusOcc(o) ? zk.icon('shield') : null, title(o)), h < 36 ? el('.ev-s', tm) : el('.ev-s', CAL.fmtOccTime(o)), h >= 52 && locLine(o) ? el('.ev-l', locLine(o)) : null].filter(Boolean));
         if (!o.ro) { if (sg.first) e.append(el('.rz.rt')); if (sg.last) e.append(el('.rz.rb')); }
-        const tr = I.F(o, 'travel'); if (tr && sg.first && S.set.travelShow) { const th = (tr / 60) * hh; col.append(el('.ev-travel', { style: { '--c': o.color, top: Math.max(0, top - th) + 'px', height: Math.min(th, top) + 'px', left: e.style.left, width: e.style.width } })); }
+        const tr = I.F(o, 'travel'); if (tr && sg.first && S.set.travelShow) { const th = (tr / 60) * hh; col.append(el('.ev-travel', { style: { '--c': o.color, '--ct': o.ct, top: Math.max(0, top - th) + 'px', height: Math.min(th, top) + 'px', left: e.style.left, width: e.style.width } })); }
         col.append(e);
       }
+      if (fr && work) { const row = fr.get(T.dayKey(d)); if (row) { const strip = el('.fr', { 'aria-hidden': 'true' }); const m = (t) => { const x = new Date(t); const mm = x.getHours() * 60 + x.getMinutes(); return mm === 0 && t > row.start ? 1440 : mm; }; for (const f of row.free) { const top = (m(f[0]) / 60) * hh, h = ((m(f[1]) - m(f[0])) / 60) * hh; strip.append(el('i.fr-w' + (row.longest === f ? '.long' : ''), { 'data-a': f[0], 'data-b': f[1], style: { top: top + 'px', height: h + 'px' }, title: (row.longest === f ? 'Longest free window: ' : 'Free: ') + CAL.fmtTime(new Date(f[0])) + ' \u2013 ' + CAL.fmtTime(new Date(f[1])) + ' (' + CAL.fmtShort(f[1] - f[0]) + '). Drag to protect as a focus block.' }, row.longest === f && h > 34 ? el('em', CAL.fmtShort(f[1] - f[0])) : null)); } col.append(strip); } }
       cols.append(col);
     });
     const body = el('.tg-body', { style: { gridTemplateColumns: `${gut}px 1fr` } }, gutter, cols); body.style.height = 24 * hh + 'px';
-    scroll.append(head, adRow, body); root.append(scroll); cur.days = days;
+    scroll.append(head, adRow, body); root.append(scroll); cur.days = days; requestAnimationFrame(() => scroll.style.setProperty('--head-h', head.offsetHeight + 'px'));
     // scroll position
     requestAnimationFrame(() => { if (scrollTop == null) { const now = new Date(); const h = days.some(isToday) ? Math.max(0, now.getHours() - 1.5) : S.set.workStart / 60 - 0.5; scroll.scrollTop = Math.max(0, h * hh); scrollTop = scroll.scrollTop; } else scroll.scrollTop = scrollTop; });
     scroll.addEventListener('scroll', () => { scrollTop = scroll.scrollTop; }, { passive: true });
@@ -155,10 +156,10 @@
       const bars = [], chips = days.map(() => []);
       for (const o of occs) { if (o.s >= wE || (o.e <= wS && !(o.e === o.s && o.s >= wS))) continue; if (o.allDay || spansDays(o)) { const a = Math.max(0, dayIndex(days, o.s)), b = Math.min(6, dayIndex(days, Math.max(o.s, o.e - 1))); bars.push({ o, a, b: Math.max(a, b), cl: o.s < wS, cr: o.e > wE }); } else { const i = dayIndex(days, o.s); if (i >= 0 && i < 7) chips[i].push(o); } }
       L.lanes(bars); const lanesShown = Math.min(cap, bars.reduce((m, b) => Math.max(m, b.lane + 1), 0)); const hidden = days.map(() => 0);
-      for (const b of bars) { if (b.lane >= cap) { for (let i = b.a; i <= b.b; i++) hidden[i]++; continue; } const e = el('.ev.bar' + style(b.o) + (b.cl ? '.cl' : '') + (b.cr ? '.cr' : ''), { 'data-id': b.o.id, style: { '--c': b.o.color, left: `calc(${(b.a / 7) * 100}% + 2px)`, width: `calc(${((b.b - b.a + 1) / 7) * 100}% - 4px)`, top: top0 + b.lane * LH + 'px' }, role: 'button', tabindex: -1, 'aria-label': title(b.o) + ', ' + CAL.fmtWhen(b.o) }, el('span.t', title(b.o))); if (!b.o.ro) { if (!b.cl) e.append(el('.rz.rl')); if (!b.cr) e.append(el('.rz.rr')); } barsEl.append(e); }
+      for (const b of bars) { if (b.lane >= cap) { for (let i = b.a; i <= b.b; i++) hidden[i]++; continue; } const e = el('.ev.bar' + style(b.o) + (b.cl ? '.cl' : '') + (b.cr ? '.cr' : ''), { 'data-id': b.o.id, style: { '--c': b.o.color, '--ct': b.o.ct, left: `calc(${(b.a / 7) * 100}% + 2px)`, width: `calc(${((b.b - b.a + 1) / 7) * 100}% - 4px)`, top: top0 + b.lane * LH + 'px' }, role: 'button', tabindex: -1, 'aria-label': title(b.o) + ', ' + CAL.fmtWhen(b.o) }, el('span.t', CAL.isFocusOcc(b.o) ? zk.icon('shield') : null, title(b.o))); if (!b.o.ro) { if (!b.cl) e.append(el('.rz.rl')); if (!b.cr) e.append(el('.rz.rr')); } barsEl.append(e); }
       days.forEach((d, i) => {
         const room = Math.max(0, cap - lanesShown); const list = chips[i]; const showN = list.length > room ? Math.max(0, room - 1) : list.length; const more = list.length - showN + hidden[i];
-        list.slice(0, showN).forEach((o, k) => { const c = el('.ev.chip' + style(o), { 'data-id': o.id, style: { '--c': o.color, top: top0 + (lanesShown + k) * LH + 'px', left: `calc(${(i / 7) * 100}% + 2px)`, width: `calc(${100 / 7}% - 4px)` }, role: 'button', tabindex: -1, 'aria-label': title(o) + ', ' + CAL.fmtWhen(o) }, el('i.dot'), el('span.t', title(o)), el('span.tm', CAL.fmtTime(new Date(o.s)))); barsEl.append(c); });
+        list.slice(0, showN).forEach((o, k) => { const c = el('.ev.chip' + style(o), { 'data-id': o.id, style: { '--c': o.color, '--ct': o.ct, top: top0 + (lanesShown + k) * LH + 'px', left: `calc(${(i / 7) * 100}% + 2px)`, width: `calc(${100 / 7}% - 4px)` }, role: 'button', tabindex: -1, 'aria-label': title(o) + ', ' + CAL.fmtWhen(o) }, el('i.dot'), el('span.t', CAL.isFocusOcc(o) ? zk.icon('shield') : null, title(o)), el('span.tm', CAL.fmtTime(new Date(o.s)))); barsEl.append(c); });
         if (more > 0) barsEl.append(el('button.mv-more', { type: 'button', style: { top: top0 + Math.min(cap - 1, lanesShown + showN) * LH + 'px', left: `calc(${(i / 7) * 100}% + 2px)`, width: `calc(${100 / 7}% - 4px)` }, onclick: (e) => { e.stopPropagation(); CAL.dayPopover(d, e.currentTarget); } }, more + ' more'));
       });
     }
@@ -189,8 +190,8 @@
     for (const o of occs) for (let d = CAL.day0(new Date(Math.max(o.s, cur.from))); d.getTime() < Math.min(o.e, cur.to) || (o.e <= o.s && T.sameDay(d, new Date(o.s))); d = CAL.addDays(d, 1)) { const k = T.dayKey(d); if (!byDay.has(k)) byDay.set(k, { d, items: [] }); byDay.get(k).items.push(o); if (o.e <= o.s) break; }
     if (!byDay.size) list.append(el('.zk-empty', el('strong', 'No upcoming events'), el('span', 'Nothing scheduled in the next ' + S.agendaDays + ' days.')));
     for (const { d, items } of [...byDay.values()].sort((a, b) => a.d - b.d)) {
-      list.append(el('.ag-day' + (isToday(d) ? '.today' : ''), el('span.n', String(d.getDate())), el('span', CAL.fmt('dwd', { weekday: 'long', month: 'long', year: 'numeric' }, d))));
-      for (const o of items.sort((a, b) => (b.allDay - a.allDay) || a.s - b.s)) list.append(el('.ag-row' + style(o), { 'data-id': o.id, style: { '--c': o.color }, role: 'button', tabindex: 0 }, el('span.tm', o.allDay ? 'all-day' : CAL.fmtOccTime(o)), el('i.dot', { style: { background: o.color } }), el('span.t', title(o), locLine(o) ? el('em', locLine(o)) : null, o.ev.rrule ? zk.icon('repeat') : null), el('span.cn', o.cal.name)));
+      list.append(el('.ag-day' + (isToday(d) ? '.today' : ''), el('span.n', String(d.getDate())), el('span', CAL.fmt('dwd', { weekday: 'long' }, d) + ' \u00b7 ' + CAL.fmt('dmy', { month: 'long', year: 'numeric' }, d))));
+      for (const o of items.sort((a, b) => (b.allDay - a.allDay) || a.s - b.s)) list.append(el('.ag-row' + style(o), { 'data-id': o.id, style: { '--c': o.color, '--ct': o.ct }, role: 'button', tabindex: 0 }, el('span.tm', o.allDay ? 'all-day' : CAL.fmtOccTime(o)), el('i.dot', { style: { background: o.color } }), el('span.t', title(o), locLine(o) ? el('em', locLine(o)) : null, o.ev.rrule ? zk.icon('repeat') : null), el('span.cn', o.cal.name)));
     }
     list.append(el('.ag-more', el('button.zk-btn.bordered', { type: 'button', onclick: () => { S.agendaDays += 30; CAL.render({ anim: null }); } }, 'Show 30 More Days')));
   }
@@ -203,7 +204,7 @@
     box.append(head); const list = el('.ag.res'); box.append(list);
     const rx = new RegExp('(' + CAL.norm(q).split(/\s+/).filter(Boolean).map((t) => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|') + ')', 'ig');
     const hl = (txt) => { if (!txt) return ''; const n = CAL.norm(txt); if (n.length !== txt.length) return txt; const f = document.createDocumentFragment(); let last = 0; n.replace(rx, (m, _g, idx) => { f.append(txt.slice(last, idx), el('mark', txt.slice(idx, idx + m.length))); last = idx + m.length; return m; }); f.append(txt.slice(last)); return f; };
-    for (const o of res) list.append(el('.ag-row' + style(o), { 'data-id': o.id, style: { '--c': o.color }, role: 'button', tabindex: 0, onclick: () => { document.querySelector('#q').value = ''; CAL.doSearch(''); S.sel = o.id; CAL.goto(new Date(o.s), 'zoom'); }, ondblclick: () => { if (!o.ro) CAL.openEditor(o); } }, el('span.tm', CAL.fmt('dsh', { month: 'short', day: 'numeric', year: 'numeric' }, new Date(o.s)), el('br'), o.allDay ? 'all-day' : CAL.fmtTime(new Date(o.s))), el('i.dot', { style: { background: o.color } }), el('span.t', hl(title(o)), locLine(o) ? el('em', hl(locLine(o))) : null, o.ev.rrule ? zk.icon('repeat') : null), el('span.cn', o.cal.name)));
+    for (const o of res) list.append(el('.ag-row' + style(o), { 'data-id': o.id, style: { '--c': o.color, '--ct': o.ct }, role: 'button', tabindex: 0, onclick: () => { document.querySelector('#q').value = ''; CAL.doSearch(''); S.sel = o.id; CAL.goto(new Date(o.s), 'zoom'); }, ondblclick: () => { if (!o.ro) CAL.openEditor(o); } }, el('span.tm', CAL.fmt('dsh', { month: 'short', day: 'numeric', year: 'numeric' }, new Date(o.s)), el('br'), o.allDay ? 'all-day' : CAL.fmtTime(new Date(o.s))), el('i.dot', { style: { background: o.color } }), el('span.t', hl(title(o)), locLine(o) ? el('em', hl(locLine(o))) : null, o.ev.rrule ? zk.icon('repeat') : null), el('span.cn', o.cal.name)));
     if (!res.length) list.append(el('.zk-empty', el('strong', 'No matching events'), el('span', 'Searches title, location, notes, attendees and categories.')));
   };
 
@@ -221,7 +222,9 @@
     order.forEach((dw) => g.append(el('span.mh', CAL.weekdayName(dw, 'narrow'))));
     for (let w = 0; w < 6; w++) { const ws = CAL.addDays(start, w * 7); if (S.set.weekNumbers) g.append(el('span.mwn', String(T.weekNumber(ws, fd)))); for (let i = 0; i < 7; i++) { const d = CAL.addDays(ws, i); const inP = d >= pf && d < pt; g.append(el('button.md' + (d.getMonth() !== md.getMonth() ? '.other' : '') + (isToday(d) ? '.today' : '') + (inP ? '.inp' : '') + (T.sameDay(d, S.date) ? '.sel' : ''), { type: 'button', 'aria-label': CAL.fmt('dfull', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' }, d), onclick: () => CAL.goto(d), ondblclick: () => { S.date = CAL.day0(d); CAL.setView('day'); } }, String(d.getDate()), has.get(T.dayKey(d)) ? el('i') : null)); } }
     mini.append(mh, g); side.append(mini);
-    // calendars
+    // tabs
+    const tabs = el('.zk-seg.rail-tabs', { role: 'tablist' }, [['cals', 'Calendars'], ['bal', 'Balance']].map(([k, l]) => el('button', { type: 'button', role: 'tab', 'aria-selected': S.railTab === k, class: S.railTab === k ? 'on' : '', onclick: () => { S.railTab = k; CAL.renderSide(); } }, l))); side.append(tabs);
+    if (S.railTab === 'bal') { CAL.renderBalance(side); side.scrollTop = st; return; }
     const list = el('.cals'); const groups = CAL.groups(); S.collapsed = S.collapsed || {};
     for (const gname of groups) {
       const items = S.cals.filter((c) => (c.group || 'Other') === gname); const col = S.collapsed[gname];
@@ -242,7 +245,7 @@
   CAL.showBanner = (a, opts = {}) => {
     const host = $('#alerts'); if (live.has(a.key)) return; const o = a.o; const when = o.s <= Date.now() ? 'Started ' + CAL.fmtTime(new Date(o.s)) : 'Today at ' + CAL.fmtTime(new Date(o.s));
     const closeIt = () => { const b = live.get(a.key); if (!b) return; live.delete(a.key); b.classList.add('out'); setTimeout(() => b.remove(), 180); };
-    const b = el('.alert', { role: 'alert', style: { '--c': o.color } }, el('i.bar'), el('.at', el('b', title(o)), el('span', (T.sameDay(new Date(o.s), new Date()) ? when : CAL.fmtWhen(o)) + (locLine(o) ? ' · ' + locLine(o) : ''))), el('.aa',
+    const b = el('.alert', { role: 'alert', style: { '--c': o.color, '--ct': o.ct } }, el('i.bar'), el('.at', el('b', title(o)), el('span', (T.sameDay(new Date(o.s), new Date()) ? when : CAL.fmtWhen(o)) + (locLine(o) ? ' · ' + locLine(o) : ''))), el('.aa',
       el('button.zk-btn.bordered', { type: 'button', onclick: (e) => zk.menu([{ label: '5 minutes', run: () => snooze(5) }, { label: '15 minutes', run: () => snooze(15) }, { label: '1 hour', run: () => snooze(60) }, { label: 'Until the event starts', run: () => snooze(Math.max(1, Math.round((o.s - Date.now()) / MIN))) }], { anchor: e.currentTarget }) }, 'Snooze'),
       el('button.zk-btn.bordered', { type: 'button', onclick: () => { CAL.dismissAlert(a.key); closeIt(); S.sel = o.id; CAL.goto(new Date(o.s), 'zoom'); } }, 'Show'), el('button.zk-btn.icon', { type: 'button', 'aria-label': 'Dismiss', title: 'Dismiss', onclick: () => { CAL.dismissAlert(a.key); closeIt(); } }, zk.icon('x'))));
     const snooze = (m) => { S.alerts.snoozed[a.key] = Date.now() + m * MIN; CAL.persistAlerts(); closeIt(); };

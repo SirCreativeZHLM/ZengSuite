@@ -74,7 +74,7 @@
       if (stray) { if (!run) { run = document.createElement('p'); root.insertBefore(run, c); } run.append(c); } else run = null;
     }
     for (const c of [...root.childNodes]) if (c.nodeType === 3 && c.nodeValue === '') c.remove();
-    const SOLID = /^(TABLE|HR|PRE|UL|OL|BLOCKQUOTE)$/;
+    const SOLID = /^(TABLE|HR|PRE)$/;
     const solid = (e) => e && e.nodeType === 1 && (isAtomic(e) || SOLID.test(e.tagName));
     if (solid(root.lastElementChild)) root.append(Object.assign(document.createElement('p'), { innerHTML: '<br>' }));
     if (solid(root.firstElementChild) && !root.firstElementChild.matches('ul,ol')) root.prepend(Object.assign(document.createElement('p'), { innerHTML: '<br>' }));
@@ -125,7 +125,7 @@
           let n;
           if (want === 'pre') { n = mk('pre', null); n.className = 'code'; n.textContent = CV.textOf(k).replace(/\n$/, ''); }
           else if (k.tagName === 'PRE') { const lines = k.textContent.split('\n'); const ps = lines.map((l) => mk(want, l ? U.esc(l) : '<br>')); k.replaceWith(...ps); map.set(k, ps[0]); continue; }
-          else { n = mk(want, k.innerHTML); }
+          else { n = mk(want, k.innerHTML || '<br>'); }
           k.replaceWith(n); map.set(k, n); [...k.childNodes].forEach((c) => map.set(c, c)); if (want === 'pre') { map.set(k, n); }
         }
       }
@@ -137,18 +137,57 @@
   // ------------------------------------------------------------ lists
   const listKind = (ul) => (ul.tagName === 'OL' ? 'ol' : ul.classList.contains('check') ? 'check' : ul.classList.contains('dash') ? 'dash' : 'ul');
   const listAt = () => { const r = selRange(); if (!r) return null; const li = closest(r.startContainer, 'li'); return li && inRoot(li) ? li.parentElement : null; };
+  function lisInSelection() {
+    const r = selRange(); if (!r || !inRoot(r.startContainer)) return []; const sl = closest(r.startContainer, 'li'), el_ = closest(r.endContainer, 'li'); const out = [];
+    if (r.collapsed) return sl && inRoot(sl) ? [sl] : [];
+    root.querySelectorAll('li').forEach((li) => { if (!r.intersectsNode(li)) return; const inside = r.comparePoint(li, 0) >= 0 && r.comparePoint(li, li.childNodes.length) <= 0; if (li === sl || li === el_ || inside) out.push(li); });
+    return out;
+  }
+  function mergeAdj(L, map) {
+    const same = (x) => x && x.nodeType === 1 && x.tagName === L.tagName && listKind(x) === listKind(L);
+    let p = L.previousElementSibling; if (same(p)) { while (L.firstChild) p.append(L.firstChild); map.set(L, p); L.remove(); L = p; }
+    const n = L.nextElementSibling; if (same(n)) { while (n.firstChild) L.append(n.firstChild); map.set(n, L); n.remove(); }
+  }
   function toggleList(kind) {
-    commit(); const cur = listAt();
-    if (cur && listKind(cur) === kind) { exec(kind === 'ol' ? 'insertOrderedList' : 'insertUnorderedList'); }
-    else if (cur && ((cur.tagName === 'UL') === (kind !== 'ol'))) { cur.className = kind === 'check' || kind === 'dash' ? kind : ''; if (kind !== 'check') cur.querySelectorAll(':scope > li[data-done]').forEach((l) => l.removeAttribute('data-done')); }
-    else if (cur) { exec(kind === 'ol' ? 'insertOrderedList' : 'insertUnorderedList'); const n = listAt(); if (n) n.className = kind === 'check' || kind === 'dash' ? kind : ''; }
-    else {
-      exec(kind === 'ol' ? 'insertOrderedList' : 'insertUnorderedList'); const r = selRange();
-      if (r) { const lists = new Set(); const li = closest(r.startContainer, 'li'); if (li) lists.add(li.parentElement); const le = closest(r.endContainer, 'li'); if (le) lists.add(le.parentElement); root.querySelectorAll(':scope > ul, :scope > ol').forEach((l) => { if (r.intersectsNode(l)) lists.add(l); });
-        lists.forEach((l) => { if (l.parentElement === root || l.parentElement.closest('li') === null) l.className = kind === 'check' || kind === 'dash' ? kind : ''; }); }
-    }
-    root.querySelectorAll('ul:not(.check) > li[data-done]').forEach((l) => l.removeAttribute('data-done'));
+    commit(); if (!selRange()) return; const lis = lisInSelection(); const tag = kind === 'ol' ? 'ol' : 'ul'; const cls = kind === 'check' || kind === 'dash' ? kind : '';
+    withSel(() => {
+      const map = new Map();
+      if (lis.length) {
+        const lists = [...new Set(lis.map((l) => l.parentElement))]; const same = lists.every((L) => listKind(L) === kind);
+        if (same) {
+          for (const L of lists) {
+            const sel_ = lis.filter((l) => l.parentElement === L); if (L.parentElement !== root) { outdentLis(sel_); continue; }
+            const all = [...L.children]; const first = all.indexOf(sel_[0]), last = all.indexOf(sel_[sel_.length - 1]); const frag = [];
+            const before = all.slice(0, first), after = all.slice(last + 1);
+            if (before.length) { const B = L.cloneNode(false); before.forEach((x) => B.append(x)); frag.push(B); }
+            for (const li of all.slice(first, last + 1)) { const p = mk('p'); while (li.firstChild && !(li.firstChild.nodeType === 1 && /^(UL|OL)$/.test(li.firstChild.tagName))) p.append(li.firstChild); if (!p.firstChild || (p.childNodes.length === 1 && p.firstChild.nodeName === 'BR' && false)) p.innerHTML = '<br>'; frag.push(p); li.querySelectorAll(':scope > ul, :scope > ol').forEach((n) => frag.push(n)); map.set(li, p); }
+            if (after.length) { const A_ = L.cloneNode(false); after.forEach((x) => A_.append(x)); frag.push(A_); }
+            L.replaceWith(...frag);
+          }
+        } else {
+          for (const L of lists) { let T = L; if (L.tagName.toLowerCase() !== tag) { T = mk(tag); while (L.firstChild) T.append(L.firstChild); L.replaceWith(T); map.set(L, T); } T.className = cls; if (kind !== 'check') T.querySelectorAll('li[data-done]').forEach((x) => x.removeAttribute('data-done')); T.querySelectorAll('ul, ol').forEach((n) => { if (n.tagName.toLowerCase() === tag) n.className = cls; }); mergeAdj(T, map); }
+        }
+      } else {
+        const blocks = selectedTopBlocks().filter((b) => /^(P|DIV|H1|H2|H3|PRE)$/.test(b.tagName) && !isAtomic(b)); if (!blocks.length) return map;
+        const L = mk(tag); if (cls) L.className = cls; blocks[0].before(L);
+        for (const b of blocks) { const li = mk('li'); if (b.tagName === 'PRE') li.textContent = b.textContent; else while (b.firstChild) li.append(b.firstChild); if (!li.firstChild) li.innerHTML = '<br>'; L.append(li); map.set(b, li); b.remove(); }
+        mergeAdj(L, map);
+      }
+      return map;
+    });
     fix(); changed(true); hooks.onSelection && hooks.onSelection();
+  }
+  function indentLis() {
+    const lis = lisInSelection(); if (!lis.length) return false; commit();
+    withSel(() => { for (const li of lis) { const prev = li.previousElementSibling; if (!prev || prev.tagName !== 'LI') continue; let sub = [...prev.children].reverse().find((c) => /^(UL|OL)$/.test(c.tagName)); if (!sub) { sub = mk(li.parentElement.tagName.toLowerCase()); sub.className = li.parentElement.className; prev.append(sub); } sub.append(li); } return new Map(); });
+    changed(true); return true;
+  }
+  function outdentLis(lis) {
+    for (const li of [...lis].reverse()) {
+      const L = li.parentElement; const parentLi = L.parentElement && L.parentElement.closest && L.parentElement.closest('li');
+      if (parentLi && inRoot(parentLi)) { const sibs = []; for (let n = li.nextElementSibling; n; n = n.nextElementSibling) sibs.push(n); if (sibs.length) { let sub = li.querySelector(':scope > ul, :scope > ol'); if (!sub) { sub = mk(L.tagName.toLowerCase()); sub.className = L.className; li.append(sub); } sibs.forEach((x) => sub.append(x)); } parentLi.after(li); if (!L.children.length) L.remove(); }
+      else { const p = mk('p'); while (li.firstChild && !(li.firstChild.nodeType === 1 && /^(UL|OL)$/.test(li.firstChild.tagName))) p.append(li.firstChild); if (!p.firstChild) p.innerHTML = '<br>'; const rest = [...li.children].filter((c) => /^(UL|OL)$/.test(c.tagName)); const after = []; for (let n = li.nextElementSibling; n; n = n.nextElementSibling) after.push(n); const frag = [p, ...rest]; if (after.length) { const A_ = L.cloneNode(false); after.forEach((x) => A_.append(x)); frag.push(A_); } li.remove(); const parent = L.parentNode; const nxt = L.nextSibling; if (L.children.length) { parent.insertBefore(p, nxt); rest.forEach((x) => parent.insertBefore(x, nxt)); if (frag.length > 1 + rest.length) parent.insertBefore(frag[frag.length - 1], nxt); } else L.replaceWith(...frag); }
+    }
   }
   Ed.toggleCheckAtCaret = () => { const r = selRange(); const li = r && closest(r.startContainer, 'li'); if (li && li.parentElement.classList.contains('check')) toggleCheck(li); };
   function toggleCheck(li) {
@@ -166,13 +205,13 @@
     commit(); const r = selRange(); let top = r && inRoot(r.startContainer) ? topOf(r.startContainer) : null;
     const tpl = document.createElement('template'); tpl.innerHTML = html; const node = tpl.content.firstElementChild;
     if (top && top.tagName === 'P' && isEmptyBlock(top)) top.replaceWith(node); else if (top) top.after(node); else root.append(node);
-    hydrate(node); fix();
+    hydrate(root); fix();
     if (caret === 'first-cell') { const c = node.querySelector('td,th'); if (c) caretTo(c); } else { const nx = node.nextElementSibling; if (nx) caretTo(nx); }
     changed(true); hooks.onSelection && hooks.onSelection(); return node;
   }
   Ed.insertTable = (rows = 3, cols = 3) => { const row = (t) => `<tr>${Array(cols).fill(`<${t}><br></${t}>`).join('')}</tr>`; insertBlock(`<table><tbody>${row('th')}${Array(rows - 1).fill(row('td')).join('')}</tbody></table>`, { caret: 'first-cell' }); };
   Ed.insertHr = () => insertBlock('<hr>');
-  Ed.insertSketch = () => { const n = insertBlock(N.sketch.newHtml()); n.scrollIntoView({ block: 'nearest' }); };
+  Ed.insertSketch = () => { const n = insertBlock(N.sketch.newHtml()); n.classList.add('active'); n.scrollIntoView({ block: 'nearest' }); };
   Ed.insertCodeBlock = () => setBlock('codeblock');
   const cellAt = () => { const r = selRange(); const c = r && closest(r.startContainer, 'td,th'); return c && inRoot(c) ? c : null; };
   Ed.inTable = () => !!cellAt();
@@ -280,7 +319,7 @@
     const r = selRange(); if (!r || !r.collapsed || e.isComposing) return false; const n = r.startContainer; if (!inRoot(n) || closest(n, 'pre, code')) return false;
     const blk = blockOf(n); if (!blk) return false; const before = textBefore(blk, r); let m;
     if ((blk.tagName === 'P' || blk.tagName === 'DIV') && blk.parentNode === root) {
-      const run = (fn) => { e.preventDefault(); commit(); deleteBefore(blk, r); fn(); };
+      const run = (fn) => { e.preventDefault(); commit(); deleteBefore(blk, r); if (!blk.firstChild) blk.innerHTML = '<br>'; caretTo(blk); fn(); };
       if ((m = /^(#{1,3})$/.exec(before))) { run(() => setBlock('h' + m[1].length)); return true; }
       if (before === '-') { run(() => toggleList('dash')); return true; } if (before === '*' || before === '+') { run(() => toggleList('ul')); return true; }
       if ((m = /^\[( |x|X)?\]$/.exec(before))) { run(() => { toggleList('check'); if (m[1] && m[1] !== ' ') Ed.toggleCheckAtCaret(); }); return true; }
@@ -312,8 +351,7 @@
     const li = closest(n, 'li');
     if (li && inRoot(li) && li.parentElement.classList.contains('check') && !isEmptyBlock(li) && r.collapsed) {
       e.preventDefault(); commit(); const nested = li.querySelector(':scope > ul, :scope > ol'); const x = document.createRange(); x.setStart(r.startContainer, r.startOffset);
-      if (nested) x.setEndBefore(nested); else x.selectNodeContents(li) && x.setStart(r.startContainer, r.startOffset);
-      if (!nested) { x.setEnd(li, li.childNodes.length); }
+      if (nested) x.setEndBefore(nested); else x.setEnd(li, li.childNodes.length);
       const frag = x.extractContents(); const nl = mk('li'); nl.append(frag); if (!nl.textContent && !nl.querySelector('img')) nl.innerHTML = '<br>'; if (!li.textContent.trim() && !li.querySelector(':scope > ul,:scope > ol')) li.innerHTML = '<br>'; else if (!li.firstChild) li.innerHTML = '<br>';
       li.after(nl); caretTo(nl); changed(true); return true;
     }
@@ -356,7 +394,7 @@
         const r = selRange(); if (!r) return; const li = closest(r.startContainer, 'li'); const pre = closest(r.startContainer, 'pre');
         if (cellAt()) { e.preventDefault(); tabInTable(e.shiftKey); return; }
         if (pre) { e.preventDefault(); if (!e.shiftKey) exec('insertText', '  '); return; }
-        if (li && inRoot(li)) { e.preventDefault(); commit(); exec(e.shiftKey ? 'outdent' : 'indent'); fix(); changed(true); return; }
+        if (li && inRoot(li)) { e.preventDefault(); commit(); if (e.shiftKey) { withSel(() => { outdentLis(lisInSelection()); return new Map(); }); } else indentLis(); fix(); changed(true); return; }
         e.preventDefault(); if (!e.shiftKey) exec('insertText', '    '); return;
       }
       if (k === 'Escape') { att && att.classList.remove('selected'); }
@@ -475,7 +513,7 @@
       case 'mono': { commit(); const r = selRange(); if (!r) break; const c = closest(r.startContainer, 'code'); if (c && inRoot(c)) { c.replaceWith(...c.childNodes); } else if (!r.collapsed) { const t = r.toString(); exec('insertHTML', `<code>${U.esc(t)}</code>`); } else setBlock('codeblock'); changed(true); break; }
       case 'h1': case 'h2': case 'h3': case 'p': case 'quote': case 'codeblock': setBlock(name); break;
       case 'ul': case 'ol': case 'dash': case 'check': toggleList(name); break;
-      case 'indent': commit(); exec('indent'); fix(); changed(true); break; case 'outdent': commit(); exec('outdent'); fix(); changed(true); break;
+      case 'indent': indentLis(); fix(); break; case 'outdent': commit(); withSel(() => { outdentLis(lisInSelection()); return new Map(); }); fix(); changed(true); break;
       case 'hr': Ed.insertHr(); break; case 'table': Ed.insertTable(); break; case 'sketch': Ed.insertSketch(); break;
       case 'clear': commit(); exec('removeFormat'); setBlock('p'); break;
       case 'tick': Ed.toggleCheckAtCaret(); break;

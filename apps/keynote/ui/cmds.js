@@ -58,13 +58,13 @@
   cmd.nameObj = (o, n) => { o.name = n; A.commit('Rename'); };
 
   // ---------- clipboard events ----------
-  document.addEventListener('copy', (e) => { if (A.editing || e.target.closest('input,textarea,[contenteditable="true"]') || !A.deck) return; if (A.focus === 'nav') { A.emit('navCopy', e, false); return; } const c = cmd.copy(false); if (!c) return; e.preventDefault(); e.clipboardData.setData('application/x-zengkeynote', JSON.stringify(c.objs)); e.clipboardData.setData('text/plain', c.objs.map((o) => K.plain(o.paras)).filter(Boolean).join('\n')); });
-  document.addEventListener('cut', (e) => { if (A.editing || e.target.closest('input,textarea,[contenteditable="true"]') || !A.deck) return; if (A.focus === 'nav') { A.emit('navCopy', e, true); return; } const c = cmd.copy(true); if (!c) return; e.preventDefault(); e.clipboardData.setData('application/x-zengkeynote', JSON.stringify(c.objs)); });
+  document.addEventListener('copy', (e) => { if (A.editing || e.target.closest('input,textarea,[contenteditable="true"]') || !A.deck) return; if (A.focus === 'nav') { A.emit('navCopy', e, false); return; } const c = cmd.copy(false); if (!c) return; e.preventDefault(); e.clipboardData.setData('application/x-zengstage', JSON.stringify(c.objs)); A.clipText = c.objs.map((o) => K.plain(o.paras)).filter(Boolean).join('\n') || '\u200b'; e.clipboardData.setData('text/plain', A.clipText); });
+  document.addEventListener('cut', (e) => { if (A.editing || e.target.closest('input,textarea,[contenteditable="true"]') || !A.deck) return; if (A.focus === 'nav') { A.emit('navCopy', e, true); return; } const c = cmd.copy(true); if (!c) return; e.preventDefault(); e.clipboardData.setData('application/x-zengstage', JSON.stringify(c.objs)); });
   document.addEventListener('paste', async (e) => {
     if (A.editing || e.target.closest('input,textarea,[contenteditable="true"]') || !A.deck) return; e.preventDefault(); const cd = e.clipboardData; if (A.focus === 'nav' && A.clipSlides) { A.emit('navPaste'); return; }
     const files = [...cd.files]; if (files.length) { for (const f of files) await A.insertFile({ name: f.name || 'pasted.png', data: new Uint8Array(await f.arrayBuffer()), type: f.type }); return; }
-    const j = cd.getData('application/x-zengkeynote'); if (j) { try { cmd.paste({ objs: JSON.parse(j), n: A.clip ? A.clip.n : 0 }); return; } catch { } }
-    if (A.clip && !cd.getData('text/plain')) { cmd.paste(); return; }
+    const j = cd.getData('application/x-zengstage'); if (j) { try { cmd.paste({ objs: JSON.parse(j), n: A.clip ? A.clip.n : 0 }); return; } catch { } }
+    if (A.clip && (!cd.getData('text/plain') || cd.getData('text/plain') === A.clipText)) { cmd.paste(); return; }
     const t = cd.getData('text/plain'); if (t) { const o = K.newObj('text', { x: 120, y: 160, w: 560, h: 60, ah: true, paras: K.paras(t) }); A.addObj(o, 'Paste Text'); A.fixAH(o); A.renderObj(o.id); A.overlay(); } else if (A.clip) cmd.paste();
   });
 

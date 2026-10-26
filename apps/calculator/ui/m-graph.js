@@ -134,10 +134,19 @@
       pois = out.filter((a, i) => !out.slice(0, i).some((b) => b.kind === a.kind && b.fi === a.fi && Math.abs(b.x - a.x) < dx * 2));
       schedule(); updateInfo();
     }
+    function showWork() {
+      const t = st.trace; if (!t) { H.toast('Click the graph to trace a function first'); return; }
+      const f = st.fns[t.fi]; if (!f || !compiled[t.fi] || !compiled[t.fi].ok) { H.toast('This function cannot be evaluated'); return; }
+      const src = f.expr.trim().replace(/^\s*(?:y|f\s*\(\s*x\s*\))\s*=\s*/i, '');
+      const D = C.Dec; const dv = (n) => D.fromNumber(n, 12);
+      try { const vars = { x: dv(t.x), a: dv(st.params.a), b: dv(st.params.b), c: dv(st.params.c) }; const m = C.explain(src, { vars, angle: st.angle, fmt: H.fmtOpts() });
+        H.work.openModel(m, { title: `Show work: y at x = ${nice(t.x)}`, src, vars, angle: st.angle }); } catch (e) { H.toast(e.message); }
+    }
     // ---------------- info bar
     function updateInfo() {
       info.replaceChildren(); const t = st.trace;
       if (t) { st.fns.forEach((f, i) => { if (!f.on || !compiled[i] || !compiled[i].ok) return; const y = val(i, t.x); info.append(zk.el('span.zc-chip', { style: `background:${COLORS[i]}22;color:inherit;box-shadow:inset 0 0 0 1.5px ${COLORS[i]}` }, `x=${nice(t.x)}  y${st.fns.length > 1 ? i + 1 : ''}=${isFinite(y) ? nice(y) : 'undefined'}`)); }); }
+      if (t) info.append(zk.el('button.zc-chip', { type: 'button', style: 'background:rgba(var(--accent-rgb),.16);color:var(--accent);font-weight:600', onclick: () => showWork() }, 'Show work'));
       const seen = new Set(); const near = pois.filter((p) => { const key = p.kind + nice(p.x) + nice(p.y); if (seen.has(key)) return false; seen.add(key); return true; }).sort((a, b) => Math.abs(a.x - st.cx) - Math.abs(b.x - st.cx)).slice(0, 7);
       for (const p of near) info.append(zk.el('button.zc-chip', { type: 'button', title: 'Go to ' + p.kind.toLowerCase(), onclick: () => { st.trace = { x: p.x, fi: p.fi }; updateInfo(); schedule(); } }, `${p.kind} (${nice(p.x)}, ${nice(p.y)})`));
       if (!info.children.length) info.append(zk.el('span.zc-note', 'Drag to pan, scroll to zoom, click the graph to trace a function.'));
@@ -208,7 +217,7 @@
       angle: { get: () => st.angle, set(a) { st.angle = a; changed(); H.updateAngle(); } },
       copyText: () => (st.trace ? nice(val(st.trace.fi, st.trace.x)) : st.fns[active] ? st.fns[active].expr : ''),
       paste(t) { const f = st.fns[active] || st.fns[0]; f.expr = t.trim().replace(/\n.*/s, ''); buildFns(); changed(); },
-      onKey() { return false; },
+      onKey() { return false; }, showWork,
     };
   };
 })();

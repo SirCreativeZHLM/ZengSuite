@@ -3,16 +3,16 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>ZengCalendar: the Outlook calendar you don't pay for</title>
-<meta name="description" content="ZengCalendar is a free, open source app for macOS, Windows and Linux. Day, week, month and year, with recurring events and no account to sign into.">
+<title>ZengCalendar: the calendar you don't pay for</title>
+<meta name="description" content="ZengCalendar is a free, open source app for macOS, Windows and Linux. Plan your days and protect your time. Free, offline, standard .ics.">
 <meta name="color-scheme" content="dark light">
 <meta name="theme-color" content="#000000">
 <link rel="canonical" href="https://zengbot.com/suite/calendar/">
 <link rel="icon" href="/suite/icon.svg" type="image/svg+xml">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="ZengSuite">
-<meta property="og:title" content="ZengCalendar: the Outlook calendar you don't pay for">
-<meta property="og:description" content="ZengCalendar is a free, open source app for macOS, Windows and Linux. Day, week, month and year, with recurring events and no account to sign into.">
+<meta property="og:title" content="ZengCalendar: the calendar you don't pay for">
+<meta property="og:description" content="ZengCalendar is a free, open source app for macOS, Windows and Linux. Plan your days and protect your time. Free, offline, standard .ics.">
 <meta property="og:url" content="https://zengbot.com/suite/calendar/">
 <meta property="og:image" content="https://zengbot.com/suite/og/calendar.jpg">
 <meta property="og:image:width" content="1200">
@@ -24,7 +24,7 @@
 <script src="/zb.js" defer></script>
 <script src="/suite/js/suite.js" defer></script>
 </head>
-<body style="--app:#ff6b5e;--app-ink:#0b0b0a;--hi:#ff6b5e;--hi-ink:#0b0b0a">
+<body style="--app:#d0382f;--app-ink:#ffffff;--hi:#d0382f;--hi-ink:#ffffff">
 <a class="skip" href="#main">Skip to content</a>
 <div data-zb-top data-zb-name="Calendar" data-zb-links="Apps|/suite/#apps,Download|/suite/download/,About|/suite/about/"></div>
 <main id="main">
@@ -34,37 +34,58 @@
   <div>
     <h1>Calendar</h1>
     <p class="prod">ZengCalendar</p>
-    <p class="repl"><span>The Outlook calendar you don't pay for.</span></p>
-    <p class="lead">Day, week, month and year, with recurring events and no account to sign into.</p>
+    <p class="repl"><span>The calendar you don't pay for.</span></p>
+    <p class="lead">Plan your days and protect your time. Free, offline, standard .ics.</p>
     <div class="actions"><a class="btn app" href="#download" data-primary="ZengCalendar">Download ZengCalendar</a><a class="btn" href="/suite/">All apps</a></div>
   </div>
 </div>
-<figure class="big-shot reveal"><div class="shot" data-app="calendar" style="--app:#ff6b5e"><div class="ph"><div><img src="/suite/img/icons/calendar.svg" width="120" height="120" alt=""><p>The Calendar screenshot goes here.</p></div></div></div><figcaption>ZengCalendar on macOS.</figcaption></figure>
+<figure class="big-shot reveal"><div class="shot" data-app="calendar" style="--app:#d0382f"><picture class="dark"><img src="/suite/img/calendar-dark.webp" width="1600" height="1000" alt="ZengCalendar on macOS: Plan your days and protect your time. Free, offline, standard .ics." fetchpriority="high"></picture><picture class="light"><img src="/suite/img/calendar-light.webp" width="1600" height="1000" alt="ZengCalendar on macOS: Plan your days and protect your time. Free, offline, standard .ics." fetchpriority="high"></picture></div><figcaption>ZengCalendar on macOS.</figcaption></figure>
 
-<section>
+<section class="sigsec">
+<div class="wrap">
+<h2>Signature feature</h2>
+<p class="signame"><span>Time Balance</span></p>
+<p class="lead">For the week or month you are looking at, see your time by calendar and category, a meeting-load meter and a free-time ribbon with your longest open window marked. A thin green strip beside each working day shows free windows: drag along it to protect that time as a focus block. Focus blocks are ordinary events, so they export, and quick add and Find Free Time respect them.</p>
+</div>
+</section>
+
+<section class="hr">
 <div class="wrap">
 <h2>What it does</h2>
 <ul class="caps" style="margin-top:36px">
-<li><h3>Every view you expect</h3><p>Day, week, month and year, with drag to create and drag to move.</p></li>
-<li><h3>Several calendars, one screen</h3><p>Colour-code home, work and school and toggle them on and off.</p></li>
-<li><h3>Repeating events done properly</h3><p>Daily, weekly, monthly, yearly, with exceptions.</p></li>
-<li><h3>Standard .ics</h3><p>Import and export so your events are never locked in.</p></li>
+<li><h3>Every view</h3><p>Day, work week, week, multi-day, month, year and list, with a current-time line and drag to create, move or resize.</p></li>
+<li><h3>Quick add in plain language</h3><p>Type Lunch with Sam tomorrow 1pm for 1h at Cafe, or Standup every weekday 9:30am.</p></li>
+<li><h3>Serious repeats and time zones</h3><p>Full RFC 5545 repeat rules, edit one, this and future, or all occurrences, and per-event time zones.</p></li>
+<li><h3>Find free time and holidays</h3><p>Search, Find Free Time, and holiday calendars for ten countries computed by rule for any year.</p></li>
+<li><h3>Yours to move</h3><p>Standard .ics import and export, and CSV import and export of spreadsheet-style files.</p></li>
 </ul>
 </div>
 </section>
 
 <section class="hr">
 <div class="wrap facts">
-<div><h2>Formats</h2><ul class="fmts"><li>.ics</li></ul><p class="fine" style="margin-top:14px">The first one is what it reads and writes best.</p></div>
-<div><h2>Keyboard</h2><ul class="keys"><li><span>New event</span><span><kbd data-mod>Ctrl</kbd><kbd>N</kbd></span></li><li><span>Today</span><span><kbd data-mod>Ctrl</kbd><kbd>T</kbd></span></li><li><span>Day, week, month, year</span><span><kbd data-mod>Ctrl</kbd><kbd>1 to 4</kbd></span></li><li><span>Next period</span><span><kbd data-mod>Ctrl</kbd><kbd>Right</kbd></span></li></ul></div>
+<div><h2>Formats</h2><ul class="fmts"><li>.ics</li><li>.csv</li></ul><p class="fine" style="margin-top:14px">The first one is the native, open format. Others are read and written as listed.</p></div>
+<div><h2>Keyboard</h2><ul class="keys"><li><span>Quick add</span><span><kbd>N</kbd></span></li><li><span>Time Balance</span><span><kbd data-mod>Ctrl</kbd><kbd>B</kbd></span></li><li><span>Today</span><span><kbd>T</kbd></span></li><li><span>Find free time</span><span><kbd data-mod>Ctrl</kbd><kbd>Shift</kbd><kbd>F</kbd></span></li></ul></div>
+</div>
+</section>
+
+<section class="hr">
+<div class="wrap prose">
+<h2 style="margin-top:0">Good to know</h2>
+<ul>
+<li>Invitations cannot be sent or answered. Attendees are stored and exported only.</li>
+<li>Alerts are in-app banners and only fire while the app is running. Missed ones are listed at the next launch.</li>
+<li>Subscribing to a web calendar needs a network, which this app never uses. Subscribe from File mirrors a local .ics instead and refreshes only when you ask.</li>
+<li>Holidays are national dates only. CSV has no recurrence and only English headers are read.</li>
+</ul>
 </div>
 </section>
 
 <section id="download" class="band" data-scope>
 <div class="wrap">
 <h2>Get Calendar.</h2>
-<p class="lead" style="margin-top:18px">Free, about <span data-size="app">X</span> MB, no account. Pick your system; the other platforms are right there too.</p>
-<div class="dl" data-dl><a data-p="macos-arm64" href="https://github.com/SirCreativeZHLM/ZengSuite/releases/download/v0.1.0/ZengCalendar-0.1.0-macos-arm64.dmg" rel="noopener" aria-label="Download ZengCalendar for macOS Apple Silicon"><span class="os">macOS</span><span class="meta">Apple Silicon</span><span class="file">ZengCalendar-0.1.0-macos-arm64.dmg</span></a><a data-p="macos-x64" href="https://github.com/SirCreativeZHLM/ZengSuite/releases/download/v0.1.0/ZengCalendar-0.1.0-macos-x64.dmg" rel="noopener" aria-label="Download ZengCalendar for macOS Intel"><span class="os">macOS</span><span class="meta">Intel</span><span class="file">ZengCalendar-0.1.0-macos-x64.dmg</span></a><a data-p="windows-x64" href="https://github.com/SirCreativeZHLM/ZengSuite/releases/download/v0.1.0/ZengCalendar-0.1.0-windows-x64.zip" rel="noopener" aria-label="Download ZengCalendar for Windows 64-bit"><span class="os">Windows</span><span class="meta">64-bit</span><span class="file">ZengCalendar-0.1.0-windows-x64.zip</span></a><a data-p="linux-x86_64" href="https://github.com/SirCreativeZHLM/ZengSuite/releases/download/v0.1.0/ZengCalendar-0.1.0-linux-x86_64.tar.gz" rel="noopener" aria-label="Download ZengCalendar for Linux x86_64"><span class="os">Linux</span><span class="meta">x86_64</span><span class="file">ZengCalendar-0.1.0-linux-x86_64.tar.gz</span></a><a data-p="linux-arm64" href="https://github.com/SirCreativeZHLM/ZengSuite/releases/download/v0.1.0/ZengCalendar-0.1.0-linux-arm64.tar.gz" rel="noopener" aria-label="Download ZengCalendar for Linux ARM64"><span class="os">Linux</span><span class="meta">ARM64</span><span class="file">ZengCalendar-0.1.0-linux-arm64.tar.gz</span></a></div>
+<p class="lead" style="margin-top:18px">Free, about <span data-size="app">2.0</span> MB, no account. Pick your system; the other platforms are right there too.</p>
+<div class="dl" data-dl><a data-p="macos-arm64" href="https://github.com/SirCreativeZHLM/ZengSuite/releases/download/v0.1.0/ZengCalendar-0.1.0-macos-arm64.dmg" rel="noopener" aria-label="Download ZengCalendar for macOS ARM (M1 or newer)"><span class="os">macOS</span><span class="meta">ARM (M1 or newer)</span><span class="file">ZengCalendar-0.1.0-macos-arm64.dmg</span></a><a data-p="macos-x64" href="https://github.com/SirCreativeZHLM/ZengSuite/releases/download/v0.1.0/ZengCalendar-0.1.0-macos-x64.dmg" rel="noopener" aria-label="Download ZengCalendar for macOS Intel"><span class="os">macOS</span><span class="meta">Intel</span><span class="file">ZengCalendar-0.1.0-macos-x64.dmg</span></a><a data-p="windows-x64" href="https://github.com/SirCreativeZHLM/ZengSuite/releases/download/v0.1.0/ZengCalendar-0.1.0-windows-x64.zip" rel="noopener" aria-label="Download ZengCalendar for Windows 64-bit"><span class="os">Windows</span><span class="meta">64-bit</span><span class="file">ZengCalendar-0.1.0-windows-x64.zip</span></a><a data-p="linux-x86_64" href="https://github.com/SirCreativeZHLM/ZengSuite/releases/download/v0.1.0/ZengCalendar-0.1.0-linux-x86_64.tar.gz" rel="noopener" aria-label="Download ZengCalendar for Linux x86_64"><span class="os">Linux</span><span class="meta">x86_64</span><span class="file">ZengCalendar-0.1.0-linux-x86_64.tar.gz</span></a><a data-p="linux-arm64" href="https://github.com/SirCreativeZHLM/ZengSuite/releases/download/v0.1.0/ZengCalendar-0.1.0-linux-arm64.tar.gz" rel="noopener" aria-label="Download ZengCalendar for Linux ARM64"><span class="os">Linux</span><span class="meta">ARM64</span><span class="file">ZengCalendar-0.1.0-linux-arm64.tar.gz</span></a></div>
 <p class="fine" style="margin-top:22px">Version 0.1.0, MIT license. Want the whole set? <a href="/suite/#download">Download everything</a>.</p>
 </div>
 </section>
@@ -72,14 +93,14 @@
 <section class="hr">
 <div class="wrap">
 <h2>The rest of the suite</h2>
-<div class="next"><a href="/suite/pages/"><img src="/suite/img/icons/pages.svg" width="30" height="30" alt="" loading="lazy">Pages</a><a href="/suite/numbers/"><img src="/suite/img/icons/numbers.svg" width="30" height="30" alt="" loading="lazy">Numbers</a><a href="/suite/keynote/"><img src="/suite/img/icons/keynote.svg" width="30" height="30" alt="" loading="lazy">Keynote</a><a href="/suite/preview/"><img src="/suite/img/icons/preview.svg" width="30" height="30" alt="" loading="lazy">Preview</a><a href="/suite/text/"><img src="/suite/img/icons/text.svg" width="30" height="30" alt="" loading="lazy">Text</a><a href="/suite/notes/"><img src="/suite/img/icons/notes.svg" width="30" height="30" alt="" loading="lazy">Notes</a><a href="/suite/freeform/"><img src="/suite/img/icons/freeform.svg" width="30" height="30" alt="" loading="lazy">Freeform</a><a href="/suite/reminders/"><img src="/suite/img/icons/reminders.svg" width="30" height="30" alt="" loading="lazy">Reminders</a><a href="/suite/contacts/"><img src="/suite/img/icons/contacts.svg" width="30" height="30" alt="" loading="lazy">Contacts</a><a href="/suite/calculator/"><img src="/suite/img/icons/calculator.svg" width="30" height="30" alt="" loading="lazy">Calculator</a></div>
+<div class="next"><a href="/suite/write/"><img src="/suite/img/icons/write.svg" width="30" height="30" alt="" loading="lazy">Write</a><a href="/suite/grid/"><img src="/suite/img/icons/grid.svg" width="30" height="30" alt="" loading="lazy">Grid</a><a href="/suite/stage/"><img src="/suite/img/icons/stage.svg" width="30" height="30" alt="" loading="lazy">Stage</a><a href="/suite/look/"><img src="/suite/img/icons/look.svg" width="30" height="30" alt="" loading="lazy">Look</a><a href="/suite/text/"><img src="/suite/img/icons/text.svg" width="30" height="30" alt="" loading="lazy">Text</a><a href="/suite/notes/"><img src="/suite/img/icons/notes.svg" width="30" height="30" alt="" loading="lazy">Notes</a><a href="/suite/canvas/"><img src="/suite/img/icons/canvas.svg" width="30" height="30" alt="" loading="lazy">Canvas</a><a href="/suite/todo/"><img src="/suite/img/icons/todo.svg" width="30" height="30" alt="" loading="lazy">Todo</a><a href="/suite/people/"><img src="/suite/img/icons/people.svg" width="30" height="30" alt="" loading="lazy">People</a><a href="/suite/calc/"><img src="/suite/img/icons/calc.svg" width="30" height="30" alt="" loading="lazy">Calc</a></div>
 </div>
 </section>
 </main>
 <nav class="sitenav" aria-label="ZengSuite">
 <a href="/suite/">ZengSuite</a><a href="/suite/#apps">Apps</a><a href="/suite/download/">Download</a><a href="/suite/about/">About</a><a href="https://github.com/SirCreativeZHLM/ZengSuite" rel="noopener">Source on GitHub</a><a href="https://github.com/SirCreativeZHLM/ZengSuite/blob/main/LICENSE" rel="noopener">MIT license</a>
 </nav>
-<div data-zb-foot data-zb-note="ZengSuite is free software under the MIT license. Not affiliated with Microsoft or Apple."></div>
+<div data-zb-foot data-zb-note="ZengSuite is an independent open-source project, not affiliated with or endorsed by Microsoft or Apple; all names, icons and designs here are original."></div>
 <a class="btn primary fab" href="#download">Download</a>
 </body>
 </html>

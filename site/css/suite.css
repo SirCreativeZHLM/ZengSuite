@@ -27,7 +27,7 @@ h1,h2,h3{font-family:var(--display);margin:0;text-wrap:balance}
 h2{font-size:clamp(2.1rem,5.4vw,3.9rem);line-height:1;font-weight:800;letter-spacing:-.035em}
 h3{font-size:1.25rem;line-height:1.2;font-weight:700;letter-spacing:-.015em}
 p{margin:0}
-.lead{font-size:clamp(1.1rem,2vw,1.3rem);color:var(--muted);max-width:56ch;text-wrap:pretty}
+.lead{font-size:clamp(1.1rem,2vw,1.3rem);color:var(--muted);max-width:52ch;text-wrap:pretty}
 code,kbd,.mono{font-family:var(--mono);font-size:.88em}
 section{padding:clamp(64px,10vw,128px) 0}
 .hr{border-top:1px solid var(--line)}
@@ -100,12 +100,12 @@ figcaption{margin-top:14px;font-size:14px;color:var(--muted)}
 .dl .meta{font-size:13px;color:var(--muted)}
 .dl .file{font:12px/1.3 var(--mono);color:var(--muted);overflow-wrap:anywhere}
 .dl a.you{background:var(--app);border-color:var(--app);color:var(--app-ink)}
-.dl a.you .meta,.dl a.you .file{color:inherit;opacity:.8}
+.dl a.you .meta,.dl a.you .file{color:inherit}
 .dl a.you::after{content:"Your system";position:absolute;top:12px;right:14px;font:700 11px/1 var(--sans);letter-spacing:.04em;text-transform:uppercase}
 @media (hover:hover) and (pointer:fine){.dl a:hover{transform:translateY(-3px);border-color:var(--fg)}.dl a.you:hover{border-color:var(--app)}}
 .dl a:active{transform:scale(.97)}
 .band{background:var(--hi);color:var(--hi-ink);--app:var(--hi-ink);--app-ink:var(--hi)}
-.band .lead,.band .fine,.band .dl .meta,.band .dl .file{color:inherit;opacity:.82}
+.band .lead,.band .fine,.band .dl .meta,.band .dl .file{color:inherit}
 .band .dl a{border-color:color-mix(in srgb,var(--hi-ink) 35%,transparent)}
 .band .dl a.you{background:var(--hi-ink);color:var(--hi);border-color:var(--hi-ink)}
 .band :focus-visible{outline-color:var(--hi-ink)}
@@ -166,7 +166,7 @@ kbd{display:inline-block;min-width:1.9em;text-align:center;padding:.28em .55em;b
 .mscroll{overflow-x:auto}
 
 /* about / prose */
-.prose{max-width:62ch}
+.prose{max-width:56ch}
 .prose h2{font-size:clamp(1.8rem,4vw,2.6rem);margin:2.2em 0 .5em}
 .prose p,.prose li{color:var(--muted);text-wrap:pretty}
 .prose p+p{margin-top:1em}
@@ -213,3 +213,10 @@ kbd{display:inline-block;min-width:1.9em;text-align:center;padding:.28em .55em;b
   }
 }
 @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}.stage .shot{animation:none}.btn,.row,.dl a,.next a{transition:none}}
+
+/* signature section */
+.sigsec h2{font-size:clamp(1.8rem,4vw,2.6rem)}
+.signame{margin:18px 0 22px;font:800 clamp(2.6rem,9vw,6.4rem)/.92 var(--display);letter-spacing:-.04em;text-wrap:balance}
+.signame span{text-decoration:underline;text-decoration-color:var(--app);text-decoration-thickness:.1em;text-underline-offset:.1em;text-decoration-skip-ink:none}
+.sigsec .lead{max-width:56ch;color:var(--fg)}
+.fmts small{font:inherit;color:var(--muted);margin-left:4px}

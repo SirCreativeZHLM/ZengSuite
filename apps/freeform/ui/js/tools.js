@@ -1,10 +1,10 @@
-/* Freeform canvas controller: view (pan/zoom/momentum), selection, hit-testing, tools and drag operations. */
+/* Canvas controller: view (pan/zoom/momentum), selection, hit-testing, tools and drag operations. */
 (() => {
   'use strict';
   const S = (FF.S = {
     tool: 'select', shape: 'rect', sel: new Set(), hover: null, space: false, snap: true, rulers: false, minimap: true, editing: null,
     pen: { pen: { color: 'ink', size: 4 }, marker: { color: '#007aff', size: 10 }, hl: { color: '#ffcc00', size: 22 }, pencil: { color: 'ink', size: 3 } },
-    eraser: { mode: 'area', size: 14 }, conn: { kind: 'elbow', ha: 'none', hb: 'arrow' }, stamp: '⭐', sticky: '#ffe27a', guides: [], laser: [], op: null, pointer: { x: 0, y: 0, w: [0, 0] },
+    eraser: { mode: 'area', size: 14 }, conn: { kind: 'elbow', ha: 'none', hb: 'arrow' }, stamp: '⭐', sticky: '#f6d36b', guides: [], laser: [], op: null, pointer: { x: 0, y: 0, w: [0, 0] },
   });
   const $ = (s) => document.querySelector(s);
   const stage = $('#stage'), over = $('#over'), mainC = $('#main');

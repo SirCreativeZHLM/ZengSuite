@@ -1,4 +1,4 @@
-/* ZengPages review: comments, track changes, footnotes, table of contents, bookmarks, outline, stats. */
+/* ZengWrite review: comments, track changes, footnotes, table of contents, bookmarks, outline, stats. */
 (() => {
   'use strict';
   const P = window.P, flow = P.flow, S = P.S;

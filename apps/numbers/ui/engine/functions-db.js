@@ -1,4 +1,4 @@
-/* ZengNumbers: conditional aggregation (SUMIF family), SUBTOTAL, AGGREGATE and database (D*) functions. */
+/* ZengGrid: conditional aggregation (SUMIF family), SUBTOTAL, AGGREGATE and database (D*) functions. */
 (function (G) {
   'use strict';
   const ZN = G.ZN; const { E, Range } = ZN; const F = ZN.F;

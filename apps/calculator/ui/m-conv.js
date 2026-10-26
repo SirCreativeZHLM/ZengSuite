@@ -15,12 +15,14 @@
     const fromSel = zk.el('select.zc-select', { 'aria-label': 'Convert from unit' }), toSel = zk.el('select.zc-select', { 'aria-label': 'Convert to unit' });
     const swapBtn = zk.el('button.zc-btn', { type: 'button', 'aria-label': 'Swap units', title: 'Swap units', onclick: () => { const o = outEl.dataset.ungrouped; [from, to] = [to, from]; if (o) inEl.value = o; fillSel(); update(); persist(); } }, zk.icon('arrow-up-down'));
     const copyBtn = zk.el('button.zc-btn', { type: 'button', onclick: () => { if (outEl.dataset.text) H.copy(outEl.dataset.ungrouped); } }, 'Copy');
+    const workBtn = zk.el('button.zc-btn', { type: 'button', onclick: () => showWork() }, 'Show work');
+    const showWork = () => { const v = parseInput(inEl.value); if (!v) return H.toast('Enter a value first'); try { H.work.openModel(C.convWork(v, unitObj(from), unitObj(to), H.fmtOpts()), { title: 'Show work' }); } catch (e) { H.toast(e.message); } };
     const errEl = zk.el('.zc-note', { role: 'alert' });
     const table = zk.el('table.zc-table'); const tableWrap = zk.el('.zc-card', { style: 'padding:.25rem .5rem;min-height:0;overflow:auto;flex:1' }, table);
     const ratesBox = zk.el('.zc-card');
     root.append(zk.el('.zc-panel', { style: 'flex:1;min-height:0' }, chips,
       zk.el('.zc-card', zk.el('.zc-label', 'From'), inEl, fromSel), zk.el('.zc-row', { style: 'justify-content:center' }, swapBtn),
-      zk.el('.zc-card', zk.el('.zc-label', 'To'), outEl, zk.el('.zc-row', toSel, zk.el('span.zk-spacer'), copyBtn), errEl),
+      zk.el('.zc-card', zk.el('.zc-label', 'To'), outEl, zk.el('.zc-row', toSel, zk.el('span.zk-spacer'), workBtn, copyBtn), errEl),
       ratesBox, zk.el('.zc-label', 'All units'), tableWrap));
 
     CAT_ORDER.forEach((c) => chips.append(zk.el('button.zc-chip', { type: 'button', role: 'tab', 'data-cat': c, onclick: () => setCat(c), onpointerdown: (e) => e.currentTarget.classList.add('down'), onpointerup: (e) => e.currentTarget.classList.remove('down'), onpointerleave: (e) => e.currentTarget.classList.remove('down') }, C.CATS[c].name)));
@@ -48,7 +50,7 @@
         const r = C.convert(v, a, b); outEl.textContent = H.fmt(r); outEl.dataset.text = H.fmt(r); outEl.dataset.plain = r.toPlain(); outEl.dataset.ungrouped = C.format(r, { group: false, sep: H.sep });
         table.append(zk.el('thead', zk.el('tr', zk.el('th', 'Unit'), zk.el('th', 'Value'))));
         const tb = zk.el('tbody'); for (const u of units()) { let cell; try { cell = H.fmt(C.convert(v, a, u)); } catch (e) { cell = '—'; } const tr = zk.el('tr', { tabindex: 0, title: 'Click to convert to this unit', onclick: () => { to = u.id; toSel.value = u.id; update(); persist(); } }, zk.el('td', u.label), zk.el('td.selectable', cell)); if (u.id === to) tr.style.background = 'rgba(var(--accent-rgb),.14)'; tb.append(tr); } table.append(tb);
-        if (commit) H.addHistory({ expr: `${H.fmt(v)} ${a.label.replace(/ \(.*\)/, '')} → ${b.label.replace(/ \(.*\)/, '')}`, result: r.toPlain(), kind: 'dec', mode: 'converter' });
+        if (commit) H.addHistory({ expr: `${H.fmt(v)} ${a.label.replace(/ \(.*\)/, '')} → ${b.label.replace(/ \(.*\)/, '')}`, result: r.toPlain(), kind: 'dec', mode: 'converter', work: C.convWork(v, a, b, H.fmtOpts()) });
       } catch (e) { outEl.textContent = '—'; outEl.dataset.text = ''; outEl.dataset.ungrouped = ''; errEl.textContent = e.message; for (const u of []) u; }
     }
     function persist() { H.save('conv', { cat, from, to, text: inEl.value }); }
@@ -73,6 +75,6 @@
     function apply() { C.setRates(H.settings.rates); H.saveSettings(); update(); }
 
     const ready = (async () => { const s = await H.load('conv', null); if (s) { cat = s.cat in C.CATS ? s.cat : 'length'; from = s.from; to = s.to; text = s.text ?? '1'; } inEl.value = text; fillSel(); if (!units().some((u) => u.id === from)) setCat(cat); else update(); })();
-    return { el: root, ready, refresh: update, show() { update(); }, copyText: () => outEl.dataset.ungrouped || null, paste(t) { const d = C.parseNumberText(t, H.sep); if (d) { inEl.value = d.toPlain(); update(); persist(); } else zk.toast('Clipboard does not contain a number', 1500); }, onKey(e) { if (/^[0-9.]$/.test(e.key)) { inEl.focus(); return false; } return false; } };
+    return { el: root, ready, refresh: update, show() { update(); }, copyText: () => outEl.dataset.ungrouped || null, showWork, paste(t) { const d = C.parseNumberText(t, H.sep); if (d) { inEl.value = d.toPlain(); update(); persist(); } else zk.toast('Clipboard does not contain a number', 1500); }, onKey(e) { if (/^[0-9.]$/.test(e.key)) { inEl.focus(); return false; } return false; } };
   };
 })();

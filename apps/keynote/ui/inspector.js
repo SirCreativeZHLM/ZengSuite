@@ -323,12 +323,12 @@
   I.refresh = () => { if (I._raf) return; I._raf = requestAnimationFrame(() => { I._raf = 0; I.render(); }); };
   I.render = () => {
     if (!A.deck) return; const top = (insp.querySelector('.ibody') || {}).scrollTop || 0;
-    const tabs = h('.itabs', seg([{ v: 'format', label: 'Format' }, { v: 'animate', label: 'Animate' }, { v: 'doc', label: 'Document' }], I.tab, (v) => { I.tab = v; I.render(); }));
+    const tabs = h('.itabs', seg([{ v: 'format', label: 'Design' }, { v: 'animate', label: 'Motion' }, { v: 'doc', label: 'Deck' }], I.tab, (v) => { I.tab = v; I.render(); }));
     const body = h('.ibody'); const os = objs(); let secs = [];
     if (I.tab === 'format') {
       if (!os.length) secs = slideFormat();
       else {
-        const hasText = os.every((o) => ['text', 'shape', 'table'].includes(o.type)); const subs = [{ v: 'style', label: 'Style' }, ...(hasText ? [{ v: 'text', label: 'Text' }] : []), { v: 'arrange', label: 'Arrange' }]; if (!subs.some((x) => x.v === I.sub)) I.sub = 'style';
+        const hasText = os.every((o) => ['text', 'shape', 'table'].includes(o.type)); const subs = [{ v: 'style', label: 'Look' }, ...(hasText ? [{ v: 'text', label: 'Type' }] : []), { v: 'arrange', label: 'Place' }]; if (!subs.some((x) => x.v === I.sub)) I.sub = 'style';
         const sub = h('div', { style: { padding: '8px 14px 0' } }, seg(subs, I.sub, (v) => { I.sub = v; I.render(); }, 'full')); sub.firstChild.style.display = 'flex'; sub.firstChild.querySelectorAll('button').forEach((b) => (b.style.flex = '1'));
         body.append(sub); secs = I.sub === 'style' ? styleSections(os) : I.sub === 'text' ? textSection(os) : arrange(os);
         if (os.length > 1) body.prepend(h('.small', { style: { padding: '8px 14px 0' } }, os.length + ' objects selected'));

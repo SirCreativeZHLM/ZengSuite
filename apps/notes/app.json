@@ -1,0 +1,11 @@
+{
+  "id": "notes",
+  "name": "Notes",
+  "tagline": "Notes that link together: checklists, sketches, tables, a link graph and encrypted notes, all offline.",
+  "msEquivalent": "",
+  "accent": "#ffd60a",
+  "extensions": [
+    "znotes"
+  ],
+  "mime": "application/zip"
+}

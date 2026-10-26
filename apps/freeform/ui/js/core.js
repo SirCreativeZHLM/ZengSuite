@@ -1,4 +1,4 @@
-/* Freeform core: object model, boards, undo history, geometry, shape paths. Global namespace FF. */
+/* Canvas core: object model, boards, undo history, geometry, shape paths. Global namespace FF. */
 (() => {
   'use strict';
   const FF = (window.FF = { rev: 0, dark: matchMedia('(prefers-color-scheme: dark)').matches, media: new Map(), listeners: {} });
@@ -17,8 +17,9 @@
     m = /^rgba?\(([^)]+)\)/.exec(c); if (m) { const p = m[1].split(',').map(parseFloat); if (p.length > 3 && p[3] < 0.5) return 1; return (0.299 * p[0] + 0.587 * p[1] + 0.114 * p[2]) / 255; }
     return 0.6;
   };
-  FF.PALETTE = ['ink', '#8e8e93', '#ff3b30', '#ff9500', '#ffcc00', '#34c759', '#00c7be', '#007aff', '#5856d6', '#af52de', '#ff375f', '#a2845e', '#ffffff'];
-  FF.STICKY = ['#ffe27a', '#ffb3c7', '#ffc58a', '#b7ecb0', '#aed6ff', '#d9c2ff', '#e5e5ea', '#ffffff'];
+  FF.translucent = (c) => { let m = /^#([0-9a-f]{8})$/i.exec(c || ''); if (m) return parseInt(m[1].slice(6), 16) < 150; m = /^rgba\(([^)]+)\)/.exec(c || ''); return !!m && parseFloat(m[1].split(',')[3]) < 0.6; };
+  FF.PALETTE = ['ink', '#7a8190', '#e5484d', '#f2780c', '#f5c000', '#46a758', '#12a594', '#0090ff', '#5b5bd6', '#a15fd3', '#d6409f', '#a07c5b', '#ffffff'];
+  FF.STICKY = ['#f6d36b', '#f4a9a1', '#f2b987', '#a9d9a1', '#9fcbe8', '#c4b3e6', '#d8d3c4', '#fbf7ee'];
   FF.FAMS = {
     sans: "ui-sans-serif,-apple-system,'SF Pro Text',Inter,'Segoe UI',system-ui,sans-serif",
     serif: "'New York','Iowan Old Style',Georgia,'Times New Roman',serif",
@@ -28,8 +29,8 @@
 
   // ---------- objects ----------
   const DEF = {
-    shape: { fill: 'paper', stroke: 'ink', sw: 2, dash: '', op: 1, fs: 20, tc: 'ink', ta: 'center', va: 'middle', font: 'sans' },
-    sticky: { fill: '#ffe27a', stroke: 'none', sw: 0, op: 1, shadow: true, fs: 24, tc: 'ink', ta: 'left', va: 'top', font: 'hand' },
+    shape: { fill: '#5b5bd61f', stroke: '#5b5bd6', sw: 2, dash: '', op: 1, fs: 20, tc: 'ink', ta: 'center', va: 'middle', font: 'sans' },
+    sticky: { fill: '#f6d36b', stroke: 'none', sw: 0, op: 1, shadow: true, fs: 24, tc: 'ink', ta: 'left', va: 'top', font: 'hand' },
     text: { fill: 'none', stroke: 'none', sw: 0, op: 1, fs: 28, tc: 'ink', ta: 'left', va: 'top', font: 'sans' },
     stroke: { stroke: 'ink', sw: 4, op: 1, tool: 'pen' },
     conn: { stroke: 'ink', sw: 2, dash: '', op: 1, fs: 16, tc: 'ink', font: 'sans' },
@@ -127,6 +128,8 @@
     ['arrow', 'Arrow'], ['leftarrow', 'Arrow Left'], ['bubble', 'Speech Bubble'], ['cloud', 'Cloud'],
     ['process', 'Process'], ['decision', 'Decision'], ['terminator', 'Terminator'], ['data', 'Data'], ['document', 'Document'], ['database', 'Database'], ['predefined', 'Predefined Process'], ['delay', 'Delay'], ['merge', 'Merge'], ['or', 'Or'],
   ];
+  FF.foldSize = (w, h) => Math.max(8, Math.min(26, Math.min(w, h) * 0.14));
+  FF.stickyD = (w, h) => { const f = FF.foldSize(w, h); return `M0 0H${f2(w)}V${f2(h - f)}L${f2(w - f)} ${f2(h)}H0Z`; };
   FF.shapeD = (k, w, h) => (SH[k] || SH.rect)(Math.max(1, w), Math.max(1, h));
   FF.shapePath = (o) => {
     const key = o.kind + '|' + o.w + '|' + o.h; if (o._pth && o._pth.key === key) return o._pth;

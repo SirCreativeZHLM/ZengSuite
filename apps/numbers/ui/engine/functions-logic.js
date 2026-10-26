@@ -1,4 +1,4 @@
-/* ZengNumbers logical functions + LAMBDA helpers (MAP, REDUCE, SCAN, BYROW, BYCOL, MAKEARRAY). LET / LAMBDA live in formula.js. */
+/* ZengGrid logical functions + LAMBDA helpers (MAP, REDUCE, SCAN, BYROW, BYCOL, MAKEARRAY). LET / LAMBDA live in formula.js. */
 (function (G) {
   'use strict';
   const ZN = G.ZN; const { E, Range } = ZN; const F = ZN.F; const { isErr, toNum, toBool, scalar } = F; const FM = ZN.formula;

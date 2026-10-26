@@ -1,6 +1,6 @@
 [package]
 name = "zeng-keynote"
-description = "ZengKeynote — presentations"
+description = "ZengStage — presentations"
 version.workspace = true
 edition.workspace = true
 license.workspace = true

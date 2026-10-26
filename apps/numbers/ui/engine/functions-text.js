@@ -1,4 +1,4 @@
-/* ZengNumbers text functions. */
+/* ZengGrid text functions. */
 (function (G) {
   'use strict';
   const ZN = G.ZN; const { E, ZErr } = ZN; const F = ZN.F; const { isErr, toNum, toStr, scalar } = F; const fmt = ZN.fmt;

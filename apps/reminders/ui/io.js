@@ -236,9 +236,9 @@
   }
   const earlyPhrase = (m) => (m % 1440 === 0 ? `${m / 1440} day${m / 1440 > 1 ? 's' : ''}` : m % 60 === 0 ? `${m / 60} hour${m / 60 > 1 ? 's' : ''}` : `${m} min`) + ' before';
   function mdLine(r) {
-    const bits = [r.title]; if (r.due) bits.push(r.due + (r.time ? ' ' + r.time : '')); if (r.repeat && r.due) bits.push(repeatPhrase(r.repeat));
+    const bits = []; if (r.due) bits.push(r.due + (r.time ? ' ' + r.time : '')); if (r.repeat && r.due) bits.push(repeatPhrase(r.repeat));
     if (r.early && r.due) bits.push(earlyPhrase(r.early)); if (r.priority) bits.push('!'.repeat(r.priority)); (r.tags || []).forEach((t) => bits.push('#' + t)); if (r.flag) bits.push('🚩');
-    return bits.join(' ');
+    return bits.length ? r.title + ' — ' + bits.join(' ') : r.title;
   }
   function toMarkdown({ lists, reminders }) {
     const out = [];
@@ -259,7 +259,9 @@
       let m = /^\s{0,3}#{1,6}\s+(.+?)\s*#*\s*$/.exec(line); if (m) { listName = m[1].trim(); stack.length = 0; last = null; continue; }
       m = /^(\s*)(?:[-*+]|\d+[.)])\s+(?:\[([ xX])\]\s+)?(.*\S)\s*$/.exec(line);
       if (m) {
-        const ind = m[1].replace(/\t/g, '    ').length; const p = P.parse(m[3], { now, lists: [] }); if (!m[2] && !p.title) continue;
+        const ind = m[1].replace(/\t/g, '    ').length; let p; const cut = m[3].lastIndexOf(' — '); // "Title — date repeat !!! #tag" keeps the title literal
+        if (cut > 0) { const meta = P.parse(m[3].slice(cut + 3), { now, lists: [] }); if (!meta.title) p = { ...meta, title: m[3].slice(0, cut).trim() }; }
+        if (!p) p = P.parse(m[3], { now, lists: [] }); if (!m[2] && !p.title) continue;
         const it = { uid: 'md' + ++n, parentUid: null, listName: listName || defaultList, title: p.title || m[3], notes: '', url: '', due: p.due, time: p.time, repeat: p.repeat, early: p.early, priority: p.priority, flag: p.flag, tags: p.tags, done: !!m[2] && m[2] !== ' ', doneAt: null, created: null };
         while (stack.length && stack[stack.length - 1].ind >= ind) stack.pop(); if (stack.length) it.parentUid = stack[stack.length - 1].uid; stack.push({ ind, uid: it.uid }); items.push(it); last = it; continue;
       }

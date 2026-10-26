@@ -1,4 +1,4 @@
-/* ZengNumbers number-format engine (Excel format-code grammar) + typed-input parsing. Exposes ZN.fmt and ZN.parseValue. */
+/* ZengGrid number-format engine (Excel format-code grammar) + typed-input parsing. Exposes ZN.fmt and ZN.parseValue. */
 (function (G) {
   'use strict';
   const ZN = G.ZN; const { ZErr } = ZN; const D = ZN.date;
