@@ -85,7 +85,7 @@
       const rows = sh.maxRow(), cols = sh.maxCol(); if (list.length > 1) body += '<h2>' + U.esc(sh.name) + '</h2>';
       body += rows < 0 ? '<p><em>(empty sheet)</em></p>' : tableHtml(sh, 0, 0, rows, cols, { id: sh.name });
     }
-    return '<!DOCTYPE html>\n<html><head><meta charset="utf-8"><title>' + U.esc(title) + '</title><style>body{font:14px -apple-system,Segoe UI,Helvetica,Arial,sans-serif;margin:24px;color:#111}h2{font-size:16px;margin:28px 0 8px}table{border-collapse:collapse}td{padding:2px 6px;border:1px solid #e1e1e1;height:20px}</style></head><body>\n' + body + '\n</body></html>\n';
+    return '<!DOCTYPE html>\n<html><head><meta charset="utf-8"><title>' + U.esc(title) + '</title><style>body{font:14px Helvetica,Arial,sans-serif;margin:24px;color:#111}h2{font-size:16px;margin:28px 0 8px}table{border-collapse:collapse}td{padding:2px 6px;border:1px solid #e1e1e1;height:20px}</style></head><body>\n' + body + '\n</body></html>\n';
   };
 
   // ===================== JSON =====================

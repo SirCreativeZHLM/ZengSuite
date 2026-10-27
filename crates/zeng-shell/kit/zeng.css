@@ -1,6 +1,7 @@
 /* ZengSuite UI kit: tokens + controls shared by every app.
    Apps set `--accent` (and `--accent-rgb`) on :root to brand themselves; everything else follows the system. */
-@font-face { font-family: "Inter"; src: url("/kit/fonts/inter.woff2") format("woff2"); font-weight: 100 900; font-display: swap; }
+@font-face { font-family: "Geist"; src: url("/kit/fonts/geist.woff2") format("woff2"); font-weight: 100 900; font-display: swap; }
+@font-face { font-family: "Geist Mono"; src: url("/kit/fonts/geist-mono.woff2") format("woff2"); font-weight: 100 900; font-display: swap; }
 
 :root {
   color-scheme: light dark;
@@ -10,15 +11,15 @@
   --fg: #1d1d1f; --fg-2: rgba(60,60,67,.72); --fg-3: rgba(60,60,67,.42);
   --line: rgba(0,0,0,.10); --line-strong: rgba(0,0,0,.18);
   --fill: rgba(120,120,128,.12); --fill-2: rgba(120,120,128,.18); --fill-3: rgba(120,120,128,.26);
-  --material: rgba(246,246,248,.72); --material-thick: rgba(250,250,252,.86);
-  --sidebar: rgba(236,236,240,.72);
+  --material: #f5f5f7; --material-thick: #fafafc;
+  --sidebar: #ececf0;
   --shadow-1: 0 0 0 .5px rgba(0,0,0,.08), 0 1px 3px rgba(0,0,0,.10);
-  --shadow-2: 0 0 0 .5px rgba(0,0,0,.10), 0 8px 28px rgba(0,0,0,.18), 0 2px 6px rgba(0,0,0,.08);
+  --shadow-2: 0 0 0 .5px rgba(0,0,0,.10), 0 4px 14px rgba(0,0,0,.16);
   --red: #ff3b30; --orange: #ff9500; --yellow: #ffcc00; --green: #34c759; --teal: #30b0c7; --blue: #007aff; --purple: #af52de; --pink: #ff2d55;
   --r-sm: 6px; --r-md: 8px; --r-lg: 12px; --r-xl: 16px;
   --toolbar-h: 52px;
-  --font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Inter", "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif;
-  --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, "DejaVu Sans Mono", monospace;
+  --font: "Geist", "Inter", "Noto Sans", "DejaVu Sans", sans-serif;
+  --font-mono: "Geist Mono", "DejaVu Sans Mono", monospace;
   --ease: cubic-bezier(.2,.8,.2,1);
 }
 @media (prefers-color-scheme: dark) {
@@ -27,10 +28,10 @@
     --fg: #f5f5f7; --fg-2: rgba(235,235,245,.68); --fg-3: rgba(235,235,245,.36);
     --line: rgba(255,255,255,.10); --line-strong: rgba(255,255,255,.2);
     --fill: rgba(120,120,128,.24); --fill-2: rgba(120,120,128,.32); --fill-3: rgba(120,120,128,.42);
-    --material: rgba(40,40,44,.72); --material-thick: rgba(44,44,48,.88);
-    --sidebar: rgba(38,38,42,.72);
+    --material: #28282c; --material-thick: #2c2c30;
+    --sidebar: #262629;
     --shadow-1: 0 0 0 .5px rgba(255,255,255,.08), 0 1px 3px rgba(0,0,0,.5);
-    --shadow-2: 0 0 0 .5px rgba(255,255,255,.12), 0 10px 34px rgba(0,0,0,.6), 0 2px 6px rgba(0,0,0,.4);
+    --shadow-2: 0 0 0 .5px rgba(255,255,255,.12), 0 4px 16px rgba(0,0,0,.5);
   }
 }
 @media (prefers-reduced-transparency: reduce) { :root { --material: var(--bg-2); --material-thick: var(--bg-2); --sidebar: var(--bg-2); } }
@@ -45,7 +46,6 @@ body {
   -webkit-user-select: none; user-select: none; cursor: default;
   overscroll-behavior: none;
 }
-.platform-linux body { font-family: "Inter", var(--font); }
 input, textarea, [contenteditable], .selectable { -webkit-user-select: text; user-select: text; cursor: text; }
 button, select, input, textarea { font: inherit; color: inherit; }
 ::selection { background: rgba(var(--accent-rgb), .3); }
@@ -69,7 +69,7 @@ svg.zi { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-wid
 /* ---------- toolbar (doubles as the title bar on macOS) ---------- */
 .zk-toolbar {
   flex: none; min-height: var(--toolbar-h); display: flex; align-items: center; gap: 6px; padding: 6px 12px;
-  background: var(--material); backdrop-filter: saturate(180%) blur(24px); -webkit-backdrop-filter: saturate(180%) blur(24px);
+  background: var(--material);
   border-bottom: .5px solid var(--line); position: relative; z-index: 20; flex-wrap: nowrap; overflow: visible;
 }
 .platform-mac .zk-toolbar.zk-titlebar { padding-left: 84px; }
@@ -82,7 +82,7 @@ svg.zi { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-wid
 .zk-toolbar > .zk-title, .zk-toolbar > .zk-spacer { -webkit-app-region: drag; }
 .zk-group { display: inline-flex; align-items: center; gap: 2px; }
 .zk-secondary { display: flex; align-items: center; gap: 6px; padding: 4px 12px; border-bottom: .5px solid var(--line); background: var(--bg); flex: none; flex-wrap: wrap; min-height: 36px; }
-.zk-statusbar { flex: none; display: flex; align-items: center; gap: 12px; height: 26px; padding: 0 12px; font-size: 11px; color: var(--fg-2); background: var(--material); backdrop-filter: blur(20px); border-top: .5px solid var(--line); }
+.zk-statusbar { flex: none; display: flex; align-items: center; gap: 12px; height: 26px; padding: 0 12px; font-size: 11px; color: var(--fg-2); background: var(--material); border-top: .5px solid var(--line); }
 
 /* ---------- menubar (Windows/Linux/web only; macOS uses the native one) ---------- */
 .zk-menubar { flex: none; display: flex; height: 28px; align-items: stretch; padding: 0 4px; background: var(--bg-2); border-bottom: .5px solid var(--line); z-index: 40; }
@@ -143,7 +143,7 @@ input[type="range"].zk-range::-webkit-slider-thumb { appearance: none; width: 18
 .zk-radio:checked::after { content: ""; width: 6px; height: 6px; border-radius: 50%; background: #fff; }
 
 /* ---------- sidebar / inspector / lists ---------- */
-.zk-sidebar { background: var(--sidebar); backdrop-filter: saturate(180%) blur(30px); -webkit-backdrop-filter: saturate(180%) blur(30px); border-right: .5px solid var(--line); width: 220px; flex: none; overflow: auto; padding: 8px; }
+.zk-sidebar { background: var(--sidebar); border-right: .5px solid var(--line); width: 220px; flex: none; overflow: auto; padding: 8px; }
 .platform-mac .zk-sidebar.under-titlebar { padding-top: 44px; }
 .zk-inspector { background: var(--bg); border-left: .5px solid var(--line); width: 260px; flex: none; overflow: auto; }
 .zk-inspector .zk-section { padding: 12px 14px; border-bottom: .5px solid var(--line); display: flex; flex-direction: column; gap: 8px; }
@@ -158,8 +158,7 @@ input[type="range"].zk-range::-webkit-slider-thumb { appearance: none; width: 18
 
 /* ---------- menus & popovers ---------- */
 .zk-pop {
-  position: fixed; z-index: 1000; min-width: 180px; max-width: 360px; padding: 5px; border-radius: 10px; background: var(--material-thick);
-  backdrop-filter: saturate(180%) blur(30px); -webkit-backdrop-filter: saturate(180%) blur(30px); box-shadow: var(--shadow-2); transform-origin: var(--ox, 50%) var(--oy, 0);
+  position: fixed; z-index: 1000; min-width: 180px; max-width: 360px; padding: 5px; border-radius: 10px; background: var(--material-thick); box-shadow: var(--shadow-2); transform-origin: var(--ox, 50%) var(--oy, 0);
   animation: zk-pop-in .16s var(--ease); max-height: calc(100vh - 16px); overflow: auto;
 }
 @keyframes zk-pop-in { from { opacity: 0; transform: scale(.96); } to { opacity: 1; transform: none; } }
@@ -177,7 +176,7 @@ input[type="range"].zk-range::-webkit-slider-thumb { appearance: none; width: 18
 .zk-scrim { position: fixed; inset: 0; z-index: 900; background: rgba(0,0,0,.28); display: flex; align-items: flex-start; justify-content: center; padding-top: 12vh; animation: zk-fade .2s ease; }
 .zk-scrim.out { animation: zk-fade .14s ease reverse forwards; }
 @keyframes zk-fade { from { opacity: 0; } }
-.zk-sheet { width: min(420px, calc(100vw - 32px)); max-height: 78vh; display: flex; flex-direction: column; background: var(--material-thick); backdrop-filter: saturate(180%) blur(40px); -webkit-backdrop-filter: saturate(180%) blur(40px); border-radius: 14px; box-shadow: var(--shadow-2); animation: zk-sheet-in .38s cubic-bezier(.2,1.1,.3,1); }
+.zk-sheet { width: min(420px, calc(100vw - 32px)); max-height: 78vh; display: flex; flex-direction: column; background: var(--material-thick); border-radius: 14px; box-shadow: var(--shadow-2); animation: zk-sheet-in .38s cubic-bezier(.2,1.1,.3,1); }
 .zk-scrim.out .zk-sheet { transform: scale(.97); transition: transform .14s ease; }
 @keyframes zk-sheet-in { from { transform: translateY(-14px) scale(.96); opacity: 0; } }
 .zk-sheet h2 { margin: 0; font-size: 15px; font-weight: 600; letter-spacing: -.01em; }
@@ -186,7 +185,7 @@ input[type="range"].zk-range::-webkit-slider-thumb { appearance: none; width: 18
 .zk-sheet .actions { display: flex; gap: 8px; padding: 8px 20px 18px; justify-content: flex-end; flex-wrap: wrap; }
 .zk-sheet .actions .zk-btn { height: 30px; padding: 0 16px; box-shadow: var(--shadow-1); background: var(--bg); }
 .zk-sheet .actions .zk-btn.primary { background: var(--accent); box-shadow: none; }
-.zk-toast { position: fixed; left: 50%; bottom: 36px; transform: translateX(-50%); z-index: 1100; padding: 8px 14px; border-radius: 999px; background: var(--material-thick); backdrop-filter: blur(30px); box-shadow: var(--shadow-2); animation: zk-toast .35s cubic-bezier(.2,1.1,.3,1); }
+.zk-toast { position: fixed; left: 50%; bottom: 36px; transform: translateX(-50%); z-index: 1100; padding: 8px 14px; border-radius: 999px; background: var(--material-thick); box-shadow: var(--shadow-2); animation: zk-toast .35s cubic-bezier(.2,1.1,.3,1); }
 @keyframes zk-toast { from { transform: translate(-50%, 12px); opacity: 0; } }
 .zk-empty { display: grid; place-content: center; text-align: center; gap: 6px; color: var(--fg-3); height: 100%; padding: 24px; }
 .zk-empty strong { color: var(--fg-2); font-size: 15px; font-weight: 600; }

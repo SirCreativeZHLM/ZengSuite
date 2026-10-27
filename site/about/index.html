@@ -37,6 +37,8 @@
 <p>All of the code is under the <a href="https://github.com/SirCreativeZHLM/ZengSuite/blob/main/LICENSE" rel="noopener">MIT license</a>. Use it, change it, sell it, fork it. There is no paid edition and no feature that is held back for one.</p>
 <h2>Native, not Electron</h2>
 <p>Each app is a small Rust program that opens a native window and uses the web view already on your system: WKWebView on macOS, WebView2 on Windows, WebKitGTK on Linux. Nothing bundles a browser, so an app is about 2 MB (Look, with its PDF engine and OCR, is about 14).</p>
+<h2>Light on old hardware</h2>
+<p>The interface is flat and solid, with no blur or glass effects that make older graphics hardware work hard, and one bundled open typeface (Geist, SIL Open Font License) so it looks the same everywhere. It is built to feel modern while running comfortably on older machines.</p>
 <h2>No telemetry, no accounts</h2>
 <p>The apps do not phone home. No analytics, no crash reporter, no sign-in, no ads, no upsell screens. They work offline and they never need a network. All the marketing is on this website, and none of it is in the software.</p>
 <h2>How to contribute</h2>
@@ -48,7 +50,7 @@
 </ul>
 <h2>Honest known limits</h2>
 <ul>
-<li>This is version 0.1.0. It is young software and it has rough edges.</li>
+<li>This is version 0.1.1. It is young software and it has rough edges.</li>
 <li>.docx, .xlsx and .pptx files open and save, but very complex documents may lose features. Keep an original around for anything important.</li>
 <li>Only macOS has been run natively by hand. The Windows and Linux builds come from the same code but are untested so far, so expect them to be rougher.</li>
 <li>Linux needs WebKitGTK 4.1 installed (the <code>webkit2gtk-4.1</code> package on most distributions). Windows uses the WebView2 runtime that ships with current Windows.</li>

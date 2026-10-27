@@ -189,6 +189,16 @@ ${dlBlock((p) => [bundleUrl(p), bundleFile(p)], 'ZengSuite')}
 
 <section class="hr">
 <div class="wrap two">
+<h2>Light on old machines. Modern in taste.</h2>
+<div>
+<p>ZengSuite is tuned for older computers. The look is clean and current, but it is drawn with flat, solid surfaces instead of blur and glass, so a laptop or desktop from a few years ago stays smooth and quiet. Apps open fast, sit nearly idle when you are not typing, and share one open typeface (Geist) rather than leaning on system fonts.</p>
+<p>That means the same crisp interface on macOS, Windows and Linux, including lean distros like Arch.</p>
+</div>
+</div>
+</section>
+
+<section class="hr">
+<div class="wrap two">
 <h2>What is not here yet.</h2>
 <div>
 <p><strong>No email client.</strong> There is no email app in the suite yet.</p>
@@ -321,6 +331,8 @@ function aboutPage() {
 <p>All of the code is under the <a href="https://github.com/${repo}/blob/main/LICENSE" rel="noopener">MIT license</a>. Use it, change it, sell it, fork it. There is no paid edition and no feature that is held back for one.</p>
 <h2>Native, not Electron</h2>
 <p>Each app is a small Rust program that opens a native window and uses the web view already on your system: WKWebView on macOS, WebView2 on Windows, WebKitGTK on Linux. Nothing bundles a browser, so an app is about ${data.sizes.each} MB (Look, with its PDF engine and OCR, is about ${data.sizes.look}).</p>
+<h2>Light on old hardware</h2>
+<p>The interface is flat and solid, with no blur or glass effects that make older graphics hardware work hard, and one bundled open typeface (Geist, SIL Open Font License) so it looks the same everywhere. It is built to feel modern while running comfortably on older machines.</p>
 <h2>No telemetry, no accounts</h2>
 <p>The apps do not phone home. No analytics, no crash reporter, no sign-in, no ads, no upsell screens. They work offline and they never need a network. All the marketing is on this website, and none of it is in the software.</p>
 <h2>How to contribute</h2>

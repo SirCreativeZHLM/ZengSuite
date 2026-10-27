@@ -129,7 +129,7 @@
   };
 
   // ---------- themes ----------
-  const FONT = '-apple-system,BlinkMacSystemFont,"SF Pro Text","Inter","Segoe UI",system-ui,sans-serif';
+  const FONT = '"Geist",sans-serif';
   function themeColors(theme) {
     if (theme === 'light') return { fg: '#1d1d1f', fg2: '#6e6e73', fg3: '#aeaeb2', line: '#e8e8ed', strong: '#c7c7cc', bg: '#ffffff', fixed: true };
     if (theme === 'dark') return { fg: '#f5f5f7', fg2: '#a1a1a6', fg3: '#636366', line: '#38383a', strong: '#545458', bg: '#1e1e20', fixed: true };

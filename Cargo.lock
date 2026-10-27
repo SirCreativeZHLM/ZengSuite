@@ -3114,7 +3114,7 @@ dependencies = [
 
 [[package]]
 name = "zeng-calculator"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "include_dir",
  "zeng-shell",
@@ -3122,7 +3122,7 @@ dependencies = [
 
 [[package]]
 name = "zeng-calendar"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "include_dir",
  "zeng-shell",
@@ -3130,7 +3130,7 @@ dependencies = [
 
 [[package]]
 name = "zeng-contacts"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "include_dir",
  "zeng-shell",
@@ -3138,7 +3138,7 @@ dependencies = [
 
 [[package]]
 name = "zeng-freeform"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "include_dir",
  "zeng-shell",
@@ -3146,7 +3146,7 @@ dependencies = [
 
 [[package]]
 name = "zeng-keynote"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "include_dir",
  "zeng-shell",
@@ -3154,7 +3154,7 @@ dependencies = [
 
 [[package]]
 name = "zeng-notes"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "include_dir",
  "zeng-shell",
@@ -3162,7 +3162,7 @@ dependencies = [
 
 [[package]]
 name = "zeng-numbers"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "include_dir",
  "zeng-shell",
@@ -3170,7 +3170,7 @@ dependencies = [
 
 [[package]]
 name = "zeng-pages"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "include_dir",
  "zeng-shell",
@@ -3178,7 +3178,7 @@ dependencies = [
 
 [[package]]
 name = "zeng-preview"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "include_dir",
  "zeng-shell",
@@ -3186,7 +3186,7 @@ dependencies = [
 
 [[package]]
 name = "zeng-reminders"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "include_dir",
  "zeng-shell",
@@ -3194,7 +3194,7 @@ dependencies = [
 
 [[package]]
 name = "zeng-shell"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "base64 0.22.1",
  "include_dir",
@@ -3211,7 +3211,7 @@ dependencies = [
 
 [[package]]
 name = "zeng-text"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "include_dir",
  "zeng-shell",

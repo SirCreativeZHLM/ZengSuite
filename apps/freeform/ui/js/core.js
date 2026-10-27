@@ -21,7 +21,7 @@
   FF.PALETTE = ['ink', '#7a8190', '#e5484d', '#f2780c', '#f5c000', '#46a758', '#12a594', '#0090ff', '#5b5bd6', '#a15fd3', '#d6409f', '#a07c5b', '#ffffff'];
   FF.STICKY = ['#f6d36b', '#f4a9a1', '#f2b987', '#a9d9a1', '#9fcbe8', '#c4b3e6', '#d8d3c4', '#fbf7ee'];
   FF.FAMS = {
-    sans: "ui-sans-serif,-apple-system,'SF Pro Text',Inter,'Segoe UI',system-ui,sans-serif",
+    sans: "Inter,sans-serif",
     serif: "'New York','Iowan Old Style',Georgia,'Times New Roman',serif",
     mono: "ui-monospace,'SF Mono',Menlo,Consolas,monospace",
     hand: "'Bradley Hand','Segoe Print','Marker Felt','Comic Sans MS',cursive",

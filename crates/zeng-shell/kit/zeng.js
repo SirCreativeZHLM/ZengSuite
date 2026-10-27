@@ -289,11 +289,30 @@
   });
   addEventListener('contextmenu', (e) => { if (!e.target.closest('input,textarea,[contenteditable]') && !e.defaultPrevented) e.preventDefault(); });
 
+  // ---------- keyboard glyphs: macOS symbols become Ctrl/Shift/Alt elsewhere ----------
+  const GL = { '⌘': 'Ctrl', '⌃': 'Ctrl', '⇧': 'Shift', '⌥': 'Alt' };
+  zeng.keys = (str) => zeng.platform === 'mac' || typeof str !== 'string' || !/[⌘⌃⇧⌥]/.test(str) ? str : str.replace(/([⌘⌃⇧⌥]+)(\+?)([^\s⌘⌃⇧⌥]?)/g, (m, g, _p, k) => [...new Set([...g].map((c) => GL[c]))].sort((a, b) => ['Ctrl', 'Alt', 'Shift'].indexOf(a) - ['Ctrl', 'Alt', 'Shift'].indexOf(b)).join('+') + (k ? '+' + (k === '↩' ? 'Enter' : k === '⌫' ? 'Backspace' : k) : ''));
+  const keyFix = (root) => {
+    if (zeng.platform === 'mac' || !root) return;
+    const skip = 'SCRIPT,STYLE,TEXTAREA,INPUT,CANVAS';
+    if (root.nodeType === 3) { const p = root.parentElement; if (p && !skip.includes(p.tagName) && !p.closest('[contenteditable=true],[contenteditable=""]') && /[⌘⌃⇧⌥]/.test(root.data)) root.data = zeng.keys(root.data); return; }
+    if (root.nodeType !== 1 || skip.includes(root.tagName) || root.isContentEditable) return;
+    for (const a of ['title', 'placeholder', 'aria-label']) { const v = root.getAttribute(a); if (v && /[⌘⌃⇧⌥]/.test(v)) root.setAttribute(a, zeng.keys(v)); }
+    for (const c of root.childNodes) keyFix(c);
+  };
+  zeng.keyFix = keyFix;
+  const startKeyFix = () => {
+    if (zeng.platform === 'mac') return;
+    keyFix(document.body);
+    new MutationObserver((ms) => { for (const m of ms) { if (m.type === 'attributes') keyFix(m.target); else if (m.type === 'characterData') keyFix(m.target); else m.addedNodes.forEach(keyFix); } }).observe(document.body, { subtree: true, childList: true, characterData: true, attributes: true, attributeFilter: ['title', 'placeholder', 'aria-label'] });
+  };
+
   // ---------- boot ----------
   document.documentElement.classList.add('platform-' + guess);
   zeng.ready = (async () => {
     if (native) { try { Object.assign(zeng.info, await zeng.call('ready')); zeng.platform = zeng.info.platform; document.documentElement.className = document.documentElement.className.replace(/platform-\w+/, 'platform-' + zeng.platform); } catch (e) { console.error(e); } }
     else { zeng.info.name = document.title.replace(/ .*/, ''); }
+    if (document.body) startKeyFix(); else addEventListener('DOMContentLoaded', startKeyFix);
     return zeng.info;
   })();
 })();

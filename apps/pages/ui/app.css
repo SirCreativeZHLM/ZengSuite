@@ -186,7 +186,7 @@
 .lname { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; } .lnum { font-variant-numeric: tabular-nums; color: var(--fg-2); font-size: 11.5px; } .lbar { grid-column: 1 / -1; height: 3px; border-radius: 2px; background: var(--fill); margin-top: 3px; overflow: hidden; } .lbar i { display: block; height: 100%; background: var(--accent); border-radius: 2px; transition: width .3s var(--ease); }
 /* focus mode: chrome steps back, the page stays */
 body.focusing #fmtbar, body.focusing #left, body.focusing #right, body.focusing #status, body.focusing #findbar { display: none !important; }
-body.focusing #tb { background: transparent; border-bottom-color: transparent; backdrop-filter: none; -webkit-backdrop-filter: none; }
+body.focusing #tb { background: transparent; border-bottom-color: transparent; }
 body.focusing #tb > *:not(.zk-title):not(.zk-spacer) { opacity: .0; transition: opacity .3s var(--ease); } body.focusing #tb:hover > * { opacity: 1; }
 body.focusing .zk-title { opacity: .5; }
 body.focusing .sheet { box-shadow: 0 0 0 .5px rgba(0,0,0,.1), 0 12px 48px rgba(0,0,0,.18); }

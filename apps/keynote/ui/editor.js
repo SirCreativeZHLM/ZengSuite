@@ -89,7 +89,7 @@
     const cs = getComputedStyle(document.documentElement); const fg = cs.getPropertyValue('--fg-2').trim() || '#888';
     const draw = (host, horiz) => {
       const c = rc(host), len = horiz ? host.clientWidth : host.clientHeight, th = 22; c.width = (horiz ? len : th) * dpr; c.height = (horiz ? th : len) * dpr; c.style.width = (horiz ? len : th) + 'px'; c.style.height = (horiz ? th : len) + 'px';
-      const g = c.getContext('2d'); g.scale(dpr, dpr); g.fillStyle = fg; g.strokeStyle = fg; g.font = '9px -apple-system, Inter, sans-serif'; g.lineWidth = 1;
+      const g = c.getContext('2d'); g.scale(dpr, dpr); g.fillStyle = fg; g.strokeStyle = fg; g.font = '9px Geist, sans-serif'; g.lineWidth = 1;
       const off = horiz ? wrapRect.left - sr.left : wrapRect.top - sr.top;
       const zz = z(); const steps = [1, 2, 5, 10, 20, 50, 100, 200, 500, 1000]; const step = steps.find((s) => s * zz >= 52) || 1000; const minor = step / 5 >= 1 && step * zz / 5 >= 7 ? step / 5 : 0;
       const total = (horiz ? A.deck.size.w : A.deck.size.h);

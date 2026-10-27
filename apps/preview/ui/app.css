@@ -53,7 +53,7 @@ canvas.loupe { position: absolute; border-radius: 50%; border: 3px solid #fff; b
 .hd.sq { border-radius: 3px; }
 .selbox { position: absolute; border: 1.5px solid var(--accent); pointer-events: none; transform-origin: center; border-width: calc(1.5px * var(--inv, 1)); }
 .selbox.soft { border-style: dashed; opacity: .8; }
-.noteedit { position: absolute; z-index: 20; padding: 8px; border-radius: 10px; background: var(--material-thick); backdrop-filter: blur(24px); box-shadow: var(--shadow-2); pointer-events: auto; cursor: default; }
+.noteedit { position: absolute; z-index: 20; padding: 8px; border-radius: 10px; background: var(--material-thick); box-shadow: var(--shadow-2); pointer-events: auto; cursor: default; }
 .noteedit textarea { display: block; }
 .cropper { position: absolute; inset: 0; z-index: 25; touch-action: none; }
 .cropbox { position: absolute; box-shadow: 0 0 0 99999px rgba(0,0,0,.5); outline: calc(1.5px * var(--inv, 1)) solid #fff; cursor: move; }
@@ -144,7 +144,7 @@ body.reordering { cursor: grabbing; } body.reordering * { cursor: grabbing !impo
 @media (prefers-reduced-motion: reduce) { .dropzone, .ol .tw { transition: none; } }
 
 /* ---------- floating tool pill (own layout: markup lives over the canvas, not in a second toolbar row) ---------- */
-#stage > .toolpill { inset: auto auto 14px 50%; transform: translateX(-50%); width: max-content; max-width: calc(100% - 24px); display: flex; flex-wrap: wrap; align-items: center; gap: 4px; padding: 5px 8px; border-radius: 16px; background: var(--material-thick); backdrop-filter: saturate(180%) blur(30px); -webkit-backdrop-filter: saturate(180%) blur(30px); box-shadow: var(--shadow-2); z-index: 50; justify-content: center; }
+#stage > .toolpill { inset: auto auto 14px 50%; transform: translateX(-50%); width: max-content; max-width: calc(100% - 24px); display: flex; flex-wrap: wrap; align-items: center; gap: 4px; padding: 5px 8px; border-radius: 16px; background: var(--material-thick); box-shadow: var(--shadow-2); z-index: 50; justify-content: center; }
 #stage > .toolpill.zk-hidden { display: none; }
 .toolpill .stylebar:empty { display: none; }
 .toolpill .zk-spacer { display: none; }

@@ -5,7 +5,7 @@
   K.uid = uid;
 
   const pal = (bg, fg, mut, a) => ({ bg, fg, mut, a1: a[0], a2: a[1], a3: a[2], a4: a[3], a5: a[4], a6: a[5] });
-  const sans = '"Inter", -apple-system, "Segoe UI", sans-serif';
+  const sans = '"Geist", sans-serif';
   const T = [
     { id: 'clean', name: 'Clean', dark: false, pal: pal('#ffffff', '#1d1d1f', '#6e6e73', ['#0a84ff', '#30b25a', '#ff9f0a', '#ff453a', '#bf5af2', '#40b8e8']), head: sans, body: sans, hw: 700, motif: 'clean', al: 'l' },
     { id: 'midnight', name: 'Midnight', dark: true, pal: pal('#0a0f1f', '#f2f5ff', '#8c97b8', ['#5ac8fa', '#7d7aff', '#ff6bd5', '#ffd166', '#4ade80', '#fb7185']), head: sans, body: sans, hw: 700, motif: 'glow', al: 'l' },

@@ -71,7 +71,7 @@
 .nr.sel::after, .nr:hover::after { display: none; }
 mark { background: rgba(var(--accent-rgb), .6); color: inherit; border-radius: 2px; padding: 0 1px; }
 .compact .nr { padding: 5px 10px; } .compact .nr .th { width: 30px; height: 30px; }
-.ghost { position: fixed; z-index: 2000; pointer-events: none; padding: 6px 12px; background: var(--material-thick); border-radius: 8px; box-shadow: var(--shadow-2); font-weight: 600; max-width: 220px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; backdrop-filter: blur(20px); }
+.ghost { position: fixed; z-index: 2000; pointer-events: none; padding: 6px 12px; background: var(--material-thick); border-radius: 8px; box-shadow: var(--shadow-2); font-weight: 600; max-width: 220px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 #list-empty { position: absolute; inset: 0; pointer-events: none; }
 
 /* --- editor pane --- */
@@ -187,11 +187,11 @@ input.title::placeholder { color: var(--fg-3); }
 
 /* modes */
 .focus-mode #sidebar, .focus-mode #rs1, .focus-mode #listpane, .focus-mode #rs2, .focus-mode #status, .focus-mode #tb > *:not(.keep) { display: none !important; }
-.focus-mode #tb { background: transparent; border-bottom-color: transparent; backdrop-filter: none; opacity: .0; transition: opacity .25s; } .focus-mode #tb:hover { opacity: 1; }
+.focus-mode #tb { background: transparent; border-bottom-color: transparent; opacity: .0; transition: opacity .25s; } .focus-mode #tb:hover { opacity: 1; }
 .focus-mode .doc { padding-top: 60px; max-width: calc(var(--ed-width) + 120px); } .focus-mode .dateline, .focus-mode .backlinks, .focus-mode .tagrow { opacity: .35; }
 .sticky-mode #sidebar, .sticky-mode #rs1, .sticky-mode #listpane, .sticky-mode #rs2, .sticky-mode #status, .sticky-mode #tb > *:not(.keep):not(.skeep) { display: none !important; }
 .sticky-mode #pane, .sticky-mode #main, .sticky-mode #tb { background: var(--sticky); color: var(--sticky-fg); }
-.sticky-mode #tb { backdrop-filter: none; --toolbar-h: 40px; min-height: 40px; }
+.sticky-mode #tb { --toolbar-h: 40px; min-height: 40px; }
 .sticky-mode .doc { max-width: none; padding: 10px 18px 60px; } .sticky-mode input.title { font-size: 17px; color: var(--sticky-fg); } .sticky-mode #ed { font-size: 14px; line-height: 1.5; caret-color: var(--sticky-fg); }
 .sticky-mode .dateline { margin-bottom: 4px; } .sticky-mode #ed a, .sticky-mode .tagchip { color: var(--sticky-fg); }
 .sticky-mode #ed pre.code, .sticky-mode #ed code { background: rgba(0,0,0,.08); }
@@ -232,8 +232,8 @@ body.hide-sidebar #sidebar, body.hide-sidebar #rs1 { display: none; }
 .gsel { max-width: 150px; }
 .gtog[aria-pressed="true"] { background: var(--ink-bg); color: var(--ink); }
 .gcv { display: block; flex: 1; touch-action: none; cursor: grab; outline: none; background: radial-gradient(var(--line) 1px, transparent 1.2px) 0 0/24px 24px; }
-.gcard { position: absolute; z-index: 3; width: 250px; padding: 10px 12px; border-radius: 10px; background: var(--material-thick); backdrop-filter: blur(24px); box-shadow: var(--shadow-2); pointer-events: none; animation: zk-pop-in .12s var(--ease); display: flex; flex-direction: column; gap: 4px; }
+.gcard { position: absolute; z-index: 3; width: 250px; padding: 10px 12px; border-radius: 10px; background: var(--material-thick); box-shadow: var(--shadow-2); pointer-events: none; animation: zk-pop-in .12s var(--ease); display: flex; flex-direction: column; gap: 4px; }
 .gcard .gt { font-weight: 600; font-size: 13px; } .gcard .gs { font-size: 12px; color: var(--fg-2); display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; line-height: 1.4; } .gcard .gm { font-size: 11px; color: var(--fg-3); } .gcard .gtags { font-size: 11px; color: var(--ink); }
-.glegend { position: absolute; left: 12px; bottom: 10px; display: flex; gap: 14px; padding: 5px 10px; border-radius: 8px; background: var(--material); backdrop-filter: blur(16px); pointer-events: none; }
+.glegend { position: absolute; left: 12px; bottom: 10px; display: flex; gap: 14px; padding: 5px 10px; border-radius: 8px; background: var(--material); pointer-events: none; }
 .graph-open #status { opacity: .5; }
 @media (max-width: 760px) { .gbar .gsel { max-width: 110px; } .glegend span:last-child { display: none; } }

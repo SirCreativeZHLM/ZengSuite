@@ -123,7 +123,7 @@ body.tool-draw #sl, body.tool-draw #sl * { cursor: crosshair !important; }
 }
 
 /* remix */
-#remix { flex: none; height: 0; overflow: hidden; background: var(--material-thick); backdrop-filter: saturate(180%) blur(30px); border-top: .5px solid var(--line); display: flex; flex-direction: column; opacity: 0; transition: height .38s cubic-bezier(.2,.9,.25,1), opacity .25s; position: relative; z-index: 6; }
+#remix { flex: none; height: 0; overflow: hidden; background: var(--material-thick); border-top: .5px solid var(--line); display: flex; flex-direction: column; opacity: 0; transition: height .38s cubic-bezier(.2,.9,.25,1), opacity .25s; position: relative; z-index: 6; }
 #remix.in { height: 262px; opacity: 1; } #remix.out { height: 0; opacity: 0; transition-duration: .2s; }
 .rx-head { display: flex; align-items: center; gap: 10px; padding: 10px 16px 0; flex: none; } .rx-title { font-size: 13px; } .rx-title b { font-weight: 700; letter-spacing: -.01em; } .rx-name { color: var(--accent); font-weight: 600; }
 .rx-hint { margin-left: auto; font-size: 11px; color: var(--fg-3); } .rx-head .zk-btn { height: 28px; }

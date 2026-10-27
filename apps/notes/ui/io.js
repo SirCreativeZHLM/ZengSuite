@@ -163,7 +163,7 @@
     const id = S.cur || [...S.sel][0]; if (!id) return; const note = await fullNote(id); if (!note) return; const used = new Set(); const g = await gather(note, 'a/', used); const byPath = new Map(g.files.map((f) => [f.path, f]));
     const html = CV.toHtmlDoc(note.title, g.doc.body, { dataUrl: (el) => { const p = g.map.get(el); const f = p && byPath.get(p); return f ? toDataUrl(f.bytes, f.type) : ''; } });
     const d = new DOMParser().parseFromString(html, 'text/html'); const css = CV.CSS.replace(/body\{[^}]*\}/, '').replace(/(^|\})([^{}]+)\{/g, (m, a, sel) => a + sel.split(',').map((x) => '#printRoot ' + x.trim()).join(',') + '{');
-    const root = document.getElementById('printRoot'); root.innerHTML = `<style>${css}#printRoot{font:14px/1.5 -apple-system,Segoe UI,Inter,sans-serif;color:#111;background:#fff}</style>` + d.body.innerHTML;
+    const root = document.getElementById('printRoot'); root.innerHTML = `<style>${css}#printRoot{font:14px/1.5 Geist,sans-serif;color:#111;background:#fff}</style>` + d.body.innerHTML;
     await Promise.all([...root.querySelectorAll('img')].map((i) => i.decode().catch(() => {}))); zeng.print();
     setTimeout(() => { if (!document.hasFocus || true) { /* keep until next print */ } }, 0);
   };

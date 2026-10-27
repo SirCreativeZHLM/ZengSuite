@@ -13,7 +13,7 @@
 .tx p[data-mk]::before { content: attr(data-mk); position: absolute; left: var(--ind, 0); width: var(--mkw, 20px); color: var(--mkc, inherit); font-weight: 400; text-decoration: none; }
 .tx a { cursor: pointer; }
 .ko.imgph { border: 1.5px dashed rgba(128,128,128,.55); border-radius: 6px; background: rgba(128,128,128,.08); display: grid; place-content: center; }
-.ko.imgph .imgph-in { color: rgba(128,128,128,.9); font: 600 18px -apple-system, "Inter", sans-serif; }
+.ko.imgph .imgph-in { color: rgba(128,128,128,.9); font: 600 18px "Geist", sans-serif; }
 .ko .tbl { border-collapse: collapse; table-layout: fixed; position: absolute; left: 0; top: 0; }
 .ko .tbl td { padding: 0; overflow: hidden; }
 .ko .tbl .tx.cell { position: static; display: block; }

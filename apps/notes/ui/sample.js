@@ -16,7 +16,7 @@ N.sample = async () => {
   const ol = (items) => `<ol>${items.map((i) => `<li>${i}</li>`).join('')}</ol>`;
   const tbl = (rows) => `<table><tbody>${rows.map((r, i) => `<tr>${r.map((c) => `<${i ? 'td' : 'th'}>${c}</${i ? 'td' : 'th'}>`).join('')}</tr>`).join('')}</tbody></table>`;
   const p = (t) => `<p>${t}</p>`; const code = (lang, t) => `<pre class="code" data-lang="${lang}">${e(t)}</pre>`;
-  const N_ = (title, folder, html, o = {}) => ({ title, folder, html, files: o.files || [], tags: [], created: now - (o.age ?? 3) * day - 3600e3, modified: now - (o.mod ?? o.age ?? 3) * day, pinned: o.pinned });
+  const N_ = (title, folder, html, o = {}) => ({ title, folder, html: window.zeng && zeng.keys ? zeng.keys(html) : html, files: o.files || [], tags: [], created: now - (o.age ?? 3) * day - 3600e3, modified: now - (o.mod ?? o.age ?? 3) * day, pinned: o.pinned });
 
   return [
     N_('Welcome to Notes', [], p('Notes keeps everything on this computer and saves as you type. A few things to try:') + ul([['Tick this checklist item', 1], 'Type <code>#</code> then a space for a heading, <code>- </code> for a dashed list, <code>[] </code> for a checklist', 'Type <code>/</code> to open the insert menu', `Link notes with double brackets, like ${L('Weekly plan')}`, 'Open the Link Graph from the toolbar to see how your notes connect'], 'check') + p('Tags work inline: #welcome #tips') + p('Try ⌘F to search every note, and ⌘D to open today’s daily note.'), { age: 0, mod: 0, pinned: true }),

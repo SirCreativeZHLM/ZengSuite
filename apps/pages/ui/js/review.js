@@ -94,7 +94,7 @@
     const id = 'f' + P.uid(); const ref = mk('sup', 'fnr'); ref.dataset.fn = id; ref.setAttribute('contenteditable', 'false'); r.deleteContents(); r.insertNode(ref);
     let sep = flow.querySelector('hr.fnsep'); if (!sep) { sep = mk('hr', 'fnsep'); sep.setAttribute('contenteditable', 'false'); const tail = P.emptyP(); flow.append(sep); void tail; }
     const p = mk('p'); p.dataset.st = 'Footnote'; p.dataset.fnid = id; p.append(document.createElement('br')); flow.append(p);
-    P.renumberFootnotes(); P.changed(); P.markDirty(); P.placeCaretIn(p); P.ensureCaretVisible(); zk.toast('Footnote added at the end of the document — press ⌘↩ (Ctrl+Enter) to jump back');
+    P.renumberFootnotes(); P.changed(); P.markDirty(); P.placeCaretIn(p); P.ensureCaretVisible(); zk.toast('Footnote added at the end of the document — press Cmd/Ctrl+Enter to jump back');
   };
   P.renumberFootnotes = () => {
     const refs = [...flow.querySelectorAll('sup.fnr[data-fn]')]; const notes = new Map([...flow.querySelectorAll('p[data-fnid]')].map((p) => [p.dataset.fnid, p]));

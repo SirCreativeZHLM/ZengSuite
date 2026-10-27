@@ -5,7 +5,7 @@
 #editlayer { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
 #editlayer .ed-wrap { pointer-events: auto; -webkit-user-select: text; user-select: text; cursor: text; }
 #editlayer .ed-in { -webkit-user-select: text; user-select: text; }
-.fl { position: absolute; background: var(--material-thick); backdrop-filter: saturate(180%) blur(30px); -webkit-backdrop-filter: saturate(180%) blur(30px); box-shadow: var(--shadow-2); border-radius: 14px; z-index: 10; }
+.fl { position: absolute; background: var(--material-thick); box-shadow: var(--shadow-2); border-radius: 14px; z-index: 10; }
 #tools { left: 12px; top: 50%; transform: translateY(-50%); display: flex; flex-direction: column; padding: 5px; gap: 2px; max-height: calc(100% - 24px); overflow: auto; }
 #tools .zk-btn { width: 34px; height: 34px; border-radius: 9px; }
 #tools .zk-btn .zi { width: 18px; height: 18px; }

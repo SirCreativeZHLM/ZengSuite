@@ -4,7 +4,7 @@
   const ZN = window.ZN; const MAXR = ZN.MAXR, MAXC = ZN.MAXC;
   const HDR_H = 24;
   const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
-  const FONT = '-apple-system, BlinkMacSystemFont, "SF Pro Text", Inter, "Segoe UI", system-ui, sans-serif';
+  const FONT = 'Geist, sans-serif';
   const DASH = { dashed: [4, 3], mediumDashed: [5, 3], dotted: [1.5, 2], dashDot: [4, 2, 1.5, 2], mediumDashDot: [4, 2, 1.5, 2], dashDotDot: [4, 2, 1.5, 2, 1.5, 2], mediumDashDotDot: [4, 2, 1.5, 2, 1.5, 2], slantDashDot: [4, 2, 1.5, 2] };
   const BW = { thin: 1, hair: 0.5, medium: 2, thick: 3, mediumDashed: 2, mediumDashDot: 2, mediumDashDotDot: 2, double: 3 };
 

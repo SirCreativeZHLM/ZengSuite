@@ -39,7 +39,7 @@
     if (p > 0.98 && !o.noHead) { const e = P(1), e0 = P(0.94); const ang = Math.atan2(e[1] - e0[1], e[0] - e0[0]); ctx.translate(e[0], e[1]); ctx.rotate(ang); ctx.fillStyle = color; ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(-9, -5); ctx.lineTo(-9, 5); ctx.closePath(); ctx.fill(); }
     ctx.restore();
   }
-  function chip(text, x, y, color) { ctx.save(); ctx.font = '600 10.5px -apple-system, system-ui, sans-serif'; const w = ctx.measureText(text).width + 12; const X0 = Math.min(app.grid.vw - w - 4, Math.max(app.grid.hw + 4, x - w / 2)), Y0 = Math.min(app.grid.vh - 22, Math.max(app.grid.hh + 4, y - 9)); ctx.fillStyle = color; ctx.beginPath(); ctx.roundRect(X0, Y0, w, 18, 9); ctx.fill(); ctx.fillStyle = '#fff'; ctx.textBaseline = 'middle'; ctx.fillText(text, X0 + 6, Y0 + 9.5); ctx.restore(); }
+  function chip(text, x, y, color) { ctx.save(); ctx.font = '600 10.5px sans-serif'; const w = ctx.measureText(text).width + 12; const X0 = Math.min(app.grid.vw - w - 4, Math.max(app.grid.hw + 4, x - w / 2)), Y0 = Math.min(app.grid.vh - 22, Math.max(app.grid.hh + 4, y - 9)); ctx.fillStyle = color; ctx.beginPath(); ctx.roundRect(X0, Y0, w, 18, 9); ctx.fill(); ctx.fillStyle = '#fff'; ctx.textBaseline = 'middle'; ctx.fillText(text, X0 + 6, Y0 + 9.5); ctx.restore(); }
   function draw() {
     const d = st.data; const g = app.grid; if (!cv || !d) return; ctx.setTransform(g.dpr, 0, 0, g.dpr, 0, 0); ctx.clearRect(0, 0, g.vw, g.vh); if (d.sh !== app.sheet) return;
     ctx.save(); ctx.beginPath(); ctx.rect(g.hw, g.hh, g.vw - g.hw, g.vh - g.hh); ctx.clip();
